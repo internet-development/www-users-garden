@@ -34,7 +34,7 @@ export default function ModalNavigationTemplate(props) {
               return;
             }
 
-            Cookies.remove('sitekey');
+            Cookies.remove('gardening_session');
             window.location.reload();
           }}
         >

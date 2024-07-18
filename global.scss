@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'Mono';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/0a26b101-f97b-41c3-a0cd-205358c7b3f7.woff') format('woff');
+}
+
 html,
 body,
 div,
@@ -102,6 +107,7 @@ section {
 
 body.theme-light {
   --theme-background: var(--color-white);
+  --theme-background-input: var(--color-white);
   --theme-background-overlay: var(--color-white-4);
   --theme-background-box-top: rgba(245, 245, 245, 1);
   --theme-background-box-front: rgba(215, 215, 215, 1);
@@ -145,6 +151,7 @@ body.theme-light {
 
 body.theme-daybreak {
   --theme-background: var(--color-black-daybreak-100);
+  --theme-background-input: var(--color-gray-100);
   --theme-background-overlay: var(--color-daybreak-100-4);
   --theme-background-box-top: var(--color-gray-70);
   --theme-background-box-front: var(--color-gray-100);
@@ -188,6 +195,7 @@ body.theme-daybreak {
 
 body.theme-dark {
   --theme-background: var(--color-black-100);
+  --theme-background-input: var(--color-gray-100);
   --theme-background-overlay: var(--color-black-100-4);
   --theme-background-box-top: var(--color-gray-70);
   --theme-background-box-front: var(--color-gray-100);
@@ -231,6 +239,7 @@ body.theme-dark {
 
 body.theme-blue {
   --theme-background: var(--color-blue-80);
+  --theme-background-input: var(--color-blue-80);
   --theme-background-overlay: var(--color-blue-80-4);
   --theme-background-box-top: #6d4c41;
   --theme-background-box-front: #3e2723;
@@ -274,6 +283,7 @@ body.theme-blue {
 
 body.theme-neon-green {
   --theme-background: var(--color-neon-green-100);
+  --theme-background-input: var(--color-neon-green-100);
   --theme-background-overlay: var(--color-black-100-4);
   --theme-background-box-top: var(--color-gray-70);
   --theme-background-box-front: var(--color-gray-100);
@@ -425,10 +435,10 @@ body {
   --type-scale-fixed-label: 10px;
 
   --font-family: -apple-system, BlinkMacSystemFont, helvetica neue, helvetica, sans-serif;
-  --font-family-mono: Consolas, monaco, monospace;
+  --font-family-mono: 'Mono', Consolas, monaco, monospace;
   --font-family-serif: Georgia, Times New Roman, serif;
 
-  font-family: var(--font-family);
+  font-family: var(--font-family-mono);
   background: var(--theme-background);
   color: var(--theme-text);
   font-variant-numeric: tabular-nums;

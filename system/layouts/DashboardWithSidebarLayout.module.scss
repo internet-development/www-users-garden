@@ -6,14 +6,8 @@
 }
 
 .sidebar {
-  max-width: 240px;
-  width: 100%;
   align-self: stretch;
   box-shadow: 1px 0 0 0 var(--theme-border);
-
-  @media (max-width: 960px) {
-    min-width: 128px;
-  }
 }
 
 .content {

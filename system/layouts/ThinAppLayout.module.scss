@@ -4,9 +4,6 @@
   max-width: 512px;
   margin: 0 auto 0 auto;
 
-  border-left: 1px solid var(--theme-border);
-  border-right: 1px solid var(--theme-border);
-
   @media (max-width: 768px) {
     border-left: 0px;
     border-right: 0px;

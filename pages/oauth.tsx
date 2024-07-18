@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as Utilities from '@common/utilities';
 
+import AnyTextHeader from '@components/AnyTextHeader';
 import Cookies from 'js-cookie';
 
 function OAuthPage(props) {
@@ -9,11 +10,11 @@ function OAuthPage(props) {
       window.location.replace('/');
     }
 
-    Cookies.set('sitekey', props.code, { secure: true });
-    window.location.replace('/examples/features/authentication/google');
+    Cookies.set('gardening_session', props.code, { secure: true });
+    window.location.replace('/');
   });
 
-  return <div>Redirecting...</div>;
+  return <AnyTextHeader>REDIRECTING ...</AnyTextHeader>;
 }
 
 export async function getServerSideProps(context) {

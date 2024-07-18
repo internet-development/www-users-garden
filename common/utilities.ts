@@ -15,6 +15,15 @@ export function getOrdinalNumber(n) {
   return n + (n > 0 ? ['th', 'st', 'nd', 'rd'][(n > 3 && n < 21) || n % 10 > 3 ? 0 : n % 10] : '');
 }
 
+export function getDomainFromEmail(email: string): string {
+  const atIndex = email.lastIndexOf('@');
+  if (atIndex === -1) {
+    return '';
+  }
+  const domain = email.slice(atIndex + 1);
+  return domain;
+}
+
 // TODO(jimmylee)
 // Obviously delete this once we implement a theme picker modal.
 export function onHandleThemeChange() {
@@ -135,7 +144,51 @@ export function isEmpty(text: any) {
   return Boolean(!text.trim());
 }
 
-export function createSlug(text: any) {
+export function sanitizeObject(candidate: any): any {
+  if (typeof candidate !== 'object' || candidate === null) {
+    return null;
+  }
+
+  function sanitize(obj: any): any {
+    const newObj: any = {};
+
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        //const lowerKey = key.toLowerCase();
+        const lowerKey = key;
+        let value = obj[key];
+
+        if (typeof value === 'string') {
+          const lowerValue = value.toLowerCase();
+
+          if (value === '') {
+            continue;
+          } else if (!isNaN(Number(value))) {
+            newObj[lowerKey] = Number(value);
+          } else if (lowerValue === 'true') {
+            newObj[lowerKey] = true;
+          } else if (lowerValue === 'false') {
+            newObj[lowerKey] = false;
+          } else {
+            newObj[lowerKey] = value;
+          }
+        } else if (value === null) {
+          continue;
+        } else if (typeof value === 'object' && value !== null) {
+          newObj[lowerKey] = sanitize(value);
+        } else {
+          newObj[lowerKey] = value;
+        }
+      }
+    }
+
+    return newObj;
+  }
+
+  return sanitize({ ...candidate });
+}
+
+export function createSlugWithUnderscore(text: any) {
   if (isEmpty(text)) {
     return 'untitled';
   }
@@ -147,11 +200,11 @@ export function createSlug(text: any) {
   return text
     .toString()
     .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/\s+/g, '_') // Replace spaces with _
     .replace(p, (c) => b.charAt(a.indexOf(c))) // Replace special chars
     .replace(/&/g, '-and-') // Replace & with 'and'
     .replace(/[^\w\-]+/g, '') // Remove all non-word chars
-    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/\-\-+/g, '_') // Replace multiple - with single _
     .replace(/^-+/, '') // Trim - from start of text
     .replace(/-+$/, ''); // Trim - from end of text
 }

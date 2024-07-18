@@ -1,20 +1,20 @@
 .formHeading {
-  font-size: var(--type-scale-5);
-  line-height: 1.15;
-  font-weight: 600;
+  font-size: var(--type-scale-fixed-large);
+  line-height: 1.25;
+  font-weight: 400;
   display: block;
 }
 
 .formSubHeading {
-  font-size: var(--type-scale-6);
-  line-height: 1.15;
-  font-weight: 600;
+  font-size: var(--type-scale-fixed-medium);
+  line-height: 1.25;
+  font-weight: 400;
   display: block;
 }
 
 .formParagraph {
   line-height: 1.6;
-  font-size: var(--type-scale-7);
+  font-size: var(--type-scale-fixed-medium);
   font-weight: 400;
   display: block;
   text-align: left;
@@ -28,7 +28,8 @@
 .inputLabel {
   font-size: var(--type-scale-fixed-tiny);
   line-height: var(--type-scale-fixed-tiny);
-  text-weight: 600;
+  text-weight: 400;
   display: block;
   letter-spacing: 0.2px;
+  text-transform: uppercase;
 }

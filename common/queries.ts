@@ -1,4 +1,5 @@
 import * as Constants from '@common/constants';
+import * as Server from '@common/server';
 import * as Utilities from '@common/utilities';
 
 const REQUEST_HEADERS = {
@@ -10,13 +11,13 @@ const getHeaders = (key) => {
   return { ...REQUEST_HEADERS, Authorization: `Bearer ${key}` };
 };
 
-export async function fetchAndExpectData({ route, key, body }) {
-  let result;
+export async function fetchAndExpect({ route, key, body }: Record<string, any>, qualifer: string = 'data'): Promise<Record<string, any> | null> {
+  let result: Record<string, any>;
   try {
     const response = await fetch(route, {
       method: 'POST',
-      headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
-      body,
+      headers: { Authorization: `Bearer ${key}`, 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: body ? body : undefined,
     });
     result = await response.json();
   } catch (e) {
@@ -27,307 +28,95 @@ export async function fetchAndExpectData({ route, key, body }) {
     return null;
   }
 
-  if (!result.data) {
+  if (!result[qualifer]) {
     return null;
   }
 
   return result;
 }
 
-export async function anonymousForgotPassword({ email }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/users/reset-password', {
-      method: 'POST',
-      headers: REQUEST_HEADERS,
-      body: JSON.stringify({ email }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
+export async function onSetUsername({ username, key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/update-viewer-username`, key, body: JSON.stringify({ username }) }, 'data');
+  return result;
+}
 
-  if (!result) {
-    return null;
-  }
+export async function onSetUserData({ updates, id, key, forcePush = false }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/update`, key, body: JSON.stringify({ id, updates, forcePush }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationSourceUsers({ key, organizationId }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/list-by-source`, key, body: JSON.stringify({ organizationId }) }, 'data');
+  return result;
+}
+
+export async function onResendEmailVerification({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/verify-resend`, key, body: JSON.stringify({}) }, 'email');
+  return result;
+}
+
+export async function onGetAllOrganizations({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations`, key, body: JSON.stringify({}) }, 'data');
+  return result;
+}
+
+export async function onGetAllOrganizationMembers({ key, domain }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/users`, key, body: JSON.stringify({ domain }) }, 'data');
+  return result;
+}
+
+export async function onGetViewerOrganizations({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/viewer/organizations`, key, body: JSON.stringify({}) }, 'data');
+  return result;
+}
+
+export async function onOrganizationTogglePublic({ key, organizationId }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/toggle-public-access`, key, body: JSON.stringify({ organizationId }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationAddUser({ key, email, domain }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/users/add`, key, body: JSON.stringify({ email, domain }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationPromoteUser({ key, userId, organizationId }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/users/promote`, key, body: JSON.stringify({ organizationId, userId }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationDemoteUser({ key, userId, organizationId }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/users/demote`, key, body: JSON.stringify({ organizationId, userId }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationSetCustomVerifyEmail({ key, customEmail, domain }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/update`, key, body: JSON.stringify({ domain, updates: { email: customEmail } }) }, 'data');
+  return result;
+}
+
+export async function onOrganizationRemoveUser({ key, userId, organizationId }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/users/remove`, key, body: JSON.stringify({ organizationId, userId }) }, 'data');
+  return result;
+}
+
+export async function onAutomaticOrganizationMembership({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/membership/automatic`, key });
+  return result;
+}
+
+export async function checkDefaultOrganizationForMembers({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations/membership`, key });
+  return result;
+}
+
+export async function onUserAuthenticate({ email, password }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/authenticate`, body: JSON.stringify({ email, password, source: 'users.garden' }) }, 'user');
 
   return result;
 }
 
-export async function userAuthenticate({ email, password }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/users/authenticate', {
-      method: 'POST',
-      headers: REQUEST_HEADERS,
-      body: JSON.stringify({ email, password }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  if (!result.user) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userRefreshKey({ email, password }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/users/regenerate-key', {
-      method: 'POST',
-      headers: REQUEST_HEADERS,
-      body: JSON.stringify({ email, password }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  if (!result.user) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userUnsubscribeServices({ key }) {
-  if (Utilities.isEmpty(key)) {
-    return null;
-  }
-
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/users/subscriptions/unsubscribe', {
-      method: 'POST',
-      headers: { 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  if (!result.user) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userUploadData({ file, key }) {
-  if (Utilities.isEmpty(key)) {
-    return null;
-  }
-
-  let signedResult;
-  const name = file.name;
-  const type = file.type;
-  const size = file.size;
-
-  if (size > Constants.MAX_SIZE_BYTES) {
-    return { error: 'File size exceeds 15mb limit' };
-  }
-
-  try {
-    const signedResponse = await fetch(`https://api.internet.dev/api/data/generate-presigned-url`, {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': key,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ type, file: name, size }),
-    });
-    signedResult = await signedResponse.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!signedResult) {
-    return null;
-  }
-
-  if (signedResult.error) {
-    return signedResult;
-  }
-
-  if (!signedResult.uploadURL) {
-    return null;
-  }
-
-  try {
-    fetch(signedResult.uploadURL, {
-      method: 'PUT',
-      body: file,
-    });
-  } catch (e) {
-    return null;
-  }
-
-  return signedResult;
-}
-
-export async function userChangePassword({ key, password }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/users/update-viewer-password', {
-      method: 'POST',
-      headers: { 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userCreatePost({ id, key, src, type }) {
-  if (Utilities.isEmpty(key)) {
-    return null;
-  }
-
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/posts/create', {
-      method: 'POST',
-      headers: { 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, fields: { fileId: id, public: true }, src }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userDeletePost({ id, key }) {
-  if (Utilities.isEmpty(key)) {
-    return null;
-  }
-
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/posts/delete', {
-      method: 'POST',
-      headers: { 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userCreatePlainThread({ key, fields, src, type }) {
-  if (Utilities.isEmpty(key)) {
-    return null;
-  }
-
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/posts/create', {
-      method: 'POST',
-      headers: { 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields, src, type }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userListThreadReplies({ id, orderBy }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/posts/all-thread-replies', {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, orderBy }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function userListThreads({ orderBy }) {
-  let result;
-  try {
-    const response = await fetch('https://api.internet.dev/api/posts/all-threads', {
-      method: 'POST',
-      body: JSON.stringify({ orderBy }),
-    });
-    result = await response.json();
-  } catch (e) {
-    return null;
-  }
-
-  if (!result) {
-    return null;
-  }
-
-  return result;
-}
-
-export async function onRefreshDocuments({ key, type }) {
-  const result = await fetchAndExpectData({ route: 'https://api.internet.dev/api/documents', key, body: JSON.stringify({ type }) });
-  return result;
-}
-
-export async function onCreateDocument({ key, type }) {
-  const result = await fetchAndExpectData({ route: 'https://api.internet.dev/api/documents/create', key, body: JSON.stringify({ type }) });
-  return result;
-}
-
-export async function onDeleteDocumentById({ id, key }) {
-  const result = await fetchAndExpectData({ route: 'https://api.internet.dev/api/documents/delete', key, body: JSON.stringify({ id }) });
-  return result;
-}
-
-export async function onUpdateDocumentById({ id, key, updates }) {
-  const result = await fetchAndExpectData({ route: 'https://api.internet.dev/api/documents/update', key, body: JSON.stringify({ id, updates }) });
-  return result;
+export async function onGetViewer({ key }) {
+  const { viewer } = await Server.tryKeyWithoutCookie(key);
+  return viewer;
 }

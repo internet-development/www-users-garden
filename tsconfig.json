@@ -5,6 +5,7 @@
       "@root/*": ["./*"],
       "@system/*": ["./system/*"],
       "@demos/*": ["./demos/*"],
+      "@scenes/*": ["./scenes/*"],
       "@common/*": ["./common/*"],
       "@data/*": ["./data/*"],
       "@components/*": ["./components/*"],

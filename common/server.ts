@@ -1,13 +1,14 @@
+import * as Constants from '@common/constants';
 import * as Utilities from '@common/utilities';
 
 export async function setup(context): Promise<{ sessionKey?: any; viewer?: Record<string, any> | null }> {
   let viewer = null;
-  let sessionKey = context.req.cookies['sitekey'] || '';
+  let sessionKey = context.req.cookies['gardening_session'] || '';
 
   if (!Utilities.isEmpty(sessionKey)) {
     try {
-      const response = await fetch('https://api.internet.dev/api/users/viewer', {
-        method: 'PUT',
+      const response = await fetch(`${Constants.HOST}/api/users/viewer`, {
+        method: 'GET',
         headers: { 'X-API-KEY': sessionKey, 'Content-Type': 'application/json' },
       });
       const result = await response.json();
@@ -25,8 +26,8 @@ export async function tryKeyWithoutCookie(key): Promise<{ sessionKey?: any; view
 
   if (!Utilities.isEmpty(key)) {
     try {
-      const response = await fetch('https://api.internet.dev/api/users/viewer', {
-        method: 'PUT',
+      const response = await fetch(`${Constants.HOST}/api/users/viewer`, {
+        method: 'GET',
         headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
       });
       const result = await response.json();

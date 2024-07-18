@@ -35,7 +35,7 @@ export default function KeyHeader(props) {
           placeholder="« Use an API key to instantly authenticate »"
           value={props.value}
           onChange={(e) => {
-            Cookies.remove('sitekey');
+            Cookies.remove('gardening_session');
             props.onInputChange(e.target.value);
           }}
         />

@@ -34,7 +34,7 @@ export default function ModalAuthentication(props) {
                   return;
                 }
 
-                Cookies.remove('sitekey');
+                Cookies.remove('gardening_session');
                 window.location.reload();
               }}
               style={{ marginTop: 24, width: '100%' }}
@@ -83,17 +83,17 @@ export default function ModalAuthentication(props) {
               }
 
               setLoading(true);
-              const response = await Queries.userAuthenticate({ email, password });
+              const response = await Queries.onUserAuthenticate({ email, password });
               setLoading(false);
               if (!response) {
                 alert('Something went wrong. This is also a lazy message. Ideally the error message would have told you that you forgot to put your email or password.');
                 return;
               }
-              Cookies.remove('sitekey');
+              Cookies.remove('gardening_session');
 
               const confirm = window.confirm('Would you like to save your Cookie to maintain a session?');
               if (confirm) {
-                Cookies.set('sitekey', response.user.key, { secure: true });
+                Cookies.set('gardening_session', response.user.key, { secure: true });
               }
 
               props.onShowModal(null);
