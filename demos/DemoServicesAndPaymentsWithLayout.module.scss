@@ -1,0 +1,138 @@
+.header {
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.top {
+  padding: 128px 24px 48px 24px;
+  margin: 0 auto 0 auto;
+  max-width: 1440px;
+
+  @media (max-width: 1440px) {
+    max-width: 1248px;
+  }
+}
+
+.row {
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0px 24px 0px 24px;
+  margin: 0 auto 0 auto;
+  max-width: 1440px;
+
+  @media (max-width: 1440px) {
+    max-width: 1248px;
+  }
+
+  @media (max-width: 960px) {
+    flex-wrap: wrap;
+  }
+}
+
+.column {
+  padding: 0 12px 0 12px;
+  width: 25%;
+  border-left: 1px solid var(--theme-border);
+  align-self: stretch;
+  &:last-child {
+    border-right: 1px solid var(--theme-border);
+  }
+
+  @media (max-width: 960px) {
+    width: 50%;
+    &:nth-child(even) {
+      border-right: 1px solid var(--theme-border);
+    }
+    &:nth-child(1) {
+      border-bottom: 1px solid var(--theme-border);
+    }
+    &:nth-child(2) {
+      border-bottom: 1px solid var(--theme-border);
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    border-right: 1px solid var(--theme-border);
+    &:nth-child(3) {
+      border-bottom: 1px solid var(--theme-border);
+    }
+
+    &:last-child {
+      border-bottom: 0px solid var(--theme-border);
+    }
+  }
+}
+
+.content {
+  padding: 48px 12px 48px 12px;
+}
+
+.subtle {
+  color: var(--theme-border);
+}
+
+.link {
+  color: var(--theme-text);
+  transition: 200ms ease all;
+
+  &:visited {
+    color: var(--theme-text);
+  }
+
+  &:hover {
+    color: var(--theme-text);
+    opacity: 0.8;
+  }
+}
+
+.hero {
+  padding: 0 24px 0 24px;
+  margin: 0 auto 0 auto;
+  max-width: 1440px;
+
+  @media (max-width: 1440px) {
+    max-width: 1248px;
+  }
+
+  p {
+    max-width: 768px;
+  }
+}
+
+.heroContent {
+  padding: 24px 24px 192px 24px;
+  border-left: 1px solid var(--theme-border);
+
+  &:last-child {
+    border-right: 1px solid var(--theme-border);
+  }
+}
+
+.subRow {
+  padding: 0 24px 0 24px;
+  margin: 0 auto 0 auto;
+  max-width: 1440px;
+
+  @media (max-width: 1440px) {
+    max-width: 1248px;
+  }
+}
+
+.subRowContent {
+  padding: 24px 24px 48px 24px;
+  border-left: 1px solid var(--theme-border);
+
+  &:last-child {
+    border-right: 1px solid var(--theme-border);
+  }
+
+  p {
+    opacity: 0.5;
+    max-width: 768px;
+  }
+}
