@@ -18,13 +18,13 @@ export default function Page(props) {
         <meta property="og:url" content={props.url} />
         <meta property="og:title" content={props.title} />
         <meta property="og:description" content={props.description} />
-        <meta property="og:image" content="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9bdac738-c4a6-407f-be12-de5f37506a2b.png" />
+        <meta property="og:image" content="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/ccb2bcf8-9ba4-4976-9403-f3dac8ce0047.png" />
 
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={props.url} />
         <meta property="twitter:title" content={props.title} />
         <meta property="twitter:description" content={props.description} />
-        <meta property="twitter:image" content="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9bdac738-c4a6-407f-be12-de5f37506a2b.png" />
+        <meta property="twitter:image" content="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/ccb2bcf8-9ba4-4976-9403-f3dac8ce0047.png" />
 
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />

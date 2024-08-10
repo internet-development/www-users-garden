@@ -12,6 +12,8 @@ export default function UserGardenUpgrade(props) {
   return (
     <>
       <header className={styles.header}>
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/47118698-aade-4ea0-98b3-e75e4f3e2d9d.png" alt="Upgrade Image"/>
+
         <SubTitle style={{ opacity: 0.6 }}>UPGRADE</SubTitle>
         <P style={{ marginTop: 6 }}>
           Upgrade your account to gain increased access to our APIs and other services as they become available. Please note that some services are exclusively available to

@@ -52,6 +52,8 @@ export default function UserGardenWallet(props) {
 
   return (
     <div className={styles.root}>
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/12f42d94-a8d6-4432-beea-d8f22e803c7d.png" alt="Wallet Image" />
+
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>WALLET</SubTitle>
         <P style={{ marginTop: 6 }}>

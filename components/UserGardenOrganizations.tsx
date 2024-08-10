@@ -388,6 +388,8 @@ export default function UserGardenOrganizations(props) {
 
   return (
     <div className={styles.root}>
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/3d24aca8-1402-49c9-b653-c60d3dce949e.png" alt="Organizations Image" />
+
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>ORGANIZATIONS</SubTitle>
         <P style={{ marginTop: 6 }}>

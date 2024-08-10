@@ -52,6 +52,9 @@ export default function UserGardenGrants(props) {
 
   return (
     <div className={styles.root}>
+
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/eb146961-f24e-42e8-bc78-20f6b1b145c1.png" alt="Grant Image" />
+
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>GRANTS</SubTitle>
         <P style={{ marginTop: 6 }}>View all your grants and assign grants to other users. To give a grant, you must be an administrator or an organization’s admin.</P>
