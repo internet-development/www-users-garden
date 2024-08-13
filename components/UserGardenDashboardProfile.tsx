@@ -131,6 +131,12 @@ export default function UserGardenDashboardProfile(props) {
         )}
       </Group>
 
+      <Group title="USER ID">
+        <ul className={styles.list}>
+          <li>{props.viewer.id}</li>
+        </ul>
+      </Group>
+
       <Group title="CHANGE DATA">
         <ul className={styles.list}>
           <li>Your data is editable.</li>
