@@ -12,7 +12,7 @@ export default function UserGardenUpgrade(props) {
   return (
     <>
       <header className={styles.header}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/47118698-aade-4ea0-98b3-e75e4f3e2d9d.png" alt="Upgrade Image"/>
+        <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/47118698-aade-4ea0-98b3-e75e4f3e2d9d.png" alt="Upgrade Image" />
 
         <SubTitle style={{ opacity: 0.6 }}>UPGRADE</SubTitle>
         <P style={{ marginTop: 6 }}>
@@ -82,7 +82,7 @@ export default function UserGardenUpgrade(props) {
             <div className={styles.content}>
               <SubTitle style={{ opacity: 0.6 }}>COLLABORATOR</SubTitle>
               <H5 style={{ marginTop: 24 }}>
-                $399 USD<span className={styles.subtle}>/mo</span>
+                $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
               <Button onClick={() => alert('Coming soon!')} style={{ height: 48, marginTop: 24, width: '100%' }}>
                 Apply
