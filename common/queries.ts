@@ -55,6 +55,16 @@ export async function onResendEmailVerification({ key }) {
   return result;
 }
 
+export async function onUserChangePassword({ key, password }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/update-viewer-password`, key, body: JSON.stringify({ password }) });
+  return result;
+}
+
+export async function onUserRegenerateAPIKey({ email, key, password }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/regenerate-key`, key, body: JSON.stringify({ email, password }) }, 'user');
+  return result;
+}
+
 export async function onGetAllOrganizations({ key }) {
   const result = await fetchAndExpect({ route: `${Constants.HOST}/api/organizations`, key, body: JSON.stringify({}) }, 'data');
   return result;

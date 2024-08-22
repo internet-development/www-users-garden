@@ -92,6 +92,10 @@ function ExampleRootSinglePageApplication(props) {
             setActive(active);
             setCurrentOrganization(nextOrganization);
           }}
+          onChangeUserPassword={async ({ password }) => {
+            const response = await Queries.onUserChangePassword({ key, password });
+            return response;
+          }}
           onChangeCurrentUser={(event) => {
             if (!currentUser) return;
 
@@ -137,6 +141,17 @@ function ExampleRootSinglePageApplication(props) {
           }}
           onOrganizationSourceUsers={async ({ organizationId }) => {
             const response = await Queries.onOrganizationSourceUsers({ organizationId, key });
+            return response;
+          }}
+          onUserRegenerateAPIKey={async ({ email, password }) => {
+            const response = await Queries.onUserRegenerateAPIKey({ email, key, password });
+
+            if (response && response.user) {
+              Cookies.remove('gardening_session');
+              Cookies.set('gardening_session', response.user.key, { secure: true });
+              setKey(response.user.key);
+            }
+
             return response;
           }}
           onJoinOrganizationAutomatically={async () => {
@@ -251,6 +266,7 @@ function ExampleRootSinglePageApplication(props) {
             window.location.reload();
           }}
           organizations={organizations}
+          sessionKey={key}
           status={status}
           viewer={currentUser}
           yourOrganizations={yourOrganizations}
@@ -264,7 +280,11 @@ function ExampleRootSinglePageApplication(props) {
     <Page title="Users" description="Manage your account, organization, websites, and other API features" url="https://users.garden">
       <AnyTextHeader>USERS.GARDEN</AnyTextHeader>
       <ThinAppLayout>
-        <img style={{ display: 'block', width: '100%' }} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/ccb2bcf8-9ba4-4976-9403-f3dac8ce0047.png" alt="Home Page Image" />
+        <img
+          style={{ display: 'block', width: '100%' }}
+          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/ccb2bcf8-9ba4-4976-9403-f3dac8ce0047.png"
+          alt="Home Page Image"
+        />
 
         <Group title="MANAGE">Manage your account, organization, and websites.</Group>
 

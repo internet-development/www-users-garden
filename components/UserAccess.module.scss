@@ -1,0 +1,92 @@
+.root {
+  padding: 35px 24px 24px 24px;
+  max-width: 768px;
+}
+
+.image {
+  width: 100%;
+  display: block;
+  margin-bottom: 24px;
+}
+
+.section {
+  padding: 0 0 24px 0;
+}
+
+.child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-top: 1px solid var(--theme-border);
+}
+
+.left {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.line {
+  height: 100%;
+  width: 1px;
+  background: var(--theme-border);
+}
+
+.right {
+  min-width: 10%;
+  width: 100%;
+  padding: 24px 0px 24px 0px;
+}
+
+.list {
+  padding-left: 12px;
+  margin-top: 12px;
+  line-height: 1.225;
+}
+
+.actions {
+  margin-top: 24px;
+}
+
+.status {
+  font-size: var(--type-scale-fixed-tiny);
+  margin-top: 16px;
+}
+
+.group {
+  margin-top: 24px;
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  padding: 0 24px 24px 24px;
+}
+
+.groupLabel {
+  padding: 0 24px 0 24px;
+}
+
+.groupLabelText {
+  font-size: var(--type-scale-fixed-tiny);
+  text-transform: uppercase;
+  background: var(--theme-background);
+  display: inline-block;
+  transform: translateY(-50%);
+  padding: 0 16px 0 16px;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.inputGroupLeft {
+  width: 50%;
+}
+
+.inputGroupRight {
+  width: 50%;
+}

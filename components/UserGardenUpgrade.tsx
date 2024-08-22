@@ -136,13 +136,19 @@ export default function UserGardenUpgrade(props) {
               understanding of your use case. Reach out to us if you wish to discuss.
             </div>
             <div className={styles.disclaimer}>
-              [2] Reserved desks — Our office space offers a mix of reserved and open desks. The reserved desks are allocated on a first-come, first-served basis. Should we be
-              unable to assign you a desk immediately, you will be placed on a waitlist and informed as soon as one becomes available. Please note that all desk assignments are
-              subject to availability, regardless of application status.
+              [2] Reserved desks — Our office space offers a mix of reserved and open desks. The reserved desks are allocated on based on the needs of the Internet Development
+              Studio Company. View the{' '}
+              <a href="https://internet.dev/office" className={styles.link} target="_blank">
+                Office Usage Agreement
+              </a>
+              .
             </div>
             <div className={styles.disclaimer} style={{ paddingBottom: 128 }}>
-              [3] Collaborative team space — Availability for reserved team and startup space is limited. Please note that all spaces are subject to availability, even upon
-              application.
+              [3] Collaborative team space — Availability for reserved team and startup space is limited. View the{' '}
+              <a href="https://internet.dev/office" className={styles.link} target="_blank">
+                Office Usage Agreement
+              </a>
+              .
             </div>
           </div>
         </div>

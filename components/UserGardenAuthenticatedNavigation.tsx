@@ -31,10 +31,16 @@ export default function UserGardenAuthenticatedNavigation(props) {
       <div className={styles.top}>
         <SubTitle style={{ opacity: 0.6, padding: '8px 24px 8px 24px' }}>ACCOUNT</SubTitle>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
-          You
+          Profile
         </Item>
         <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
-          Upgrade
+          Upgrades
+        </Item>
+        <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`├`}>
+          Access
+        </Item>
+        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`├`}>
+          Danger
         </Item>
         <Item active={'USER_ORGANIZATIONS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ORGANIZATIONS', nextOrganization: null })} mark={`├`}>
           Organizations
