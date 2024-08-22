@@ -64,7 +64,7 @@ export default function UserGardenWallet(props) {
 
       <Group title="COMING SOON">
         <ul className={styles.list}>
-          <li style={isVerified ? { opacity: 0.1 } : undefined}>This feature is in development.</li>
+          <li style={{ opacity: 0.1 }}>This feature is in development.</li>
         </ul>
       </Group>
     </div>

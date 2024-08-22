@@ -191,6 +191,8 @@ export default function UserAccess(props) {
 
   return (
     <div className={styles.root}>
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/f2cd0f8d-51f9-4059-af55-177218272bb7.png" alt="Access Image" />
+
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>ACCESS</SubTitle>
         <P style={{ marginTop: 6 }}>Manage your account access: you can change your password here or generate a new API key to programmatically access our API.</P>

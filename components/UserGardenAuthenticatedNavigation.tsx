@@ -36,20 +36,20 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
           Upgrades
         </Item>
-        <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`├`}>
-          Access
-        </Item>
-        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`├`}>
-          Danger
-        </Item>
         <Item active={'USER_ORGANIZATIONS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ORGANIZATIONS', nextOrganization: null })} mark={`├`}>
           Organizations
         </Item>
         <Item active={'USER_GRANTS' === props.active} onClick={() => props.onNavigate({ active: 'USER_GRANTS', nextOrganization: null })} mark={`├`}>
           Grants
         </Item>
-        <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`└`}>
+        <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`├`}>
           Wallet
+        </Item>
+        <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`├`}>
+          Access
+        </Item>
+        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`└`}>
+          Danger
         </Item>
 
         {props.yourOrganizations && props.yourOrganizations.length ? (

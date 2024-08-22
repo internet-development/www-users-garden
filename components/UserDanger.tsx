@@ -52,6 +52,8 @@ export default function UserDanger(props) {
 
   return (
     <div className={styles.root}>
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/1b806857-b064-4905-9196-2c31dd262007.png" alt="Danger Image" />
+
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>DANGER</SubTitle>
         <P style={{ marginTop: 6 }}>TBD.</P>
@@ -59,13 +61,13 @@ export default function UserDanger(props) {
 
       <Group title="CANCEL SUBSCRIPTION">
         <ul className={styles.list}>
-          <li>This feature is in development.</li>
+          <li style={{ opacity: 0.1 }}>This feature is in development.</li>
         </ul>
       </Group>
 
       <Group title="DELETE ACCOUNT">
         <ul className={styles.list}>
-          <li>This feature is in development.</li>
+          <li style={{ opacity: 0.1 }}>This feature is in development.</li>
         </ul>
       </Group>
     </div>
