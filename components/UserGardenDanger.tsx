@@ -53,7 +53,7 @@ export default function UserDanger(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/1b806857-b064-4905-9196-2c31dd262007.png" alt="Danger Image" />
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/b22b6f94-f9d3-435f-b519-d5f7baccc5d9.jpg" alt="Danger Image" />
 
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>DANGER</SubTitle>

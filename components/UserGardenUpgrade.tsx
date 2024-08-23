@@ -13,7 +13,7 @@ export default function UserGardenUpgrade(props) {
   return (
     <>
       <header className={styles.header}>
-        <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/47118698-aade-4ea0-98b3-e75e4f3e2d9d.png" alt="Upgrade Image" />
+        <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9f0d7b45-733a-42d6-a50e-e8943664f21b.jpg" alt="Upgrade Image" />
 
         <SubTitle style={{ opacity: 0.6 }}>UPGRADE</SubTitle>
         <P style={{ marginTop: 6 }}>

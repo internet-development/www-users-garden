@@ -15,7 +15,7 @@ import Page from '@components/Page';
 import ThinAppLayout from '@system/layouts/ThinAppLayout';
 import UserGardenDashboard from '@scenes/UserGardenDashboard';
 
-import { P, SubTitle } from '@system/typography';
+import { P, H4, SubTitle } from '@system/typography';
 import { FormHeading, FormSubHeading, FormParagraph, InputLabel } from '@system/typography/forms';
 import { useModal } from '@system/providers/ModalContextProvider';
 
@@ -295,15 +295,11 @@ function ExampleRootSinglePageApplication(props) {
       <ThinAppLayout>
         <img
           style={{ display: 'block', width: '100%' }}
-          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/ccb2bcf8-9ba4-4976-9403-f3dac8ce0047.png"
+          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/45c87d48-2510-4fd6-9954-5fb7c3d9ecaf.jpg"
           alt="Home Page Image"
         />
 
-        <Group title="MANAGE">Manage your account, organization, and websites.</Group>
-
-        <Group title="DEBUG">Ensure every user has the correct permissions.</Group>
-
-        <Group title="UPGRADE">Pay for more API access or get office space in Seattle, WA.</Group>
+        <H4 style={{ marginTop: 24}}>Create or manage your account for the Internet Development Studio Company API, desk space, and services.</H4>
 
         <InputLabel style={{ marginTop: 48 }}>E-mail</InputLabel>
         <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Your e-mail" value={email} />

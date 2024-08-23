@@ -202,7 +202,7 @@ export default function UserAccess(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/f2cd0f8d-51f9-4059-af55-177218272bb7.png" alt="Access Image" />
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/f65ceb0a-d82f-4043-b692-93f541e1a45e.jpg" alt="Access Image" />
 
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>ACCESS</SubTitle>

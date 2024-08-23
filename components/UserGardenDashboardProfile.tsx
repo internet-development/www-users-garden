@@ -54,7 +54,7 @@ export default function UserGardenDashboardProfile(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/b414fc1f-68d5-42eb-b272-86cc1bf1bb3e.png" alt="Profile Image" />
+      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9d72d8a5-cd00-4d37-bc4b-7a73fb95e3cf.jpg" alt="Profile Image" />
 
       <div className={styles.section}>
         <SubTitle style={{ opacity: 0.6 }}>PROFILE</SubTitle>
