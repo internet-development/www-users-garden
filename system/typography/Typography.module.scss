@@ -41,12 +41,14 @@
 }
 
 .p {
-  font-size: var(--type-scale-7);
-  line-height: 1.2;
+  font-size: var(--type-scale-6);
+  line-height: 1.5;
   font-weight: 400;
   display: block;
   text-decoration: none;
   color: var(--theme-text);
+  font-family: var(--font-family);
+  letter-spacing: 0;
 
   &:visited {
     color: var(--theme-text);

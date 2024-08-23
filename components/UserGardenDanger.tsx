@@ -65,12 +65,12 @@ export default function UserDanger(props) {
 
       <Group title="USER STATUS">
         <ul className={styles.list}>
-          <li style={isVerified ? { opacity: 0.1 } : undefined}>You are an unverified user. You can not use most of the API.</li>
-          <li style={!isVerified ? { opacity: 0.1 } : undefined}>You are a verified user. You can use the API.</li>
-          <li style={!isPaying ? { opacity: 0.1 } : undefined}>You are a professional user. You have access to all premium features.</li>
-          <li style={!isOffice ? { opacity: 0.1 } : undefined}>You are a collaborator. You have access to our office space.</li>
-          <li style={!isPartner ? { opacity: 0.1 } : undefined}>You are a partner. You have special privileges.</li>
-          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>You are an administrator. You made this world.</li>
+          <li style={isVerified ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>unverified user</strong>. You can not use most of the API.</li>
+          <li style={!isVerified ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>verified user</strong>. You can use the API.</li>
+          <li style={!isPaying ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>professional user</strong>. You have access to all premium features.</li>
+          <li style={!isOffice ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>collaborator</strong>. You have access to our office space.</li>
+          <li style={!isPartner ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>partner</strong>. You have special privileges.</li>
+          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>administrator</strong>. You made this world.</li>
         </ul>
       </Group>
 
@@ -78,9 +78,8 @@ export default function UserDanger(props) {
         <Group title="CANCEL SUBSCRIPTION">
           <ul className={styles.list}>
             <li>Canceling your account ends all payments to our services.</li>
-            <li>You will lose permissions and potentially dedicated desks.</li>
+            <li>You will lose API permissions and potentially office space.</li>
             <li>Resubscribe anytime.</li>
-            <li>Will lower your account to "verified" status.</li>
           </ul>
 
           <div className={styles.actions}>
@@ -123,7 +122,7 @@ export default function UserDanger(props) {
       {isPaying ? (
         <Group title="DELETE ACCOUNT">
           <ul className={styles.list}>
-            <li>Cancel your subscriptions first before deleting your account.</li>
+            <li>Cancel your subscription first before deleting your account.</li>
           </ul>
         </Group>
       ) : (

@@ -111,6 +111,17 @@ function UserAccessChangePassword(props) {
   );
 }
 
+function UserAccessViewUserID(props) {
+  return (
+    <Group title="User ID">
+      <ul className={styles.list}>
+        <li>This is your User ID, in case you need it for any API operations.</li>
+      </ul>
+      <Input autoComplete="off" defaultValue={props.viewer.id} name="user_id" readOnly style={{ marginTop: 16 }}  />
+    </Group>
+  );
+}
+
 function UserAccessViewAPIKey(props) {
   const [show, setShow] = React.useState<boolean>(false);
   const [password, setPassword] = React.useState<string>('');
@@ -208,6 +219,8 @@ export default function UserAccess(props) {
         }}
         viewer={props.viewer}
       />
+
+      <UserAccessViewUserID viewer={props.viewer} />
 
       <UserAccessViewAPIKey
         loading={props.loading}

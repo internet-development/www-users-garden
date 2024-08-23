@@ -64,20 +64,23 @@ export default function UserGardenDashboardProfile(props) {
         </P>
       </div>
 
+
       <Group title="USER STATUS">
         <ul className={styles.list}>
-          <li style={isVerified ? { opacity: 0.1 } : undefined}>You are an unverified user. You can not use most of the API.</li>
-          <li style={!isVerified ? { opacity: 0.1 } : undefined}>You are a verified user. You can use the API.</li>
-          <li style={!isPaying ? { opacity: 0.1 } : undefined}>You are a professional user. You have access to all premium features.</li>
-          <li style={!isOffice ? { opacity: 0.1 } : undefined}>You are a collaborator. You have access to our office space.</li>
-          <li style={!isPartner ? { opacity: 0.1 } : undefined}>You are a partner. You have special privileges.</li>
-          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>You are an administrator. You made this world.</li>
+          <li style={isVerified ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>unverified user</strong>. You can not use most of the API.</li>
+          <li style={!isVerified ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>verified user</strong>. You can use the API.</li>
+          <li style={!isPaying ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>professional user</strong>. You have access to all premium features.</li>
+          <li style={!isOffice ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>collaborator</strong>. You have access to our office space.</li>
+          <li style={!isPartner ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>partner</strong>. You have special privileges.</li>
+          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>administrator</strong>. You made this world.</li>
         </ul>
 
-        <div className={styles.actions}>
+        {!isPaying ? <div className={styles.actions}>
           <Button onClick={() => props.onNavigate({ active: 'USER_UPGRADE' })}>Upgrade</Button>
-        </div>
+        </div> : null}
       </Group>
+
+
 
       {!isVerified && (
         <Group title="VERIFY E-MAIL">
@@ -103,39 +106,6 @@ export default function UserGardenDashboardProfile(props) {
           )}
         </Group>
       )}
-
-      <Group title="CHANGE USERNAME">
-        <ul className={styles.list}>
-          <li>Your username must be at least 2 characters.</li>
-          <li>Your username must be unique.</li>
-          <li>This change will effect URLs with your username.</li>
-        </ul>
-
-        <Input autoComplete="off" style={{ marginTop: 16 }} value={props.viewer.username} name="username" onChange={props.onChange} />
-        <div className={styles.actions}>
-          <Button
-            loading={loading}
-            onClick={async () => {
-              setLoading(true);
-              await props.onSaveCurrentUser();
-              setLoading(false);
-            }}
-          >
-            Save
-          </Button>
-        </div>
-        {props.status['username'] && (
-          <div className={styles.status}>
-            <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['username']}
-          </div>
-        )}
-      </Group>
-
-      <Group title="USER ID">
-        <ul className={styles.list}>
-          <li>{props.viewer.id}</li>
-        </ul>
-      </Group>
 
       <Group title="CHANGE DATA">
         <ul className={styles.list}>
@@ -219,6 +189,33 @@ export default function UserGardenDashboardProfile(props) {
         {props.status['data'] && (
           <div className={styles.status}>
             <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['data']}
+          </div>
+        )}
+      </Group>
+
+      <Group title="CHANGE USERNAME">
+        <ul className={styles.list}>
+          <li>Your username must be at least 2 characters.</li>
+          <li>Your username must be unique.</li>
+          <li>This change will effect URLs with your username.</li>
+        </ul>
+
+        <Input autoComplete="off" style={{ marginTop: 16 }} value={props.viewer.username} name="username" onChange={props.onChange} />
+        <div className={styles.actions}>
+          <Button
+            loading={loading}
+            onClick={async () => {
+              setLoading(true);
+              await props.onSaveCurrentUser();
+              setLoading(false);
+            }}
+          >
+            Save
+          </Button>
+        </div>
+        {props.status['username'] && (
+          <div className={styles.status}>
+            <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['username']}
           </div>
         )}
       </Group>

@@ -1,5 +1,5 @@
 .root {
-  padding: 35px 24px 24px 24px;
+  padding: 35px 24px 128px 24px;
   max-width: 768px;
 }
 
@@ -38,8 +38,20 @@
 .list {
   padding-left: 12px;
   margin-top: 12px;
-  line-height: 1.225;
+  font-size: var(--type-scale-6);
+  line-height: 1.5;
+  font-weight: 400;
+  display: block;
+  text-decoration: none;
+  color: var(--theme-text);
+  font-family: var(--font-family);
+  letter-spacing: 0;
+
+  &:visited {
+    color: var(--theme-text);
+  }
 }
+
 
 .actions {
   margin-top: 24px;

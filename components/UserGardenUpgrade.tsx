@@ -140,9 +140,7 @@ export default function UserGardenUpgrade(props) {
               , and{' '}
               <a href="https://txt.dev/wwwjim/intdev-acceptable-use" className={styles.link} target="_blank">
                 Acceptable Use Policy
-              </a>
-              . Our API enforces a strict file size limit of 100MB to prevent misuse of our services. However, we may consider increasing this limit once we have a clearer
-              understanding of your use case. Reach out to us if you wish to discuss.
+              </a>.
             </div>
             <div className={styles.disclaimer}>
               [2] Reserved desks — Our office space offers a mix of reserved and open desks. The reserved desks are allocated on based on the needs of the Internet Development

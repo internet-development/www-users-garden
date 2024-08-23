@@ -1,6 +1,6 @@
 .header {
   max-width: 768px;
-  padding: 35px 24px 24px 24px;
+  padding: 35px 24px 128px 24px;
 }
 
 .image {
@@ -146,8 +146,10 @@
 }
 
 .disclaimer {
-  font-size: var(--type-scale-fixed-small);
-  opacity: 0.6;
+  font-family: var(--font-family);
+  font-size: var(--type-scale-7);
+  opacity: 0.8;
+  line-height: 1.225;
   width: 100%;
   max-width: 488px;
   margin: 16px 0 0 0;
