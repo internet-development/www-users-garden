@@ -4,17 +4,17 @@ import * as React from 'react';
 
 import AnyTextHeader from '@components/AnyTextHeader';
 import DashboardWithSidebarLayout from '@system/layouts/DashboardWithSidebarLayout';
+import UserGardenAccess from '@components/UserGardenAccess';
 import UserGardenAuthenticatedNavigation from '@components/UserGardenAuthenticatedNavigation';
+import UserGardenApplications from '@components/UserGardenApplications';
 import UserGardenDashboardProfile from '@components/UserGardenDashboardProfile';
-import UserGardenUpgrade from '@components/UserGardenUpgrade';
+import UserGardenDanger from '@components/UserGardenDanger';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
+import UserGardenUpgrade from '@components/UserGardenUpgrade';
 
 // TODO(jimmylee)
 import UserGardenGrants from '@components/UserGardenGrants';
-import UserGardenApplications from '@components/UserGardenApplications';
 import UserGardenWallet from '@components/UserGardenWallet';
-import UserDanger from '@components/UserDanger';
-import UserAccess from '@components/UserAccess';
 
 export default function UserGardenDashboard(props) {
   const sidebarElement = (
@@ -72,9 +72,16 @@ export default function UserGardenDashboard(props) {
     USER_WALLET: <UserGardenWallet onChangeTransactions={props.onChangeTransactions} viewer={props.viewer} />,
     USER_UPGRADE: <UserGardenUpgrade viewer={props.viewer} />,
     USER_ACCESS: (
-      <UserAccess onChangeUserPassword={props.onChangeUserPassword} onUserRegenerateAPIKey={props.onUserRegenerateAPIKey} sessionKey={props.sessionKey} viewer={props.viewer} />
+      <UserGardenAccess
+        onChangeUserPassword={props.onChangeUserPassword}
+        onUserRegenerateAPIKey={props.onUserRegenerateAPIKey}
+        sessionKey={props.sessionKey}
+        viewer={props.viewer}
+      />
     ),
-    USER_DANGER: <UserDanger viewer={props.viewer} />,
+    USER_DANGER: (
+      <UserGardenDanger onUserUnsubscribeFromAllServices={props.onUserUnsubscribeFromAllServices} onUserDeleteAccount={props.onUserDeleteAccount} viewer={props.viewer} />
+    ),
   };
 
   return (

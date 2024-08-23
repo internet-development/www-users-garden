@@ -1,5 +1,6 @@
 import styles from '@components/UserGardenUpgrade.module.scss';
 
+import * as Constants from '@common/constants';
 import * as React from 'react';
 
 import Button from '@system/Button';
@@ -50,21 +51,17 @@ export default function UserGardenUpgrade(props) {
                 $8.99 USD<span className={styles.subtle}>/mo</span>
               </H5>
               {props.viewer ? (
-                props.viewer.level >= 20 ? (
+                props.viewer.level >= Constants.Users.tiers.PAYING ? (
                   <Button visual style={{ height: 48, marginTop: 24, width: '100%' }}>
                     Already obtained
                   </Button>
                 ) : (
-                  <Button
-                    href={`https://buy.stripe.com/28og0B2f9eIj8Io9AA?prefilled_email=${props.viewer.email}`}
-                    style={{ height: 48, marginTop: 24, width: '100%' }}
-                    target="_blank"
-                  >
+                  <Button href={`${Constants.LINKS.PAYING}?prefilled_email=${props.viewer.email}`} style={{ height: 48, marginTop: 24, width: '100%' }} target="_blank">
                     Get started
                   </Button>
                 )
               ) : (
-                <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="/examples/features/authentication">
+                <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="https://users.garden">
                   Sign up
                 </Button>
               )}
@@ -72,7 +69,7 @@ export default function UserGardenUpgrade(props) {
                 All the benefits of <strong>"Free"</strong>, and ↴
               </div>
               <div>
-                <CheckmarkItem>15,000 credits deposited every month.</CheckmarkItem>
+                <CheckmarkItem>{Constants.Payouts.PAYING.toLocaleString()} credits deposited every month.</CheckmarkItem>
                 <CheckmarkItem>Send credits to other users.</CheckmarkItem>
                 <CheckmarkItem>Access to all professional APIs, products, and games.</CheckmarkItem>
               </div>
@@ -84,15 +81,27 @@ export default function UserGardenUpgrade(props) {
               <H5 style={{ marginTop: 24 }}>
                 $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
-              <Button onClick={() => alert('Coming soon!')} style={{ height: 48, marginTop: 24, width: '100%' }}>
-                Apply
-              </Button>
+              {props.viewer ? (
+                props.viewer.level >= Constants.Users.tiers.GENERAL_CO_WORKING ? (
+                  <Button visual style={{ height: 48, marginTop: 24, width: '100%' }}>
+                    Already obtained
+                  </Button>
+                ) : (
+                  <Button href={`${Constants.LINKS.GENERAL_CO_WORKING}?prefilled_email=${props.viewer.email}`} style={{ height: 48, marginTop: 24, width: '100%' }} target="_blank">
+                    Get started
+                  </Button>
+                )
+              ) : (
+                <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="https://users.garden">
+                  Sign up
+                </Button>
+              )}
               <div className={styles.caption}>
                 All the benefits of <strong>"Professional"</strong>, and ↴
               </div>
               <div>
-                <CheckmarkItem>30,000 additional credits deposited every month (45,000 in total).</CheckmarkItem>
-                <CheckmarkItem>A reserved desk [2] at the collaborative space in Seattle, WA.</CheckmarkItem>
+                <CheckmarkItem>{Constants.Payouts.GENERAL_CO_WORKING.toLocaleString()} credits deposited every month.</CheckmarkItem>
+                <CheckmarkItem>If available, a reserved desk [2] at the collaborative space in Seattle, WA.</CheckmarkItem>
               </div>
             </div>
           </div>

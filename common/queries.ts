@@ -126,6 +126,18 @@ export async function onUserAuthenticate({ email, password }) {
   return result;
 }
 
+export async function onUserUnsubscribeFromAllServices({ key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/subscriptions/unsubscribe`, key, body: JSON.stringify({}) }, 'success');
+
+  return result;
+}
+
+export async function onUserDeleteAccount({ id, key }) {
+  const result = await fetchAndExpect({ route: `${Constants.HOST}/api/users/delete`, key, body: JSON.stringify({ id }) }, 'success');
+
+  return result;
+}
+
 export async function onGetViewer({ key }) {
   const { viewer } = await Server.tryKeyWithoutCookie(key);
   return viewer;

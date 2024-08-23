@@ -265,6 +265,19 @@ function ExampleRootSinglePageApplication(props) {
             Cookies.remove('gardening_session');
             window.location.reload();
           }}
+          onUserUnsubscribeFromAllServices={async () => {
+            const response = await Queries.onUserUnsubscribeFromAllServices({ key });
+            return response;
+          }}
+          onUserDeleteAccount={async () => {
+            if (!currentUser) return;
+
+            const response = await Queries.onUserDeleteAccount({ id: currentUser.id, key });
+            if (response && response.success) {
+              Cookies.remove('gardening_session');
+            }
+            return response;
+          }}
           organizations={organizations}
           sessionKey={key}
           status={status}

@@ -1,4 +1,4 @@
-import styles from '@components/UserAccess.module.scss';
+import styles from '@components/UserGardenAccess.module.scss';
 
 import * as Constants from '@common/constants';
 import * as React from 'react';
