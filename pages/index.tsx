@@ -9,6 +9,7 @@ import AnyTextHeader from '@components/AnyTextHeader';
 import Button from '@system/Button';
 import Cookies from 'js-cookie';
 import GlobalModalManager from '@system/modals/GlobalModalManager';
+import Google from '@system/svg/social/Google';
 import Input from '@system/Input';
 import MonospacePreview from '@system/MonospacePreview';
 import Page from '@components/Page';
@@ -299,14 +300,19 @@ function ExampleRootSinglePageApplication(props) {
           alt="Home Page Image"
         />
 
-        <H4 style={{ marginTop: 24}}>Create or manage your account for the Internet Development Studio Company API, desk space, and services.</H4>
+        <H4 style={{ marginTop: 24 }}>Create or manage your account for the Internet Development Studio Company API, desk space, and services.</H4>
 
-        <InputLabel style={{ marginTop: 48 }}>E-mail</InputLabel>
-        <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Your e-mail" value={email} />
-        <InputLabel style={{ marginTop: 24 }}>Password</InputLabel>
+        <Button style={{ width: '100%', minHeight: 48, marginTop: 16 }} href={`${Constants.HOST}/authenticate-google?domain=REDIRECT_USERS_GARDEN`} target="_blank">
+          <Google height="24px" style={{ marginRight: 16 }} />
+          Sign in with Google
+        </Button>
+
+        <InputLabel style={{ marginTop: 48, opacity: 0.6 }}>E-mail</InputLabel>
+        <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Type your e-mail" value={email} />
+        <InputLabel style={{ marginTop: 24, opacity: 0.6 }}>Password</InputLabel>
         <Input
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Your password"
+          placeholder="Type your password"
           name="password"
           style={{ marginTop: 8 }}
           type="password"
@@ -321,6 +327,60 @@ function ExampleRootSinglePageApplication(props) {
             }
           }}
         />
+
+        <Button
+          onClick={async () => {
+            if (Utilities.isEmpty(email)) {
+              showModal({
+                name: 'ERROR',
+                message: 'You must provide an e-mail.',
+              });
+              return;
+            }
+
+            if (Utilities.isEmpty(password)) {
+              showModal({
+                name: 'ERROR',
+                message: 'You must provide a password.',
+              });
+              return;
+            }
+
+            if (password.length < 4) {
+              showModal({
+                name: 'ERROR',
+                message: 'You must use at least 4 characters for your password.',
+              });
+              return;
+            }
+
+            setLoading(true);
+            const response = await Queries.onUserAuthenticate({ email, password });
+            setLoading(false);
+            if (!response) {
+              showModal({
+                name: 'ERROR',
+                message: 'Something went wrong. This is also a lazy message. Ideally the error message would have told you that you forgot to put your email or password.',
+              });
+              return;
+            }
+            Cookies.remove('gardening_session');
+            setKey('');
+
+            const confirm = window.confirm('Would you like to save your Cookie to maintain a session?');
+            if (confirm) {
+              setKey(response.user.key);
+              Cookies.set('gardening_session', response.user.key, { secure: true });
+            }
+
+            setUser(response.user);
+            window.location.reload();
+          }}
+          style={{ width: '100%', minHeight: 48, marginTop: 16 }}
+        >
+          Sign in or create account
+        </Button>
+
         <div style={{ marginTop: 24 }}>
           <ActionItem icon={`⊹`} href="https://txt.dev/wwwjim/intdev-acceptable-use" target="_blank">
             Acceptable Use Policy
@@ -330,64 +390,6 @@ function ExampleRootSinglePageApplication(props) {
           </ActionItem>
           <ActionItem icon={`⊹`} href="https://txt.dev/wwwjim/intdev-privacy-policy" target="_blank">
             Privacy Policy
-          </ActionItem>
-
-          <ActionItem icon={`⊹`} href={`${Constants.HOST}/authenticate-google?domain=REDIRECT_USERS_GARDEN`} target="_blank">
-            Sign in with Google
-          </ActionItem>
-
-          <ActionItem
-            icon={`⭢`}
-            id={`SUBMIT_SIGN_IN_OR_SIGN_UP`}
-            onClick={async () => {
-              if (Utilities.isEmpty(email)) {
-                showModal({
-                  name: 'ERROR',
-                  message: 'You must provide an e-mail.',
-                });
-                return;
-              }
-
-              if (Utilities.isEmpty(password)) {
-                showModal({
-                  name: 'ERROR',
-                  message: 'You must provide a password.',
-                });
-                return;
-              }
-
-              if (password.length < 4) {
-                showModal({
-                  name: 'ERROR',
-                  message: 'You must use at least 4 characters for your password.',
-                });
-                return;
-              }
-
-              setLoading(true);
-              const response = await Queries.onUserAuthenticate({ email, password });
-              setLoading(false);
-              if (!response) {
-                showModal({
-                  name: 'ERROR',
-                  message: 'Something went wrong. This is also a lazy message. Ideally the error message would have told you that you forgot to put your email or password.',
-                });
-                return;
-              }
-              Cookies.remove('gardening_session');
-              setKey('');
-
-              const confirm = window.confirm('Would you like to save your Cookie to maintain a session?');
-              if (confirm) {
-                setKey(response.user.key);
-                Cookies.set('gardening_session', response.user.key, { secure: true });
-              }
-
-              setUser(response.user);
-              window.location.reload();
-            }}
-          >
-            Sign in
           </ActionItem>
         </div>
       </ThinAppLayout>

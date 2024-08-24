@@ -64,23 +64,34 @@ export default function UserGardenDashboardProfile(props) {
         </P>
       </div>
 
-
       <Group title="USER STATUS">
         <ul className={styles.list}>
-          <li style={isVerified ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>unverified user</strong>. You can not use most of the API.</li>
-          <li style={!isVerified ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>verified user</strong>. You can use the API.</li>
-          <li style={!isPaying ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>professional user</strong>. You have access to all premium features.</li>
-          <li style={!isOffice ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>collaborator</strong>. You have access to our office space.</li>
-          <li style={!isPartner ? { opacity: 0.1 } : undefined}>You are a <strong style={{ color: `var(--theme-primary)`}}>partner</strong>. You have special privileges.</li>
-          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>You are an <strong style={{ color: `var(--theme-primary)`}}>administrator</strong>. You made this world.</li>
+          <li style={isVerified ? { opacity: 0.1 } : undefined}>
+            You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
+          </li>
+          <li style={!isVerified ? { opacity: 0.1 } : undefined}>
+            You are a <strong style={{ color: `var(--theme-primary)` }}>verified user</strong>. You can use the API.
+          </li>
+          <li style={!isPaying ? { opacity: 0.1 } : undefined}>
+            You are a <strong style={{ color: `var(--theme-primary)` }}>professional user</strong>. You have access to all premium features.
+          </li>
+          <li style={!isOffice ? { opacity: 0.1 } : undefined}>
+            You are a <strong style={{ color: `var(--theme-primary)` }}>collaborator</strong>. You have access to our office space.
+          </li>
+          <li style={!isPartner ? { opacity: 0.1 } : undefined}>
+            You are a <strong style={{ color: `var(--theme-primary)` }}>partner</strong>. You have special privileges.
+          </li>
+          <li style={!isAdmin ? { opacity: 0.1 } : undefined}>
+            You are an <strong style={{ color: `var(--theme-primary)` }}>administrator</strong>. You made this world.
+          </li>
         </ul>
 
-        {!isPaying ? <div className={styles.actions}>
-          <Button onClick={() => props.onNavigate({ active: 'USER_UPGRADE' })}>Upgrade</Button>
-        </div> : null}
+        {!isPaying ? (
+          <div className={styles.actions}>
+            <Button onClick={() => props.onNavigate({ active: 'USER_UPGRADE' })}>Upgrade</Button>
+          </div>
+        ) : null}
       </Group>
-
-
 
       {!isVerified && (
         <Group title="VERIFY E-MAIL">
@@ -120,10 +131,10 @@ export default function UserGardenDashboardProfile(props) {
 
           <div className={styles.inputGroup}>
             <div className={styles.inputGroupLeft}>
-              <Input autoComplete="off" onChange={(e) => setCustomName(e.target.value)} value={customName} />
+              <Input autoComplete="off" onChange={(e) => setCustomName(e.target.value)} placeholder="type a name" value={customName} />
             </div>
             <div className={styles.inputGroupRight}>
-              <Input autoComplete="off" onChange={(e) => setCustomField(e.target.value)} value={customField} />
+              <Input autoComplete="off" onChange={(e) => setCustomField(e.target.value)} placeholder="type a value" value={customField} />
             </div>
           </div>
         </div>
@@ -166,7 +177,7 @@ export default function UserGardenDashboardProfile(props) {
                   <Input autoComplete="off" disabled style={{ color: `var(--theme-input-active)` }} value={name} />
                 </div>
                 <div className={styles.inputGroupRight}>
-                  <Input autoComplete="off" name={name} onChange={props.onChangeData} value={value} />
+                  <Input autoComplete="off" name={name} onChange={props.onChangeData} placeholder="type a value" value={value} />
                 </div>
               </div>
             );
@@ -200,7 +211,7 @@ export default function UserGardenDashboardProfile(props) {
           <li>This change will effect URLs with your username.</li>
         </ul>
 
-        <Input autoComplete="off" style={{ marginTop: 16 }} value={props.viewer.username} name="username" onChange={props.onChange} />
+        <Input autoComplete="off" name="username" onChange={props.onChange} placeholder="Type your new username" style={{ marginTop: 16 }} value={props.viewer.username} />
         <div className={styles.actions}>
           <Button
             loading={loading}

@@ -94,7 +94,7 @@ function UserGardenUserAdd(props) {
         <li>Add any user by e-mail.</li>
         <li>They can see all members in the organization.</li>
       </ul>
-      <Input autoComplete="off" style={{ marginTop: 16 }} value={email} name="email" onChange={(e) => setEmail(e.target.value)} />
+      <Input autoComplete="off" style={{ marginTop: 16 }} value={email} name="email" onChange={(e) => setEmail(e.target.value)} placeholder="Type someone's e-mail" />
       <div className={styles.actions}>
         <Button
           loading={props.loading}

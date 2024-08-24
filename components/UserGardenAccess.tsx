@@ -60,7 +60,7 @@ function UserAccessChangePassword(props) {
         onChange={(e) => {
           setPassword(e.target.value);
         }}
-        placeholder="Your next password"
+        placeholder="Type your password"
         style={{ marginTop: 16 }}
         type="password"
       />
@@ -71,7 +71,7 @@ function UserAccessChangePassword(props) {
         onChange={(e) => {
           setPasswordConfirm(e.target.value);
         }}
-        placeholder="Type the same password again"
+        placeholder="Confirm your password"
         style={{ marginTop: 16 }}
         type="password"
       />
@@ -113,11 +113,11 @@ function UserAccessChangePassword(props) {
 
 function UserAccessViewUserID(props) {
   return (
-    <Group title="User ID">
+    <Group title="USER ID">
       <ul className={styles.list}>
         <li>This is your User ID, in case you need it for any API operations.</li>
       </ul>
-      <Input autoComplete="off" defaultValue={props.viewer.id} name="user_id" readOnly style={{ marginTop: 16 }}  />
+      <Input autoComplete="off" defaultValue={props.viewer.id} name="user_id" readOnly style={{ marginTop: 16 }} />
     </Group>
   );
 }
@@ -141,7 +141,7 @@ function UserAccessViewAPIKey(props) {
         onChange={(e) => {
           setPassword(e.target.value);
         }}
-        placeholder="Password"
+        placeholder="Type your current password"
         style={{ marginTop: 16 }}
         type="password"
       />
