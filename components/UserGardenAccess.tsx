@@ -47,7 +47,7 @@ function UserAccessChangePassword(props) {
   const [passwordConfirm, setPasswordConfirm] = React.useState<string>('');
 
   return (
-    <Group title="CHANGE PASSWORD">
+    <Group title="NEW PASSWORD">
       <ul className={styles.list}>
         <li>Changing your password is irreversible.</li>
         <li>Your password must be at least 4 characters.</li>
@@ -60,7 +60,7 @@ function UserAccessChangePassword(props) {
         onChange={(e) => {
           setPassword(e.target.value);
         }}
-        placeholder="Type your password"
+        placeholder="Type your new password"
         style={{ marginTop: 16 }}
         type="password"
       />
@@ -71,7 +71,7 @@ function UserAccessChangePassword(props) {
         onChange={(e) => {
           setPasswordConfirm(e.target.value);
         }}
-        placeholder="Confirm your password"
+        placeholder="Confirm your new password"
         style={{ marginTop: 16 }}
         type="password"
       />

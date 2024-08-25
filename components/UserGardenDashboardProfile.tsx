@@ -131,10 +131,10 @@ export default function UserGardenDashboardProfile(props) {
 
           <div className={styles.inputGroup}>
             <div className={styles.inputGroupLeft}>
-              <Input autoComplete="off" onChange={(e) => setCustomName(e.target.value)} placeholder="type a name" value={customName} />
+              <Input autoComplete="off" onChange={(e) => setCustomName(e.target.value)} placeholder="Type a name" value={customName} />
             </div>
             <div className={styles.inputGroupRight}>
-              <Input autoComplete="off" onChange={(e) => setCustomField(e.target.value)} placeholder="type a value" value={customField} />
+              <Input autoComplete="off" onChange={(e) => setCustomField(e.target.value)} placeholder="Type a value" value={customField} />
             </div>
           </div>
         </div>
