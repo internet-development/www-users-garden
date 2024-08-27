@@ -4,7 +4,7 @@ import Loader from '@system/Loader';
 
 export default function Button(props) {
   if (props.visual) {
-    return <button children={props.children} style={props.style} className={styles.visual} />;
+    return <button children={props.children} className={styles.visual} id={props.id} style={props.style} />;
   }
 
   if (props.loading) {
@@ -19,5 +19,5 @@ export default function Button(props) {
     return <a className={styles.root} {...props} />;
   }
 
-  return <button children={props.children} className={styles.root} disabled={props.disabled} onClick={props.onClick} style={props.style} />;
+  return <button children={props.children} className={styles.root} disabled={props.disabled} onClick={props.onClick} id={props.id} style={props.style} />;
 }

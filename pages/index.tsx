@@ -348,6 +348,7 @@ function ExampleRootSinglePageApplication(props) {
         ) : null}
 
         <Button
+          id="SUBMIT_SIGN_IN_OR_SIGN_UP"
           onClick={async () => {
             if (Utilities.isEmpty(email)) {
               showModal({
