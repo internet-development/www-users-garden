@@ -188,7 +188,6 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
     <Group title="CUSTOM VERIFY EMAIL">
       <ul className={styles.list}>
         <li>You can customize the content of your verification e-mail to your users.</li>
-        <li>Subsequent verification emails will continue to use our default template.</li>
       </ul>
 
       <Input
@@ -211,7 +210,108 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
 
       <TextArea
         autoComplete="off"
-        placeholder="Follow this link to verify your e-mail (within the next 30 minutes)"
+        placeholder="If you did not make this request, please ignore this e-mail. Follow this link to verify your e-mail (within the next 30 minutes)"
+        style={{ marginTop: 16 }}
+        value={text}
+        name="text"
+        onChange={(e) => setText(e.target.value)}
+      />
+
+      <div className={styles.actions}>
+        <Button
+          loading={props.loading}
+          onClick={async () => {
+            await props.onSubmit({ from, subject, text });
+          }}
+        >
+          Save
+        </Button>
+      </div>
+    </Group>
+  );
+}
+
+function UserGardenOrganizationCustomResetPasswordEmail(props) {
+  const [from, setFrom] = React.useState<string>(props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.from : '');
+  const [subject, setSubject] = React.useState<string>(
+    props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.subject : ''
+  );
+  const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.text : '');
+
+  return (
+    <Group title="CUSTOM RESET PASSWORD EMAIL">
+      <ul className={styles.list}>
+        <li>You can customize the content of your reset password e-mail to your users.</li>
+      </ul>
+
+      <Input
+        autoComplete="off"
+        placeholder="API.INTERET.DEV <no-reply@mail.internet.dev>"
+        style={{ marginTop: 16 }}
+        value={from}
+        name="from"
+        onChange={(e) => setFrom(e.target.value)}
+      />
+
+      <Input
+        autoComplete="off"
+        placeholder="Change your password in your settings"
+        style={{ marginTop: 16 }}
+        value={subject}
+        name="subject"
+        onChange={(e) => setSubject(e.target.value)}
+      />
+
+      <TextArea
+        autoComplete="off"
+        placeholder="If you did not make this request, please ignore this e-mail. Follow this link to sign in to your account and change your password (within the next 30 minutes)"
+        style={{ marginTop: 16 }}
+        value={text}
+        name="text"
+        onChange={(e) => setText(e.target.value)}
+      />
+
+      <div className={styles.actions}>
+        <Button
+          loading={props.loading}
+          onClick={async () => {
+            await props.onSubmit({ from, subject, text });
+          }}
+        >
+          Save
+        </Button>
+      </div>
+    </Group>
+  );
+}
+
+function UserGardenOrganizationCustomSendPasswordEmail(props) {
+  const [from, setFrom] = React.useState<string>(props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.from : '');
+  const [subject, setSubject] = React.useState<string>(
+    props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.subject : ''
+  );
+  const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.text : '');
+
+  return (
+    <Group title="CUSTOM SEND PASSWORD EMAIL">
+      <ul className={styles.list}>
+        <li>You can customize the content of your e-mail when we send your users their password.</li>
+      </ul>
+
+      <Input
+        autoComplete="off"
+        placeholder="API.INTERET.DEV <no-reply@mail.internet.dev>"
+        style={{ marginTop: 16 }}
+        value={from}
+        name="from"
+        onChange={(e) => setFrom(e.target.value)}
+      />
+
+      <Input autoComplete="off" placeholder="Your new account password" style={{ marginTop: 16 }} value={subject} name="subject" onChange={(e) => setSubject(e.target.value)} />
+
+      <TextArea
+        autoComplete="off"
+        placeholder="If you did not create a new account, please ignore this e-mail. Here is your new password for your account, please sign in and change it as soon as possible"
         style={{ marginTop: 16 }}
         value={text}
         name="text"
@@ -524,7 +624,47 @@ export default function UserGardenOrganizations(props) {
           onSubmit={async (nextCustomEmail) => {
             setLoading(true);
 
-            const response = await props.onOrganizationSetCustomVerifyEmail({ customEmail: nextCustomEmail, domain: selectedOrganization.domain });
+            const response = await props.onOrganizationSetCustomEmail({ updates: { email: nextCustomEmail }, domain: selectedOrganization.domain });
+
+            if (!response) {
+              alert('Something went wrong, try again');
+              setLoading(false);
+              return;
+            }
+
+            setLoading(false);
+          }}
+        />
+      ) : null}
+
+      {selectedOrganization ? (
+        <UserGardenOrganizationCustomSendPasswordEmail
+          loading={loading}
+          organization={selectedOrganization}
+          onSubmit={async (nextCustomEmail) => {
+            setLoading(true);
+
+            const response = await props.onOrganizationSetCustomEmail({ updates: { email_send_password: nextCustomEmail }, domain: selectedOrganization.domain });
+
+            if (!response) {
+              alert('Something went wrong, try again');
+              setLoading(false);
+              return;
+            }
+
+            setLoading(false);
+          }}
+        />
+      ) : null}
+
+      {selectedOrganization ? (
+        <UserGardenOrganizationCustomResetPasswordEmail
+          loading={loading}
+          organization={selectedOrganization}
+          onSubmit={async (nextCustomEmail) => {
+            setLoading(true);
+
+            const response = await props.onOrganizationSetCustomEmail({ updates: { email_reset_password: nextCustomEmail }, domain: selectedOrganization.domain });
 
             if (!response) {
               alert('Something went wrong, try again');

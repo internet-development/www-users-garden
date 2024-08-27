@@ -113,36 +113,28 @@ function ExampleRootSinglePageApplication(props) {
           }}
           onChangeTransactions={() => {}}
           onOrganizationTogglePublic={async ({ organizationId }) => {
-            const response = await Queries.onOrganizationTogglePublic({ organizationId, key });
-            return response;
+            return await Queries.onOrganizationTogglePublic({ organizationId, key });
           }}
           onGetAllOrganizationMembers={async (selectedOrganization) => {
-            const response = await Queries.onGetAllOrganizationMembers({ domain: selectedOrganization.domain, key });
-            return response;
+            return await Queries.onGetAllOrganizationMembers({ domain: selectedOrganization.domain, key });
           }}
           onOrganizationPromoteUser={async ({ userId, organizationId }) => {
-            const response = await Queries.onOrganizationPromoteUser({ userId, organizationId, key });
-            return response;
+            return await Queries.onOrganizationPromoteUser({ userId, organizationId, key });
           }}
           onOrganizationDemoteUser={async ({ userId, organizationId }) => {
-            const response = await Queries.onOrganizationDemoteUser({ userId, organizationId, key });
-            return response;
+            return await Queries.onOrganizationDemoteUser({ userId, organizationId, key });
           }}
           onOrganizationRemoveUser={async ({ userId, organizationId }) => {
-            const response = await Queries.onOrganizationRemoveUser({ userId, organizationId, key });
-            return response;
+            return await Queries.onOrganizationRemoveUser({ userId, organizationId, key });
           }}
-          onOrganizationSetCustomVerifyEmail={async ({ customEmail, domain }) => {
-            const response = await Queries.onOrganizationSetCustomVerifyEmail({ key, customEmail, domain });
-            return response;
+          onOrganizationSetCustomEmail={async ({ updates, domain }) => {
+            return await Queries.onOrganizationSetCustomEmail({ domain, key, updates });
           }}
           onOrganizationAddUser={async (next) => {
-            const response = await Queries.onOrganizationAddUser({ email: next.email, domain: next.domain, key });
-            return response;
+            return await Queries.onOrganizationAddUser({ email: next.email, domain: next.domain, key });
           }}
           onOrganizationSourceUsers={async ({ organizationId }) => {
-            const response = await Queries.onOrganizationSourceUsers({ organizationId, key });
-            return response;
+            return await Queries.onOrganizationSourceUsers({ organizationId, key });
           }}
           onUserRegenerateAPIKey={async ({ email, password }) => {
             const response = await Queries.onUserRegenerateAPIKey({ email, key, password });
@@ -267,8 +259,7 @@ function ExampleRootSinglePageApplication(props) {
             window.location.reload();
           }}
           onUserUnsubscribeFromAllServices={async () => {
-            const response = await Queries.onUserUnsubscribeFromAllServices({ key });
-            return response;
+            return await Queries.onUserUnsubscribeFromAllServices({ key });
           }}
           onUserDeleteAccount={async () => {
             if (!currentUser) return;
@@ -310,6 +301,7 @@ function ExampleRootSinglePageApplication(props) {
         <InputLabel style={{ marginTop: 48, opacity: 0.6 }}>E-mail</InputLabel>
         <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Type your e-mail" value={email} />
         <InputLabel style={{ marginTop: 24, opacity: 0.6 }}>Password</InputLabel>
+
         <Input
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Type your password"
@@ -327,6 +319,33 @@ function ExampleRootSinglePageApplication(props) {
             }
           }}
         />
+
+        {!Utilities.isEmpty(email) ? (
+          <div style={{ marginTop: 16 }}>
+            <ActionItem
+              icon={`⊹`}
+              onClick={async () => {
+                if (Utilities.isEmpty(email)) {
+                  showModal({
+                    name: 'ERROR',
+                    message: 'You must provide an e-mail.',
+                  });
+                  return;
+                }
+
+                const response = await Queries.onUserForgotPassword({ email });
+
+                if (response && response.success) {
+                  alert('Check your inbox or spam for an e-mail from us.');
+                } else {
+                  alert('Something went wrong, try again later.');
+                }
+              }}
+            >
+              Forgot password
+            </ActionItem>
+          </div>
+        ) : null}
 
         <Button
           onClick={async () => {

@@ -114,7 +114,7 @@ function UserGardenApplicationsUserNext(props) {
   return (
     <Group title="COMING SOON">
       <ul className={styles.list}>
-        <li>More project configuration settings coming soon.</li>
+        <li style={{ opacity: 0.1 }}>This feature is in development.</li>
       </ul>
     </Group>
   );

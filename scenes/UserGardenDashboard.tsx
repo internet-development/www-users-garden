@@ -50,7 +50,7 @@ export default function UserGardenDashboard(props) {
         onChangeOrganizations={props.onChangeOrganizations}
         organizations={props.organizations}
         onOrganizationAddUser={props.onOrganizationAddUser}
-        onOrganizationSetCustomVerifyEmail={props.onOrganizationSetCustomVerifyEmail}
+        onOrganizationSetCustomEmail={props.onOrganizationSetCustomEmail}
         onOrganizationDemoteUser={props.onOrganizationDemoteUser}
         onOrganizationPromoteUser={props.onOrganizationPromoteUser}
         onOrganizationRemoveUser={props.onOrganizationRemoveUser}
