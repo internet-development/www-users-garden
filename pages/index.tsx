@@ -127,8 +127,8 @@ function ExampleRootSinglePageApplication(props) {
           onOrganizationRemoveUser={async ({ userId, organizationId }) => {
             return await Queries.onOrganizationRemoveUser({ userId, organizationId, key });
           }}
-          onOrganizationSetCustomEmail={async ({ updates, domain }) => {
-            return await Queries.onOrganizationSetCustomEmail({ domain, key, updates });
+          onOrganizationSetCustomEmail={async ({ data, domain }) => {
+            return await Queries.onOrganizationSetCustomEmail({ data, domain, key });
           }}
           onOrganizationAddUser={async (next) => {
             return await Queries.onOrganizationAddUser({ email: next.email, domain: next.domain, key });

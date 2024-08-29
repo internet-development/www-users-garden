@@ -100,9 +100,9 @@ export async function onOrganizationDemoteUser({ key, userId, organizationId }) 
   return await fetchAndExpect({ route, key, body: JSON.stringify({ organizationId, userId }) }, 'data');
 }
 
-export async function onOrganizationSetCustomEmail({ domain, key, updates }) {
+export async function onOrganizationSetCustomEmail({ data, domain, key }) {
   const route = `${Constants.HOST}/api/organizations/update`;
-  return await fetchAndExpect({ route, key, body: JSON.stringify({ domain, updates }) }, 'data');
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ domain, data }) }, 'data');
 }
 
 export async function onOrganizationRemoveUser({ key, userId, organizationId }) {

@@ -624,7 +624,7 @@ export default function UserGardenOrganizations(props) {
           onSubmit={async (nextCustomEmail) => {
             setLoading(true);
 
-            const response = await props.onOrganizationSetCustomEmail({ updates: { email: nextCustomEmail }, domain: selectedOrganization.domain });
+            const response = await props.onOrganizationSetCustomEmail({ data: { email: nextCustomEmail }, domain: selectedOrganization.domain });
 
             if (!response) {
               alert('Something went wrong, try again');
@@ -644,7 +644,7 @@ export default function UserGardenOrganizations(props) {
           onSubmit={async (nextCustomEmail) => {
             setLoading(true);
 
-            const response = await props.onOrganizationSetCustomEmail({ updates: { email_send_password: nextCustomEmail }, domain: selectedOrganization.domain });
+            const response = await props.onOrganizationSetCustomEmail({ data: { email_send_password: nextCustomEmail }, domain: selectedOrganization.domain });
 
             if (!response) {
               alert('Something went wrong, try again');
@@ -664,7 +664,7 @@ export default function UserGardenOrganizations(props) {
           onSubmit={async (nextCustomEmail) => {
             setLoading(true);
 
-            const response = await props.onOrganizationSetCustomEmail({ updates: { email_reset_password: nextCustomEmail }, domain: selectedOrganization.domain });
+            const response = await props.onOrganizationSetCustomEmail({ data: { email_reset_password: nextCustomEmail }, domain: selectedOrganization.domain });
 
             if (!response) {
               alert('Something went wrong, try again');
