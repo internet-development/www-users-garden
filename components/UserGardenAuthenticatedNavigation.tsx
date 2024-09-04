@@ -29,9 +29,9 @@ export default function UserGardenAuthenticatedNavigation(props) {
   return (
     <div className={styles.root}>
       <div className={styles.top}>
-        <SubTitle style={{ opacity: 0.6, padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</SubTitle>
+        <SubTitle style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</SubTitle>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
-          Profile
+          {props.viewer.email}
         </Item>
         <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
           Upgrades
@@ -54,7 +54,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {props.yourOrganizations && props.yourOrganizations.length ? (
           <>
-            <SubTitle style={{ marginTop: 24, opacity: 0.6, padding: '8px 24px 8px 24px' }}>APPS & WEBSITES</SubTitle>
+            <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>APPS & WEBSITES</SubTitle>
 
             {props.yourOrganizations.map((each, index) => {
               const thisOrganization = props.organizations.find((org) => org.id === each.organization_id);
@@ -88,7 +88,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
           </>
         ) : null}
 
-        <SubTitle style={{ marginTop: 24, opacity: 0.6, padding: '8px 24px 8px 24px' }}>OTHER</SubTitle>
+        <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>OTHER</SubTitle>
         <Item href="https://txt.dev" target="_blank" mark={`┌`}>
           TXT
         </Item>

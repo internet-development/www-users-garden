@@ -13,9 +13,7 @@ export default function UserGardenUpgrade(props) {
   return (
     <>
       <header className={styles.header}>
-        <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9f0d7b45-733a-42d6-a50e-e8943664f21b.jpg" alt="Upgrade Image" />
-
-        <SubTitle style={{ opacity: 0.6 }}>UPGRADE</SubTitle>
+        <SubTitle>UPGRADE</SubTitle>
         <P style={{ marginTop: 6 }}>
           Upgrade your account to gain increased access to our APIs and other services as they become available. Please note that some services are exclusively available to
           residents of Seattle, WA.
@@ -25,7 +23,7 @@ export default function UserGardenUpgrade(props) {
         <div className={styles.container}>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle style={{ opacity: 0.6 }}>FREE</SubTitle>
+              <SubTitle>FREE</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $0 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -46,7 +44,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle style={{ opacity: 0.6 }}>PROFESSIONAL</SubTitle>
+              <SubTitle>PROFESSIONAL</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $8.99 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -77,7 +75,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle style={{ opacity: 0.6 }}>COLLABORATOR</SubTitle>
+              <SubTitle>COLLABORATOR</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -107,7 +105,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle style={{ opacity: 0.6 }}>PARTNER</SubTitle>
+              <SubTitle>PARTNER</SubTitle>
               <H5 style={{ opacity: 0, marginTop: 24, visibility: 'hidden' }}>
                 $X USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -140,7 +138,8 @@ export default function UserGardenUpgrade(props) {
               , and{' '}
               <a href="https://txt.dev/wwwjim/intdev-acceptable-use" className={styles.link} target="_blank">
                 Acceptable Use Policy
-              </a>.
+              </a>
+              .
             </div>
             <div className={styles.disclaimer}>
               [2] Reserved desks — Our office space offers a mix of reserved and open desks. The reserved desks are allocated on based on the needs of the Internet Development

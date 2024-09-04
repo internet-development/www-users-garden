@@ -1,13 +1,13 @@
 .input {
   -webkit-appearance: none;
   color: var(--theme-text);
+  font-family: var(--font-family-mono);
   background: var(--theme-background-input);
   box-sizing: border-box;
   width: 100%;
   height: 48px;
   display: flex;
   font-size: var(--type-scale-fixed-small);
-  font-family: var(--font-family-mono);
   align-items: center;
   justify-content: flex-start;
   outline: 0;
@@ -18,14 +18,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   box-shadow: 0 0 0 1px var(--theme-border);
-
-  &:-webkit-autofill,
-  &:-webkit-autofill:hover,
-  &:-webkit-autofill:focus,
-  &:-webkit-autofill:focus-visible,
-  &:-webkit-autofill:active {
-    box-shadow: 0 0 0px 88px var(--theme-primary) inset !important;
-  }
 
   &:focus {
     outline: 0;

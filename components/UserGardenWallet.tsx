@@ -33,7 +33,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
         {props.children}
       </div>
     </div>
@@ -52,10 +52,8 @@ export default function UserGardenWallet(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/60282dd5-b7de-40a3-ac63-c83b2e8f4dc3.jpg" alt="Wallet Image" />
-
       <div className={styles.section}>
-        <SubTitle style={{ opacity: 0.6 }}>WALLET</SubTitle>
+        <SubTitle>WALLET</SubTitle>
         <P style={{ marginTop: 6 }}>
           Manage your INTDEV credits. INTDEV credits are used to pay for premium features in applications, games, and services. You can also exchange credits with other
           professional users on the platform.

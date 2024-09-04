@@ -33,7 +33,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
         {props.children}
       </div>
     </div>
@@ -52,10 +52,8 @@ export default function UserGardenGrants(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/d4de517e-346c-4be8-b3c1-9a6f6dc252b0.jpg" alt="Grant Image" />
-
       <div className={styles.section}>
-        <SubTitle style={{ opacity: 0.6 }}>GRANTS</SubTitle>
+        <SubTitle>GRANTS</SubTitle>
         <P style={{ marginTop: 6 }}>View all your grants and assign grants to other users. To give a grant, you must be an administrator or an organization’s admin.</P>
       </div>
 

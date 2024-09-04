@@ -5,6 +5,7 @@ import * as React from 'react';
 import * as Utilities from '@common/utilities';
 
 import Button from '@system/Button';
+import ButtonWarning from '@system/ButtonWarning';
 import Input from '@system/Input';
 import Table from '@system/Table';
 import TextArea from '@system/TextArea';
@@ -39,7 +40,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
         {props.children}
       </div>
     </div>
@@ -47,7 +48,7 @@ const Group = (props) => {
 };
 
 const TableText = (props) => {
-  return <div style={{ paddingTop: 3 }}>{props.children}</div>;
+  return <div style={{ paddingTop: 1 }}>{props.children}</div>;
 };
 
 function UserGardenUserTable(props) {
@@ -120,17 +121,16 @@ function UserGardenUserDanger(props) {
         <li>If you are an admin, you must give admin rights to someone else before leaving.</li>
       </ul>
       <div className={styles.actions}>
-        <Button
+        <ButtonWarning
           loading={props.loading}
           onClick={async () => {
             props.onSetLoading(true);
             await props.onSubmit();
             props.onSetLoading(false);
           }}
-          style={{ backgroundColor: `var(--theme-error)`, color: `var(--theme-text)` }}
         >
           Leave
-        </Button>
+        </ButtonWarning>
       </div>
     </Group>
   );
@@ -488,10 +488,8 @@ export default function UserGardenOrganizations(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/e44d4ea3-5a9b-4f05-81aa-7ae7c0f8f15a.png" alt="Organizations Image" />
-
       <div className={styles.section}>
-        <SubTitle style={{ opacity: 0.6 }}>ORGANIZATIONS</SubTitle>
+        <SubTitle>ORGANIZATIONS</SubTitle>
         <P style={{ marginTop: 6 }}>
           Manage your organization and its external members. Adding members allows the root user to grant access to anyone they select. The first person to create an organization
           automatically receives administrative privileges.
@@ -522,7 +520,7 @@ export default function UserGardenOrganizations(props) {
         </Group>
       )}
 
-      <Group title="ORGANIZATIONS">
+      <Group title="YOUR MEMBERSHIPS">
         <Table
           data={data}
           headings={TABLE_HEADINGS}

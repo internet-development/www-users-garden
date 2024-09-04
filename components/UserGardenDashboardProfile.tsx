@@ -34,7 +34,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
         {props.children}
       </div>
     </div>
@@ -54,10 +54,8 @@ export default function UserGardenDashboardProfile(props) {
 
   return (
     <div className={styles.root}>
-      <img className={styles.image} src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/9d72d8a5-cd00-4d37-bc4b-7a73fb95e3cf.jpg" alt="Profile Image" />
-
       <div className={styles.section}>
-        <SubTitle style={{ opacity: 0.6 }}>PROFILE</SubTitle>
+        <SubTitle>PROFILE</SubTitle>
         <P style={{ marginTop: 6 }}>
           Update your user information here. Please note that some fields require verification to change and modifying certain fields may impact other connected applications. For
           guidance, refer to the provided sections.
@@ -174,7 +172,7 @@ export default function UserGardenDashboardProfile(props) {
             return (
               <div className={styles.inputGroup} key={`input-group-${name}`}>
                 <div className={styles.inputGroupLeft}>
-                  <Input autoComplete="off" disabled style={{ color: `var(--theme-input-active)` }} value={name} />
+                  <Input autoComplete="off" disabled style={{ color: `var(--theme-border)` }} value={name} />
                 </div>
                 <div className={styles.inputGroupRight}>
                   <Input autoComplete="off" name={name} onChange={props.onChangeData} placeholder="type a value" value={value} />

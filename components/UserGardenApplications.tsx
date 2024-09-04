@@ -35,7 +35,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
         {props.children}
       </div>
     </div>
@@ -43,7 +43,7 @@ const Group = (props) => {
 };
 
 const TableText = (props) => {
-  return <div style={{ paddingTop: 3, ...props.style }}>{props.children}</div>;
+  return <div style={{ paddingTop: 1, ...props.style }}>{props.children}</div>;
 };
 
 function UserGardenApplicationsUserList(props) {
@@ -99,10 +99,17 @@ function UserGardenApplicationsUserList(props) {
     grab();
   }, [currentOrganization, onOrganizationAddUser, onOrganizationSourceUsers]);
 
+  const href = `https://${props.currentOrganization.domain.toUpperCase()}`;
+
   return (
     <Group title="USERS">
       <ul className={styles.list}>
-        <li>All users who signed up through {props.currentOrganization.domain.toUpperCase()}</li>
+        <li>
+          All users who signed up through{' '}
+          <a href={href} style={{ color: `var(--theme-primary)` }}>
+            {props.currentOrganization.domain.toUpperCase()}
+          </a>
+        </li>
       </ul>
 
       <Table data={users} headings={['EMAIL', 'USERNAME', 'VERIFIED', 'ACTIONS']} style={{ marginTop: 24 }} />
@@ -130,11 +137,20 @@ export default function UserGardenApplications(props) {
   const isPartner = props.viewer.level >= Constants.Users.tiers.PARTNER;
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
   const domainName = props.currentOrganization.domain.toUpperCase();
+
+  const href = `https://${domainName}`;
+
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle style={{ opacity: 0.6 }}>{domainName}</SubTitle>
-        <P style={{ marginTop: 6 }}>Manage settings for {domainName} and see users who are signing up using your `source` configuration.</P>
+        <SubTitle>{domainName}</SubTitle>
+        <P style={{ marginTop: 6 }}>
+          Manage settings for{' '}
+          <a href={href} style={{ color: `var(--theme-primary)` }}>
+            {domainName}
+          </a>{' '}
+          and see users who are signing up using your `source` configuration.
+        </P>
       </div>
 
       <UserGardenApplicationsUserList

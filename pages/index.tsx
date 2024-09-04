@@ -7,6 +7,7 @@ import * as Utilities from '@common/utilities';
 import ActionItem from '@system/documents/ActionItem';
 import AnyTextHeader from '@components/AnyTextHeader';
 import Button from '@system/Button';
+import ButtonPrimary from '@system/ButtonPrimary';
 import Cookies from 'js-cookie';
 import GlobalModalManager from '@system/modals/GlobalModalManager';
 import Google from '@system/svg/social/Google';
@@ -23,7 +24,7 @@ import { useModal } from '@system/providers/ModalContextProvider';
 const Group = (props) => {
   return (
     <div style={{ textAlign: 'center' }}>
-      <SubTitle style={{ marginTop: 24, opacity: 0.6 }}>{props.title}</SubTitle>
+      <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
       <div style={{ lineHeight: 1.2, marginTop: 8 }}>{props.children}</div>
     </div>
   );
@@ -287,7 +288,7 @@ function ExampleRootSinglePageApplication(props) {
       <ThinAppLayout>
         <img
           style={{ display: 'block', width: '100%' }}
-          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/45c87d48-2510-4fd6-9954-5fb7c3d9ecaf.jpg"
+          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/f908a250-6899-419b-988d-ae906876ec85.jpg"
           alt="Home Page Image"
         />
 
@@ -298,9 +299,9 @@ function ExampleRootSinglePageApplication(props) {
           Sign in with Google
         </Button>
 
-        <InputLabel style={{ marginTop: 48, opacity: 0.6 }}>E-mail</InputLabel>
+        <InputLabel style={{ marginTop: 48 }}>E-mail</InputLabel>
         <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Type your e-mail" value={email} />
-        <InputLabel style={{ marginTop: 24, opacity: 0.6 }}>Password</InputLabel>
+        <InputLabel style={{ marginTop: 24 }}>Password</InputLabel>
 
         <Input
           onChange={(e) => setPassword(e.target.value)}
@@ -347,7 +348,7 @@ function ExampleRootSinglePageApplication(props) {
           </div>
         ) : null}
 
-        <Button
+        <ButtonPrimary
           id="SUBMIT_SIGN_IN_OR_SIGN_UP"
           onClick={async () => {
             if (Utilities.isEmpty(email)) {
@@ -399,7 +400,7 @@ function ExampleRootSinglePageApplication(props) {
           style={{ width: '100%', minHeight: 48, marginTop: 16 }}
         >
           Sign in or create account
-        </Button>
+        </ButtonPrimary>
 
         <div style={{ marginTop: 24 }}>
           <ActionItem icon={`⊹`} href="https://txt.dev/wwwjim/intdev-acceptable-use" target="_blank">

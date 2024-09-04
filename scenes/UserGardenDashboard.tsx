@@ -26,6 +26,7 @@ export default function UserGardenDashboard(props) {
       onNavigate={props.onNavigate}
       organizations={props.organizations}
       yourOrganizations={props.yourOrganizations}
+      viewer={props.viewer}
     />
   );
 

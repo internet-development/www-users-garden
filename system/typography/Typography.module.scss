@@ -44,8 +44,8 @@
 }
 
 .p {
-  font-size: var(--type-scale-6);
-  line-height: 1.5;
+  font-size: var(--type-scale-5);
+  line-height: 1.444;
   font-weight: 400;
   display: block;
   text-decoration: none;
@@ -81,7 +81,7 @@
   font-size: var(--type-scale-fixed-tiny);
   line-height: var(--type-scale-fixed-tiny);
   font-weight: 400;
-  letter-spacing: 0.2px;
+  opacity: 0.4;
 }
 
 .subText {
