@@ -17,7 +17,7 @@ import Page from '@components/Page';
 import ThinAppLayout from '@system/layouts/ThinAppLayout';
 import UserGardenDashboard from '@scenes/UserGardenDashboard';
 
-import { P, H4, SubTitle } from '@system/typography';
+import { P, H3, H4, SubTitle } from '@system/typography';
 import { FormHeading, FormSubHeading, FormParagraph, InputLabel } from '@system/typography/forms';
 import { useModal } from '@system/providers/ModalContextProvider';
 
@@ -292,9 +292,10 @@ function ExampleRootSinglePageApplication(props) {
           alt="Home Page Image"
         />
 
-        <H4 style={{ marginTop: 24 }}>Create or manage your account for the Internet Development Studio Company API, desk space, and services.</H4>
+        <H3 style={{ marginTop: 24 }}>Auth + API for your applications.</H3>
+        <H4 style={{ marginTop: 16 }}>Manage all of your users, applications, and physical co-working space.</H4>
 
-        <Button style={{ width: '100%', minHeight: 48, marginTop: 16 }} href={`${Constants.HOST}/authenticate-google?domain=REDIRECT_USERS_GARDEN`} target="_blank">
+        <Button style={{ width: '100%', minHeight: 48, marginTop: 48 }} href={`${Constants.HOST}/authenticate-google?domain=REDIRECT_USERS_GARDEN`} target="_blank">
           <Google height="24px" style={{ marginRight: 16 }} />
           Sign in with Google
         </Button>

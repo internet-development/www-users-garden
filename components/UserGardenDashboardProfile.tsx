@@ -62,7 +62,7 @@ export default function UserGardenDashboardProfile(props) {
         </P>
       </div>
 
-      <Group title="USER STATUS">
+      <Group title="YOUR STATUS">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
@@ -116,9 +116,9 @@ export default function UserGardenDashboardProfile(props) {
         </Group>
       )}
 
-      <Group title="CHANGE DATA">
+      <Group title="CHANGE YOUR CUSTOM DATA">
         <ul className={styles.list}>
-          <li>Your data is editable.</li>
+          <li>Your custom data is editable.</li>
           <li>Altering this data may break other applications.</li>
         </ul>
 
@@ -202,7 +202,7 @@ export default function UserGardenDashboardProfile(props) {
         )}
       </Group>
 
-      <Group title="CHANGE USERNAME">
+      <Group title="CHANGE YOUR USERNAME">
         <ul className={styles.list}>
           <li>Your username must be at least 2 characters.</li>
           <li>Your username must be unique.</li>

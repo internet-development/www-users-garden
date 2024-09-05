@@ -53,7 +53,7 @@ const TableText = (props) => {
 
 function UserGardenUserTable(props) {
   return (
-    <Group title={props.selectedOrganization.domain.toUpperCase()}>
+    <Group title={`MANAGE ${props.selectedOrganization.domain.toUpperCase()} USERS`}>
       {Number(props.selectedOrganizationMembership.level) === Constants.Users.tiers.ADMIN ? (
         <>
           <ul className={styles.list}>
@@ -76,7 +76,7 @@ function UserGardenUserTable(props) {
 
 function UserGardenUserEmptyTable(props) {
   return (
-    <Group title={props.selectedOrganization.domain.toUpperCase()}>
+    <Group title={`MANAGE ${props.selectedOrganization.domain.toUpperCase()} USERS`}>
       <ul className={styles.list}>
         <li>Changes are being processed.</li>
       </ul>
@@ -90,7 +90,7 @@ function UserGardenUserAdd(props) {
   const [email, setEmail] = React.useState<string>('');
 
   return (
-    <Group title="ADD USER">
+    <Group title="ADD A NEW MEMBER">
       <ul className={styles.list}>
         <li>Add any user by e-mail.</li>
         <li>They can see all members in the organization.</li>
@@ -185,7 +185,7 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email ? props.organization.data.email.text : '');
 
   return (
-    <Group title="CUSTOM VERIFY EMAIL">
+    <Group title="CREATE CUSTOM VERIFY EMAIL">
       <ul className={styles.list}>
         <li>You can customize the content of your verification e-mail to your users.</li>
       </ul>
@@ -239,7 +239,7 @@ function UserGardenOrganizationCustomResetPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.text : '');
 
   return (
-    <Group title="CUSTOM RESET PASSWORD EMAIL">
+    <Group title="CREATE CUSTOM RESET PASSWORD EMAIL">
       <ul className={styles.list}>
         <li>You can customize the content of your reset password e-mail to your users.</li>
       </ul>
@@ -293,7 +293,7 @@ function UserGardenOrganizationCustomSendPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.text : '');
 
   return (
-    <Group title="CUSTOM SEND PASSWORD EMAIL">
+    <Group title="CREATE CUSTOM SEND PASSWORD EMAIL">
       <ul className={styles.list}>
         <li>You can customize the content of your e-mail when we send your users their password.</li>
       </ul>

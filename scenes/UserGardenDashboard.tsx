@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import AnyTextHeader from '@components/AnyTextHeader';
 import DashboardWithSidebarLayout from '@system/layouts/DashboardWithSidebarLayout';
+import UserGardenGetStarted from '@components/UserGardenGetStarted';
 import UserGardenAccess from '@components/UserGardenAccess';
 import UserGardenAuthenticatedNavigation from '@components/UserGardenAuthenticatedNavigation';
 import UserGardenApplications from '@components/UserGardenApplications';
@@ -31,6 +32,7 @@ export default function UserGardenDashboard(props) {
   );
 
   const CHILD_ELEMENT_MAP = {
+    USER_GET_STARTED: <UserGardenGetStarted viewer={props.viewer} />,
     USER_PROFILE: (
       <UserGardenDashboardProfile
         viewer={props.viewer}

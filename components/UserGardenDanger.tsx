@@ -62,7 +62,7 @@ export default function UserDanger(props) {
         </P>
       </div>
 
-      <Group title="USER STATUS">
+      <Group title="YOUR STATUS">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
@@ -86,7 +86,7 @@ export default function UserDanger(props) {
       </Group>
 
       {isPaying ? (
-        <Group title="CANCEL SUBSCRIPTION">
+        <Group title="CANCEL YOUR SUBSCRIPTION">
           <ul className={styles.list}>
             <li>Canceling your account ends all payments to our services.</li>
             <li>You will lose API permissions and potentially office space.</li>
@@ -122,7 +122,7 @@ export default function UserDanger(props) {
           </div>
         </Group>
       ) : (
-        <Group title="CANCEL SUBSCRIPTION">
+        <Group title="CANCEL YOUR SUBSCRIPTION">
           <ul className={styles.list}>
             <li>You are not paying for services.</li>
           </ul>
@@ -130,13 +130,13 @@ export default function UserDanger(props) {
       )}
 
       {isPaying ? (
-        <Group title="DELETE ACCOUNT">
+        <Group title="DELETE YOUR ACCOUNT">
           <ul className={styles.list}>
             <li>Cancel your subscription first before deleting your account.</li>
           </ul>
         </Group>
       ) : (
-        <Group title="DELETE ACCOUNT">
+        <Group title="DELETE YOUR ACCOUNT">
           <ul className={styles.list}>
             <li>Deleting your account completely removes you from the Internet Development Studio Company's infrastructure.</li>
             <li>Recreate your account at anytime.</li>
