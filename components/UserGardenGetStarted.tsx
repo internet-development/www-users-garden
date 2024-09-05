@@ -95,7 +95,11 @@ curl -X POST "https://api.internet.dev/api/users/authenticate" \\
 
         <P style={{ marginTop: 88 }}>
           Upon successfully signing in, you will receive a response containing a user object that includes an API key. This key is essential for authenticating future requests.
-          Please refer to our future documentation for further details on how to use this key and the capabilities it unlocks.
+          Please refer to{' '}
+          <a href="https://github.com/internet-development/www-users-garden/blob/main/common/queries.ts" style={{ color: `var(--theme-primary)` }}>
+            our temporary reference
+          </a>{' '}
+          for further details on how to use this key and the capabilities it unlocks.
         </P>
         <MonospacePreview style={{ marginTop: 24 }} title="api.internet.dev/api/users/authenticate">{`
 {
@@ -103,12 +107,12 @@ curl -X POST "https://api.internet.dev/api/users/authenticate" \\
     "id" : "${props.viewer.id}",
     "email" : "${props.viewer.email}",
     "key" : "********-****-****-****",
-    "level" : "10",
+    "level" : "${props.viewer.level}",
     "data" : {},
-    "created_at" : "2024-08-28T00:43:53.951Z",
-    "updated_at" : "2024-09-05T04:38:19.391Z",
+    "created_at" : "${props.viewer.created_at}",
+    "updated_at" : "${props.viewer.updated_at}",
     "deleted_at" : null,
-    "username" : "j1m"
+    "username" : "${props.viewer.username}"
   },
   "existing":true
 }

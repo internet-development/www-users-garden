@@ -30,7 +30,7 @@ export default function Page(props) {
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </Head>
-      <img className={styles.pixel} src="/template-app-icon.png" alt="" />
+      <img className={styles.pixel} src="/template-app-icon.jpg" alt="" />
       {props.children}
     </>
   );
