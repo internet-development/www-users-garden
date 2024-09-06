@@ -35,7 +35,7 @@ function ExampleRootSinglePageApplication(props) {
 
   // NOTE(jimmylee)
   // Page state.
-  const [active, setActive] = React.useState<string>('USER_PROFILE');
+  const [active, setActive] = React.useState<string>('USER_GET_STARTED');
   const [loading, setLoading] = React.useState<boolean>(false);
   const [status, setStatus] = React.useState<Record<string, any>>({
     username: null,
