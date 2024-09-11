@@ -2,6 +2,7 @@ import styles from '@scenes/UserGardenDashboard.module.scss';
 
 import * as React from 'react';
 
+import AdminTenants from '@components/AdminTenants';
 import AnyTextHeader from '@components/AnyTextHeader';
 import DashboardWithSidebarLayout from '@system/layouts/DashboardWithSidebarLayout';
 import UserGardenGetStarted from '@components/UserGardenGetStarted';
@@ -10,6 +11,7 @@ import UserGardenAuthenticatedNavigation from '@components/UserGardenAuthenticat
 import UserGardenApplications from '@components/UserGardenApplications';
 import UserGardenDashboardProfile from '@components/UserGardenDashboardProfile';
 import UserGardenDanger from '@components/UserGardenDanger';
+import UserGardenOffice from '@components/UserGardenOffice';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
 import UserGardenUpgrade from '@components/UserGardenUpgrade';
 
@@ -32,6 +34,7 @@ export default function UserGardenDashboard(props) {
   );
 
   const CHILD_ELEMENT_MAP = {
+    ADMIN_TENANTS: <AdminTenants viewer={props.viewer} onGetAllTenants={props.onGetAllTenants} onTenantUpdate={props.onTenantUpdate} onTenantRemove={props.onTenantRemove} />,
     USER_GET_STARTED: <UserGardenGetStarted onNavigate={props.onNavigate} viewer={props.viewer} />,
     USER_PROFILE: (
       <UserGardenDashboardProfile
@@ -47,6 +50,14 @@ export default function UserGardenDashboard(props) {
       />
     ),
     USER_GRANTS: <UserGardenGrants onChangeGrants={props.onChangeGrants} viewer={props.viewer} />,
+    USER_OFFICE: (
+      <UserGardenOffice
+        onNavigate={props.onNavigate}
+        onUserApplyOfficeSpace={props.onUserApplyOfficeSpace}
+        onUserGetOfficeState={props.onUserGetOfficeState}
+        viewer={props.viewer}
+      />
+    ),
     USER_ORGANIZATIONS: (
       <UserGardenOrganizations
         isPotentialAdmin={props.isPotentialAdmin}

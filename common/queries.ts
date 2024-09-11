@@ -140,6 +140,31 @@ export async function onUserAuthenticate({ email, password }) {
   return await fetchAndExpect({ route, key: null, body: JSON.stringify({ email, password, source: 'users.garden' }) }, 'user');
 }
 
+export async function onUserApplyOfficeSpace({ email, key }) {
+  const route = `${Constants.HOST}/api/users/office/apply`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ email }) });
+}
+
+export async function onUserGetOfficeState({ key }) {
+  const route = `${Constants.HOST}/api/users/office/status`;
+  return await fetchAndExpect({ route, key });
+}
+
+export async function onGetAllTenants({ key }) {
+  const route = `${Constants.HOST}/api/users/office`;
+  return await fetchAndExpect({ route, key });
+}
+
+export async function onTenantUpdate({ key, id, updates }) {
+  const route = `${Constants.HOST}/api/users/office/update`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id, updates }) });
+}
+
+export async function onTenantRemove({ key, id }) {
+  const route = `${Constants.HOST}/api/users/office/delete`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
+}
+
 export async function onGetViewer({ key }) {
   const { viewer } = await Server.tryKeyWithoutCookie(key);
   return viewer;

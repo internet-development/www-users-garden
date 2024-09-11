@@ -21,15 +21,6 @@ import { P, H3, H4, SubTitle } from '@system/typography';
 import { FormHeading, FormSubHeading, FormParagraph, InputLabel } from '@system/typography/forms';
 import { useModal } from '@system/providers/ModalContextProvider';
 
-const Group = (props) => {
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-      <div style={{ lineHeight: 1.2, marginTop: 8 }}>{props.children}</div>
-    </div>
-  );
-};
-
 function ExampleRootSinglePageApplication(props) {
   const { showModal } = useModal();
 
@@ -83,207 +74,218 @@ function ExampleRootSinglePageApplication(props) {
     init();
   }, [key]);
 
-  if (props.viewer) {
-    return (
-      <Page title="Users" description="Manage your account, organization, websites, and other API features" url="https://users.garden">
-        <UserGardenDashboard
-          active={active}
-          currentOrganization={currentOrganization}
-          isPotentialAdmin={isPotentialAdmin}
-          onNavigate={({ active, nextOrganization }) => {
-            setActive(active);
-            setCurrentOrganization(nextOrganization);
-          }}
-          onChangeUserPassword={async ({ password }) => {
-            const response = await Queries.onUserChangePassword({ key, password });
-            return response;
-          }}
-          onChangeCurrentUser={(event) => {
-            if (!currentUser) return;
+  const children = props.viewer ? (
+    <>
+      <UserGardenDashboard
+        active={active}
+        currentOrganization={currentOrganization}
+        isPotentialAdmin={isPotentialAdmin}
+        onNavigate={({ active, nextOrganization }) => {
+          setActive(active);
+          setCurrentOrganization(nextOrganization);
+        }}
+        onChangeUserPassword={async ({ password }) => {
+          const response = await Queries.onUserChangePassword({ key, password });
+          return response;
+        }}
+        onChangeCurrentUser={(event) => {
+          if (!currentUser) return;
 
-            setUser({ ...currentUser, [event.target.name]: event.target.value });
-          }}
-          onChangeCurrentUserData={(event) => {
-            if (!currentUser) return;
+          setUser({ ...currentUser, [event.target.name]: event.target.value });
+        }}
+        onChangeCurrentUserData={(event) => {
+          if (!currentUser) return;
 
-            setUser({ ...currentUser, data: { ...currentUser.data, [event.target.name]: event.target.value } });
-          }}
-          onChangeGrants={() => {}}
-          onChangeOrganizations={(org) => {
-            setCurrentOrganization(org);
-          }}
-          onChangeTransactions={() => {}}
-          onOrganizationTogglePublic={async ({ organizationId }) => {
-            return await Queries.onOrganizationTogglePublic({ organizationId, key });
-          }}
-          onGetAllOrganizationMembers={async (selectedOrganization) => {
-            return await Queries.onGetAllOrganizationMembers({ domain: selectedOrganization.domain, key });
-          }}
-          onOrganizationPromoteUser={async ({ userId, organizationId }) => {
-            return await Queries.onOrganizationPromoteUser({ userId, organizationId, key });
-          }}
-          onOrganizationDemoteUser={async ({ userId, organizationId }) => {
-            return await Queries.onOrganizationDemoteUser({ userId, organizationId, key });
-          }}
-          onOrganizationRemoveUser={async ({ userId, organizationId }) => {
-            return await Queries.onOrganizationRemoveUser({ userId, organizationId, key });
-          }}
-          onOrganizationSetCustomEmail={async ({ data, domain }) => {
-            return await Queries.onOrganizationSetCustomEmail({ data, domain, key });
-          }}
-          onOrganizationAddUser={async (next) => {
-            return await Queries.onOrganizationAddUser({ email: next.email, domain: next.domain, key });
-          }}
-          onOrganizationSourceUsers={async ({ organizationId }) => {
-            return await Queries.onOrganizationSourceUsers({ organizationId, key });
-          }}
-          onUserRegenerateAPIKey={async ({ email, password }) => {
-            const response = await Queries.onUserRegenerateAPIKey({ email, key, password });
+          setUser({ ...currentUser, data: { ...currentUser.data, [event.target.name]: event.target.value } });
+        }}
+        onGetAllTenants={async () => {
+          return await Queries.onGetAllTenants({ key });
+        }}
+        onTenantUpdate={async ({ id, updates }) => {
+          return await Queries.onTenantUpdate({ key, id, updates });
+        }}
+        onTenantRemove={async ({ id }) => {
+          return await Queries.onTenantRemove({ key, id });
+        }}
+        onChangeGrants={() => {}}
+        onChangeOrganizations={(org) => {
+          setCurrentOrganization(org);
+        }}
+        onChangeTransactions={() => {}}
+        onOrganizationTogglePublic={async ({ organizationId }) => {
+          return await Queries.onOrganizationTogglePublic({ organizationId, key });
+        }}
+        onGetAllOrganizationMembers={async (selectedOrganization) => {
+          return await Queries.onGetAllOrganizationMembers({ domain: selectedOrganization.domain, key });
+        }}
+        onOrganizationPromoteUser={async ({ userId, organizationId }) => {
+          return await Queries.onOrganizationPromoteUser({ userId, organizationId, key });
+        }}
+        onOrganizationDemoteUser={async ({ userId, organizationId }) => {
+          return await Queries.onOrganizationDemoteUser({ userId, organizationId, key });
+        }}
+        onOrganizationRemoveUser={async ({ userId, organizationId }) => {
+          return await Queries.onOrganizationRemoveUser({ userId, organizationId, key });
+        }}
+        onOrganizationSetCustomEmail={async ({ data, domain }) => {
+          return await Queries.onOrganizationSetCustomEmail({ data, domain, key });
+        }}
+        onOrganizationAddUser={async (next) => {
+          return await Queries.onOrganizationAddUser({ email: next.email, domain: next.domain, key });
+        }}
+        onOrganizationSourceUsers={async ({ organizationId }) => {
+          return await Queries.onOrganizationSourceUsers({ organizationId, key });
+        }}
+        onUserApplyOfficeSpace={async ({ email }) => {
+          return await Queries.onUserApplyOfficeSpace({ email, key });
+        }}
+        onUserGetOfficeState={async () => {
+          return await Queries.onUserGetOfficeState({ key });
+        }}
+        onUserRegenerateAPIKey={async ({ email, password }) => {
+          const response = await Queries.onUserRegenerateAPIKey({ email, key, password });
 
-            if (response && response.user) {
-              Cookies.remove('gardening_session');
-              Cookies.set('gardening_session', response.user.key, { secure: true });
-              setKey(response.user.key);
-            }
-
-            return response;
-          }}
-          onJoinOrganizationAutomatically={async () => {
-            const automaticMembershipResult = await Queries.onAutomaticOrganizationMembership({ key });
-            if (!automaticMembershipResult) {
-              alert('Something went wrong, most likely your e-mail was not verified.');
-              return;
-            }
-
-            if (automaticMembershipResult.success) {
-              setPotentialAdmin(false);
-            }
-
-            const yourOrganizationPieces = await Queries.onGetViewerOrganizations({ key });
-            if (yourOrganizationPieces && yourOrganizationPieces.data) {
-              setYourOrganizations(yourOrganizationPieces.data);
-            }
-          }}
-          onSaveCurrentUserDataField={async ({ name, value }) => {
-            const nextData = Utilities.sanitizeObject({ [name]: value });
-            if (!nextData) {
-              alert('You must provide an object');
-              return;
-            }
-
-            const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData });
-            if (!response) {
-              alert('Something went wrong, try again later.');
-              return;
-            }
-
-            const nextUser = await Queries.onGetViewer({ key });
-            if (!nextUser) {
-              alert('Unable to ensure update, please refresh.');
-              return;
-            }
-
-            setUser(nextUser);
-          }}
-          onSaveCurrentUserData={async () => {
-            if (!currentUser) return;
-
-            const nextData = Utilities.sanitizeObject(currentUser.data);
-            if (!nextData) {
-              alert('You must provide an object');
-              return;
-            }
-
-            const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData, forcePush: true });
-            if (!response) {
-              alert('Something went wrong, try again later.');
-              return;
-            }
-
-            const nextUser = await Queries.onGetViewer({ key });
-            if (!nextUser) {
-              alert('Unable to ensure update, please refresh.');
-              return;
-            }
-
-            setUser(nextUser);
-          }}
-          onSaveCurrentUser={async () => {
-            if (!currentUser) return;
-
-            let candidate = Utilities.createSlugWithUnderscore(currentUser.username);
-
-            if (Utilities.isEmpty(candidate)) {
-              alert('You pust provide a username');
-              return;
-            }
-
-            if (candidate.length < 2) {
-              alert('Your username must be at least 2 characters long');
-              return;
-            }
-
-            const response = await Queries.onSetUsername({ username: candidate, key });
-            if (!response) {
-              setStatus({ ...status, username: null });
-              alert('Something went wrong, try again later.');
-              return;
-            }
-
-            const nextUser = await Queries.onGetViewer({ key });
-            if (!nextUser) {
-              setStatus({ ...status, username: null });
-              alert('Unable to ensure update, please refresh.');
-              return;
-            }
-
-            setUser(nextUser);
-            setStatus({ ...status, username: `Your username was set to ${nextUser.username}` });
-          }}
-          onSendVerifyEmail={async () => {
-            const response = await Queries.onResendEmailVerification({ key });
-            if (!response) {
-              setStatus({ ...status, email: null });
-              alert('Something went wrong, try again later.');
-              return;
-            }
-
-            setStatus({ ...status, email: 'Please check your e-mail for a response.' });
-          }}
-          onSignOut={() => {
-            const confirm = window.confirm('Are you sure?');
-            if (!confirm) {
-              return;
-            }
-
+          if (response && response.user) {
             Cookies.remove('gardening_session');
-            window.location.reload();
-          }}
-          onUserUnsubscribeFromAllServices={async () => {
-            return await Queries.onUserUnsubscribeFromAllServices({ key });
-          }}
-          onUserDeleteAccount={async () => {
-            if (!currentUser) return;
+            Cookies.set('gardening_session', response.user.key, { secure: true });
+            setKey(response.user.key);
+          }
 
-            const response = await Queries.onUserDeleteAccount({ id: currentUser.id, key });
-            if (response && response.success) {
-              Cookies.remove('gardening_session');
-            }
-            return response;
-          }}
-          organizations={organizations}
-          sessionKey={key}
-          status={status}
-          viewer={currentUser}
-          yourOrganizations={yourOrganizations}
-        />
-        <GlobalModalManager viewer={currentUser} />
-      </Page>
-    );
-  }
+          return response;
+        }}
+        onJoinOrganizationAutomatically={async () => {
+          const automaticMembershipResult = await Queries.onAutomaticOrganizationMembership({ key });
+          if (!automaticMembershipResult) {
+            alert('Something went wrong, most likely your e-mail was not verified.');
+            return;
+          }
 
-  return (
-    <Page title="Users" description="Manage your account, organization, websites, and other API features" url="https://users.garden">
+          if (automaticMembershipResult.success) {
+            setPotentialAdmin(false);
+          }
+
+          const yourOrganizationPieces = await Queries.onGetViewerOrganizations({ key });
+          if (yourOrganizationPieces && yourOrganizationPieces.data) {
+            setYourOrganizations(yourOrganizationPieces.data);
+          }
+        }}
+        onSaveCurrentUserDataField={async ({ name, value }) => {
+          const nextData = Utilities.sanitizeObject({ [name]: value });
+          if (!nextData) {
+            alert('You must provide an object');
+            return;
+          }
+
+          const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData });
+          if (!response) {
+            alert('Something went wrong, try again later.');
+            return;
+          }
+
+          const nextUser = await Queries.onGetViewer({ key });
+          if (!nextUser) {
+            alert('Unable to ensure update, please refresh.');
+            return;
+          }
+
+          setUser(nextUser);
+        }}
+        onSaveCurrentUserData={async () => {
+          if (!currentUser) return;
+
+          const nextData = Utilities.sanitizeObject(currentUser.data);
+          if (!nextData) {
+            alert('You must provide an object');
+            return;
+          }
+
+          const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData, forcePush: true });
+          if (!response) {
+            alert('Something went wrong, try again later.');
+            return;
+          }
+
+          const nextUser = await Queries.onGetViewer({ key });
+          if (!nextUser) {
+            alert('Unable to ensure update, please refresh.');
+            return;
+          }
+
+          setUser(nextUser);
+        }}
+        onSaveCurrentUser={async () => {
+          if (!currentUser) return;
+
+          let candidate = Utilities.createSlugWithUnderscore(currentUser.username);
+
+          if (Utilities.isEmpty(candidate)) {
+            alert('You pust provide a username');
+            return;
+          }
+
+          if (candidate.length < 2) {
+            alert('Your username must be at least 2 characters long');
+            return;
+          }
+
+          const response = await Queries.onSetUsername({ username: candidate, key });
+          if (!response) {
+            setStatus({ ...status, username: null });
+            alert('Something went wrong, try again later.');
+            return;
+          }
+
+          const nextUser = await Queries.onGetViewer({ key });
+          if (!nextUser) {
+            setStatus({ ...status, username: null });
+            alert('Unable to ensure update, please refresh.');
+            return;
+          }
+
+          setUser(nextUser);
+          setStatus({ ...status, username: `Your username was set to ${nextUser.username}` });
+        }}
+        onSendVerifyEmail={async () => {
+          const response = await Queries.onResendEmailVerification({ key });
+          if (!response) {
+            setStatus({ ...status, email: null });
+            alert('Something went wrong, try again later.');
+            return;
+          }
+
+          setStatus({ ...status, email: 'Please check your e-mail for a response.' });
+        }}
+        onSignOut={() => {
+          const confirm = window.confirm('Are you sure?');
+          if (!confirm) {
+            return;
+          }
+
+          Cookies.remove('gardening_session');
+          window.location.reload();
+        }}
+        onUserUnsubscribeFromAllServices={async () => {
+          return await Queries.onUserUnsubscribeFromAllServices({ key });
+        }}
+        onUserDeleteAccount={async () => {
+          if (!currentUser) return;
+
+          const response = await Queries.onUserDeleteAccount({ id: currentUser.id, key });
+          if (response && response.success) {
+            Cookies.remove('gardening_session');
+          }
+          return response;
+        }}
+        organizations={organizations}
+        sessionKey={key}
+        status={status}
+        viewer={currentUser}
+        yourOrganizations={yourOrganizations}
+      />
+      <GlobalModalManager viewer={currentUser} />
+    </>
+  ) : (
+    <>
       <AnyTextHeader>USERS.GARDEN</AnyTextHeader>
       <ThinAppLayout>
         <img
@@ -416,6 +418,12 @@ function ExampleRootSinglePageApplication(props) {
         </div>
       </ThinAppLayout>
       <GlobalModalManager viewer={currentUser} />
+    </>
+  );
+
+  return (
+    <Page title="Users" description="Manage your account, organization, websites, and other API features" url="https://users.garden">
+      {children}
     </Page>
   );
 }

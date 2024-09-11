@@ -1,5 +1,6 @@
 import styles from '@components/UserGardenAuthenticatedNavigation.module.scss';
 
+import * as Constants from '@common/constants';
 import * as React from 'react';
 
 import { SubTitle } from '@system/typography';
@@ -26,12 +27,17 @@ const Item = (props) => {
 };
 
 export default function UserGardenAuthenticatedNavigation(props) {
+  const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
+
   return (
     <div className={styles.root}>
       <div className={styles.top}>
         <SubTitle style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</SubTitle>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`┌`}>
           Start
+        </Item>
+        <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
+          Office
         </Item>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`├`}>
           {props.viewer.email}
@@ -54,6 +60,15 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`└`}>
           Danger
         </Item>
+
+        {isAdmin ? (
+          <>
+            <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>ADMIN</SubTitle>
+            <Item active={'ADMIN_TENANTS' === props.active} onClick={() => props.onNavigate({ active: 'ADMIN_TENANTS', nextOrganization: null })} mark={`─`}>
+              Tenants
+            </Item>
+          </>
+        ) : null}
 
         {props.yourOrganizations && props.yourOrganizations.length ? (
           <>
