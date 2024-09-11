@@ -59,7 +59,7 @@ export default function UserDanger(props) {
           <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
             View profile
           </Button>
-          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Get a desk</Button>
+          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Manage desk</Button>
         </div>
       </div>
 
