@@ -100,7 +100,9 @@ export default function UserGardenDashboard(props) {
 
   return (
     <div className={styles.root}>
-      <AnyTextHeader>USERS.GARDEN</AnyTextHeader>
+      <AnyTextHeader>
+        <img className={styles.logo} src="/apple-touch-icon.png" alt="The logo" />
+      </AnyTextHeader>
       <DashboardWithSidebarLayout sidebar={sidebarElement}>{CHILD_ELEMENT_MAP[props.active]}</DashboardWithSidebarLayout>
     </div>
   );

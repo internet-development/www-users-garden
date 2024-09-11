@@ -33,14 +33,14 @@ export default function UserGardenAuthenticatedNavigation(props) {
     <div className={styles.root}>
       <div className={styles.top}>
         <SubTitle style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</SubTitle>
-        <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`┌`}>
-          Start
+        <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
+          {props.viewer.email}
+        </Item>
+        <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
+          Developers
         </Item>
         <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
           Office
-        </Item>
-        <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`├`}>
-          {props.viewer.email}
         </Item>
         <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
           Upgrades

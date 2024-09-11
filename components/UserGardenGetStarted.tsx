@@ -55,20 +55,19 @@ export default function UserDanger(props) {
       <div className={styles.section}>
         <SubTitle>WELCOME</SubTitle>
         <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and desk space on this website.</P>
+        <div className={styles.actions}>
+          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
+            View profile
+          </Button>
+          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Get a desk</Button>
+        </div>
       </div>
 
-      <Group title="GET STARTED">
-        <P style={{ marginTop: 6 }}>
+      <Group title="DEVELOPER DOCUMENTATION">
+        <P style={{ marginTop: 6, paddingBottom: 88 }}>
           Integrating your web application with the Internet Development Studio Company’s API is straightforward. Simply follow these steps to leverage our API as a centralized
           authentication service for your website.
-          <br />
-          <br />
-          Or you can skip and view your profile!
         </P>
-
-        <div className={styles.actions} style={{ paddingBottom: 88 }}>
-          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })}>View profile</Button>
-        </div>
       </Group>
 
       <Group title="HOW TO SIGN IN">
