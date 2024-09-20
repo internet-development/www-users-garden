@@ -62,16 +62,16 @@ function UserGardenWalletTransactions(props) {
 const UserText = (props) => {
   const [email, setEmail] = React.useState<string>('');
 
-  async function grab() {
+  const grab = React.useCallback(async () => {
     const response = await props.onCheckAccountOwner({ id: props.id });
     if (response && response.data && response.data.email) {
       setEmail(response.data.email);
     }
-  }
+  }, [props]);
 
   React.useEffect(() => {
     grab();
-  }, []);
+  }, [grab]);
 
   let source = email;
   if (Utilities.isEmpty(props.id)) {
@@ -83,9 +83,9 @@ const UserText = (props) => {
 
 export default function UserGardenWallet(props) {
   const [transactions, setTransactions] = React.useState<Record<string, any>[]>([]);
-  const [balance, setBalance] = React.useState<string>('0');
+  const [balance, setBalance] = React.useState<string | number>('0');
 
-  async function grab() {
+  const grab = React.useCallback(async () => {
     const response = await props.onGetAllTransactions();
     let nextBalance = 0;
 
@@ -93,7 +93,7 @@ export default function UserGardenWallet(props) {
       ...response.data.map((each) => {
         nextBalance += Number(each.amount_cents);
 
-        let amountStyle = { color: `var(--theme-success)`, fontWeight: 600 };
+        let amountStyle: Record<string, any> = { color: `var(--theme-success)`, fontWeight: 600 };
         if (Number(each.amount_cents) < 0) {
           amountStyle = { color: `var(--theme-error)` };
         }
@@ -110,11 +110,11 @@ export default function UserGardenWallet(props) {
     ]);
 
     setBalance(nextBalance);
-  }
+  }, [props]);
 
   React.useEffect(() => {
     grab();
-  }, []);
+  }, [grab]);
 
   const [amount, setAmount] = React.useState(0);
   const [customField, setCustomField] = React.useState<string>('');
