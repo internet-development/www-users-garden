@@ -83,7 +83,15 @@ export default function UserGardenDashboard(props) {
         viewer={props.viewer}
       />
     ),
-    USER_WALLET: <UserGardenWallet onChangeTransactions={props.onChangeTransactions} viewer={props.viewer} />,
+    USER_WALLET: (
+      <UserGardenWallet
+        onGetAllTransactions={props.onGetAllTransactions}
+        onSendTransactionByEmail={props.onSendTransactionByEmail}
+        onChangeTransactions={props.onChangeTransactions}
+        onCheckAccountOwner={props.onCheckAccountOwner}
+        viewer={props.viewer}
+      />
+    ),
     USER_UPGRADE: <UserGardenUpgrade viewer={props.viewer} />,
     USER_ACCESS: (
       <UserGardenAccess

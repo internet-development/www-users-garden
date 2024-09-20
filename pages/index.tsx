@@ -80,6 +80,18 @@ function ExampleRootSinglePageApplication(props) {
         active={active}
         currentOrganization={currentOrganization}
         isPotentialAdmin={isPotentialAdmin}
+        onCheckAccountOwner={async ({ id }) => {
+          const response = await Queries.onCheckAccountOwner({ key, id });
+          return response;
+        }}
+        onGetAllTransactions={async () => {
+          const response = await Queries.onGetAllTransactions({ key });
+          return response;
+        }}
+        onSendTransactionByEmail={async ({ amount, email }) => {
+          const response = await Queries.onSendTransactionByEmail({ amount, email, key });
+          return response;
+        }}
         onNavigate={({ active, nextOrganization }) => {
           setActive(active);
           setCurrentOrganization(nextOrganization);

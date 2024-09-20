@@ -165,6 +165,21 @@ export async function onTenantRemove({ key, id }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
 }
 
+export async function onGetAllTransactions({ key }) {
+  const route = `${Constants.HOST}/api/credits`;
+  return await fetchAndExpect({ route, key });
+}
+
+export async function onCheckAccountOwner({ key, id }) {
+  const route = `${Constants.HOST}/api/credits/check`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
+}
+
+export async function onSendTransactionByEmail({ amount, email, key }) {
+  const route = `${Constants.HOST}/api/credits/send`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ amount, email, key }) });
+}
+
 export async function onGetViewer({ key }) {
   const { viewer } = await Server.tryKeyWithoutCookie(key);
   return viewer;
