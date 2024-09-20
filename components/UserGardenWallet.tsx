@@ -133,8 +133,8 @@ export default function UserGardenWallet(props) {
       <div className={styles.section}>
         <SubTitle>WALLET</SubTitle>
         <P style={{ marginTop: 6 }}>
-          Manage your INTDEV credits. INTDEV credits are used to pay for premium features in applications, games, and services. You can also exchange credits with other
-          professional users on the platform.
+          Manage your INTDEV credits. INTDEV credits ▚▚ are used to pay for premium features in applications, games, and services. You can also exchange credits with other users on
+          the platform.
         </P>
       </div>
 
