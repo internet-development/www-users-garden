@@ -55,14 +55,14 @@ export default function UserGardenDashboardProfile(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>PROFILE</SubTitle>
+        <SubTitle>Your profile</SubTitle>
         <P style={{ marginTop: 6 }}>
           Update your user information here. Please note that some fields require verification to change and modifying certain fields may impact other connected applications. For
           guidance, refer to the provided sections.
         </P>
       </div>
 
-      <Group title="YOUR STATUS">
+      <Group title="What is my account status?">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
@@ -92,7 +92,7 @@ export default function UserGardenDashboardProfile(props) {
       </Group>
 
       {!isVerified && (
-        <Group title="VERIFY E-MAIL">
+        <Group title="How do I become verified?">
           <ul className={styles.list}>
             <li>You must verify your e-mail to use our services.</li>
           </ul>
@@ -116,7 +116,7 @@ export default function UserGardenDashboardProfile(props) {
         </Group>
       )}
 
-      <Group title="CHANGE YOUR CUSTOM DATA">
+      <Group title="How do I change my custom data?">
         <ul className={styles.list}>
           <li>Your custom data is editable.</li>
           <li>Altering this data may break other applications.</li>
@@ -202,7 +202,7 @@ export default function UserGardenDashboardProfile(props) {
         )}
       </Group>
 
-      <Group title="CHANGE YOUR USERNAME">
+      <Group title="How do I change my username?">
         <ul className={styles.list}>
           <li>Your username must be at least 2 characters.</li>
           <li>Your username must be unique.</li>

@@ -52,6 +52,7 @@
   color: var(--theme-text);
   font-family: var(--font-family);
   letter-spacing: 0;
+  opacity: 0.75;
 
   &:visited {
     color: var(--theme-text);
@@ -59,9 +60,10 @@
 }
 
 .title {
-  font-size: var(--type-scale-fixed-large);
-  line-height: 1.15;
+  font-size: var(--type-scale-fixed-tiny);
+  line-height: var(--type-scale-fixed-tiny);
   font-weight: 400;
+  opacity: 0.4;
 }
 
 .text {
@@ -78,10 +80,9 @@
 }
 
 .subTitle {
-  font-size: var(--type-scale-fixed-tiny);
-  line-height: var(--type-scale-fixed-tiny);
-  font-weight: 400;
-  opacity: 0.4;
+  font-size: var(--type-scale-5);
+  font-family: var(--font-family);
+  font-weight: 600;
 }
 
 .subText {

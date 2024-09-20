@@ -6,7 +6,7 @@ import * as React from 'react';
 import Button from '@system/Button';
 import Input from '@system/Input';
 
-import { P, SubTitle } from '@system/typography';
+import { P, SubTitle, Title } from '@system/typography';
 
 const Item = (props) => {
   if (props.href) {
@@ -33,7 +33,7 @@ const Group = (props) => {
         <figure className={styles.line} />
       </div>
       <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
+        {props.isComingSoon ? <Title style={{ marginTop: 24 }}>COMING SOON</Title> : <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>}
         {props.children}
       </div>
     </div>
@@ -53,11 +53,11 @@ export default function UserGardenGrants(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>GRANTS</SubTitle>
+        <SubTitle>Create grants</SubTitle>
         <P style={{ marginTop: 6 }}>View all your grants and assign grants to other users. To give a grant, you must be an administrator or an organization’s admin.</P>
       </div>
 
-      <Group title="COMING SOON">
+      <Group isComingSoon>
         <ul className={styles.list}>
           <li style={{ opacity: 0.1 }}>This feature is in development.</li>
         </ul>

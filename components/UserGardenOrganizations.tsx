@@ -53,7 +53,7 @@ const TableText = (props) => {
 
 function UserGardenUserTable(props) {
   return (
-    <Group title={`MANAGE ${props.selectedOrganization.domain.toUpperCase()} USERS`}>
+    <Group title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
       {Number(props.selectedOrganizationMembership.level) === Constants.Users.tiers.ADMIN ? (
         <>
           <ul className={styles.list}>
@@ -76,7 +76,7 @@ function UserGardenUserTable(props) {
 
 function UserGardenUserEmptyTable(props) {
   return (
-    <Group title={`MANAGE ${props.selectedOrganization.domain.toUpperCase()} USERS`}>
+    <Group title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
       <ul className={styles.list}>
         <li>Changes are being processed.</li>
       </ul>
@@ -90,7 +90,7 @@ function UserGardenUserAdd(props) {
   const [email, setEmail] = React.useState<string>('');
 
   return (
-    <Group title="ADD A NEW MEMBER">
+    <Group title="Add a new member">
       <ul className={styles.list}>
         <li>Add any user by e-mail.</li>
         <li>They can see all members in the organization.</li>
@@ -115,7 +115,7 @@ function UserGardenUserAdd(props) {
 
 function UserGardenUserDanger(props) {
   return (
-    <Group title="DANGER">
+    <Group title="Remove yourself">
       <ul className={styles.list}>
         <li>Remove yourself from your organization.</li>
         <li>If you are an admin, you must give admin rights to someone else before leaving.</li>
@@ -138,7 +138,7 @@ function UserGardenUserDanger(props) {
 
 function UserGardenOrganizationPublicAccess(props) {
   return (
-    <Group title="GIVE PUBLIC ACCESS">
+    <Group title="Give public access">
       <ul className={styles.list}>
         <li>Your organization is PRIVATE</li>
         <li>If you make your organization public, everyone can access your organization's API and data.</li>
@@ -160,7 +160,7 @@ function UserGardenOrganizationPublicAccess(props) {
 
 function UserGardenOrganizationPrivateAccess(props) {
   return (
-    <Group title="RETURN TO PRIVATE">
+    <Group title="Revoke public access">
       <ul className={styles.list}>
         <li>Your organization is PUBLIC</li>
         <li>If you make your organization private, only members of your organization can access your organization's API and data.</li>
@@ -185,7 +185,7 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email ? props.organization.data.email.text : '');
 
   return (
-    <Group title="CREATE CUSTOM VERIFY EMAIL">
+    <Group title="Create a custom verify e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your verification e-mail to your users.</li>
       </ul>
@@ -239,7 +239,7 @@ function UserGardenOrganizationCustomResetPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.text : '');
 
   return (
-    <Group title="CREATE CUSTOM RESET PASSWORD EMAIL">
+    <Group title="Create a custom reset password e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your reset password e-mail to your users.</li>
       </ul>
@@ -293,7 +293,7 @@ function UserGardenOrganizationCustomSendPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.text : '');
 
   return (
-    <Group title="CREATE CUSTOM SEND PASSWORD EMAIL">
+    <Group title="Create a custom send password e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your e-mail when we send your users their password.</li>
       </ul>
@@ -489,7 +489,7 @@ export default function UserGardenOrganizations(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>ORGANIZATIONS</SubTitle>
+        <SubTitle>Your organizations</SubTitle>
         <P style={{ marginTop: 6 }}>
           Manage your organization and its external members. Adding members allows the root user to grant access to anyone they select. The first person to create an organization
           automatically receives administrative privileges.
@@ -497,7 +497,7 @@ export default function UserGardenOrganizations(props) {
       </div>
 
       {props.isPotentialAdmin && (
-        <Group title="TAKE CONTROL">
+        <Group title="Join your default organization">
           <ul className={styles.list}>
             <li>Because of your e-mail, you can automatically join "{Utilities.getDomainFromEmail(props.viewer.email)}"</li>
             <li>You must verify your e-mail first.</li>
@@ -520,7 +520,7 @@ export default function UserGardenOrganizations(props) {
         </Group>
       )}
 
-      <Group title="YOUR MEMBERSHIPS">
+      <Group title="Your memberships">
         <Table
           data={data}
           headings={TABLE_HEADINGS}

@@ -55,14 +55,14 @@ export default function UserDanger(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>DANGER</SubTitle>
+        <SubTitle>Dangerous account changes</SubTitle>
         <P style={{ marginTop: 6 }}>
           You can delete your account and subscriptions to our services here. Please note that if you do so, you’ll need to recreate your account to access anything built on the
           Internet Development Studio Company’s API.
         </P>
       </div>
 
-      <Group title="YOUR STATUS">
+      <Group title="Your account status">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
@@ -86,7 +86,7 @@ export default function UserDanger(props) {
       </Group>
 
       {isPaying ? (
-        <Group title="CANCEL YOUR SUBSCRIPTION">
+        <Group title="Cancel your subscription">
           <ul className={styles.list}>
             <li>Canceling your account ends all payments to our services.</li>
             <li>You will lose API permissions and potentially office space.</li>
@@ -122,7 +122,7 @@ export default function UserDanger(props) {
           </div>
         </Group>
       ) : (
-        <Group title="CANCEL YOUR SUBSCRIPTION">
+        <Group title="You do not have a subscription">
           <ul className={styles.list}>
             <li>You are not paying for services.</li>
           </ul>
@@ -130,13 +130,13 @@ export default function UserDanger(props) {
       )}
 
       {isPaying ? (
-        <Group title="DELETE YOUR ACCOUNT">
+        <Group title="Delete your account">
           <ul className={styles.list}>
             <li>Cancel your subscription first before deleting your account.</li>
           </ul>
         </Group>
       ) : (
-        <Group title="DELETE YOUR ACCOUNT">
+        <Group title="Delete your account">
           <ul className={styles.list}>
             <li>Deleting your account completely removes you from the Internet Development Studio Company's infrastructure.</li>
             <li>Recreate your account at anytime.</li>

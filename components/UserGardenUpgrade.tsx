@@ -7,13 +7,13 @@ import Button from '@system/Button';
 import Content from '@system/layouts/Content';
 import CheckmarkItem from '@system/documents/CheckmarkItem';
 
-import { P, H5, SubLead, SubTitle } from '@system/typography';
+import { P, H5, SubLead, Title, SubTitle } from '@system/typography';
 
 export default function UserGardenUpgrade(props) {
   return (
     <>
       <header className={styles.header}>
-        <SubTitle>UPGRADE</SubTitle>
+        <SubTitle>Upgrade your account</SubTitle>
         <P style={{ marginTop: 6 }}>
           Upgrade your account to gain increased access to our APIs and other services as they become available. Please note that some services are exclusively available to
           residents of Seattle, WA.
@@ -23,7 +23,7 @@ export default function UserGardenUpgrade(props) {
         <div className={styles.container}>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle>FREE</SubTitle>
+              <Title>FREE</Title>
               <H5 style={{ marginTop: 24 }}>
                 $0 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -44,7 +44,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle>PROFESSIONAL</SubTitle>
+              <Title>PROFESSIONAL</Title>
               <H5 style={{ marginTop: 24 }}>
                 $8.99 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -75,7 +75,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle>COLLABORATOR</SubTitle>
+              <Title>COLLABORATOR</Title>
               <H5 style={{ marginTop: 24 }}>
                 $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -105,7 +105,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <SubTitle>PARTNER</SubTitle>
+              <Title>PARTNER</Title>
               <H5 style={{ opacity: 0, marginTop: 24, visibility: 'hidden' }}>
                 $X USD<span className={styles.subtle}>/mo</span>
               </H5>

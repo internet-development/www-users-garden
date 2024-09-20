@@ -53,7 +53,7 @@ export default function UserDanger(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>WELCOME</SubTitle>
+        <SubTitle>Welcome</SubTitle>
         <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and desk space on this website.</P>
         <div className={styles.actions}>
           <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
@@ -63,14 +63,13 @@ export default function UserDanger(props) {
         </div>
       </div>
 
-      <Group title="DEVELOPER DOCUMENTATION">
+      <Group title="Get started">
         <P style={{ marginTop: 6, paddingBottom: 88 }}>
-          Integrating your web application with the Internet Development Studio Company’s API is straightforward. Simply follow these steps to leverage our API as a centralized
-          authentication service for your website.
+          Follow these steps to leverage our API as a centralized authentication for your service.
         </P>
       </Group>
 
-      <Group title="HOW TO SIGN IN">
+      <Group title="How does a user sign in?">
         <P style={{ marginTop: 6 }}>
           We offer two methods for performing authentication: one using a TypeScript request with fetch, and the other with cURL. Regardless of the programming language you use,
           you can make a network request to our API for authentication and receive the necessary information in return.

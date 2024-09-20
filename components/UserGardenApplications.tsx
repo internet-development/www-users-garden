@@ -102,7 +102,7 @@ function UserGardenApplicationsUserList(props) {
   const href = `https://${props.currentOrganization.domain.toUpperCase()}`;
 
   return (
-    <Group title="USERS">
+    <Group title="Who is in the organization?">
       <ul className={styles.list}>
         <li>
           All users who signed up through{' '}
@@ -113,16 +113,6 @@ function UserGardenApplicationsUserList(props) {
       </ul>
 
       <Table data={users} headings={['EMAIL', 'USERNAME', 'VERIFIED', 'ACTIONS']} style={{ marginTop: 24 }} />
-    </Group>
-  );
-}
-
-function UserGardenApplicationsUserNext(props) {
-  return (
-    <Group title="COMING SOON">
-      <ul className={styles.list}>
-        <li style={{ opacity: 0.1 }}>This feature is in development.</li>
-      </ul>
     </Group>
   );
 }
@@ -158,7 +148,7 @@ export default function UserGardenApplications(props) {
         onOrganizationAddUser={props.onOrganizationAddUser}
         onOrganizationSourceUsers={props.onOrganizationSourceUsers}
       />
-      <UserGardenApplicationsUserNext />
+
     </div>
   );
 }

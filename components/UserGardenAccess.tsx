@@ -47,7 +47,7 @@ function UserAccessChangePassword(props) {
   const [passwordConfirm, setPasswordConfirm] = React.useState<string>('');
 
   return (
-    <Group title="CHANGE YOUR PASSWORD">
+    <Group title="Change your password">
       <ul className={styles.list}>
         <li>Changing your password is irreversible.</li>
         <li>Your password must be at least 4 characters.</li>
@@ -113,7 +113,7 @@ function UserAccessChangePassword(props) {
 
 function UserAccessViewUserID(props) {
   return (
-    <Group title="VIEW YOUR USER ID">
+    <Group title="Your user ID">
       <ul className={styles.list}>
         <li>This is your User ID, in case you need it for any API operations.</li>
       </ul>
@@ -127,7 +127,7 @@ function UserAccessViewAPIKey(props) {
   const [password, setPassword] = React.useState<string>('');
 
   return (
-    <Group title="MANAGE YOUR API KEY">
+    <Group title="Manage your API key">
       <ul className={styles.list}>
         <li>Your API key allows you to programmatically access our API.</li>
         <li>You are only permitted to have one API key per account.</li>
@@ -203,7 +203,7 @@ export default function UserAccess(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>ACCESS</SubTitle>
+        <SubTitle>Manage account access</SubTitle>
         <P style={{ marginTop: 6 }}>Manage your account access: you can change your password here or generate a new API key to programmatically access our API.</P>
       </div>
 

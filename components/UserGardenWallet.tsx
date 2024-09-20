@@ -48,7 +48,7 @@ const TableText = (props) => {
 
 function UserGardenWalletTransactions(props) {
   return (
-    <Group title="YOUR HISTORY">
+    <Group title="Your transaction history">
       <ul className={styles.list}>
         <li>All your account transactions are listed here.</li>
         <li>All your monthly subscription deposits are listed here.</li>
@@ -131,14 +131,14 @@ export default function UserGardenWallet(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>WALLET</SubTitle>
+        <SubTitle>Your credits</SubTitle>
         <P style={{ marginTop: 6 }}>
           Manage your INTDEV credits. INTDEV credits ▚▚ are used to pay for premium features in applications, games, and services. You can also exchange credits with other users on
           the platform.
         </P>
       </div>
 
-      <Group title="YOUR BALANCE">
+      <Group title="Your total balance">
         <ul className={styles.list}>
           <li>
             <strong>{balance.toLocaleString()} ▚▚</strong>
@@ -148,16 +148,16 @@ export default function UserGardenWallet(props) {
 
       <UserGardenWalletTransactions transactions={transactions} />
 
-      <Group title="SENT INTDEV CREDITS">
+      <Group title="Send credits">
         <ul className={styles.list}>
           <li>Enter an e-mail address to send credits to any premium user.</li>
           <li>Only premium users have credits; if they are not subscribed, they do not have an account.</li>
           <li>Please note that you cannot send more credits than you have.</li>
         </ul>
 
-        <Input autoComplete="off" name="email" onChange={(e) => setEmail(e.target.value)} placeholder="example: someone@something.com" style={{ marginTop: 24 }} value={email} />
+        <Input autoComplete="off" name="email" onChange={(e) => setEmail(e.target.value)} placeholder="Type an e-mail" style={{ marginTop: 24 }} value={email} />
 
-        <Input autoComplete="off" name="amount" onChange={(e) => setAmount(e.target.value)} placeholder="1000" style={{ marginTop: 16 }} value={amount} type="number" />
+        <Input autoComplete="off" name="amount" onChange={(e) => setAmount(e.target.value)} placeholder="Type your amount" style={{ marginTop: 16 }} value={amount} type="number" />
 
         <div className={styles.actions}>
           <Button

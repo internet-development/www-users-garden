@@ -3,7 +3,7 @@ import styles from '@components/UserGardenAuthenticatedNavigation.module.scss';
 import * as Constants from '@common/constants';
 import * as React from 'react';
 
-import { SubTitle } from '@system/typography';
+import { Title } from '@system/typography';
 
 const Item = (props) => {
   let style = props.active ? { opacity: 1 } : {};
@@ -32,12 +32,12 @@ export default function UserGardenAuthenticatedNavigation(props) {
   return (
     <div className={styles.root}>
       <div className={styles.top}>
-        <SubTitle style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</SubTitle>
+        <Title style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</Title>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
           {props.viewer.email}
         </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
-          Developers
+          Guide
         </Item>
         <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
           Office
@@ -63,7 +63,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {isAdmin ? (
           <>
-            <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>ADMIN</SubTitle>
+            <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>ADMIN</Title>
             <Item active={'ADMIN_TENANTS' === props.active} onClick={() => props.onNavigate({ active: 'ADMIN_TENANTS', nextOrganization: null })} mark={`─`}>
               Tenants
             </Item>
@@ -72,7 +72,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {props.yourOrganizations && props.yourOrganizations.length ? (
           <>
-            <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>APPS & WEBSITES</SubTitle>
+            <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>APPS & WEBSITES</Title>
 
             {props.yourOrganizations.map((each, index) => {
               const thisOrganization = props.organizations.find((org) => org.id === each.organization_id);
@@ -106,7 +106,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
           </>
         ) : null}
 
-        <SubTitle style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>OTHER</SubTitle>
+        <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>OTHER</Title>
         <Item href="https://txt.dev" target="_blank" mark={`┌`}>
           TXT
         </Item>

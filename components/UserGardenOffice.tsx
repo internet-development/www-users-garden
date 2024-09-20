@@ -65,7 +65,7 @@ export default function UserGardenOffice(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>WELCOME TO OUR STUDIO</SubTitle>
+        <SubTitle>Get workspace for you or your team</SubTitle>
         <P style={{ marginTop: 6 }}>
           Manage your{' '}
           <a href="https://internet.dev/office" style={{ color: `var(--theme-primary)` }} target="_blank">
@@ -105,7 +105,7 @@ export default function UserGardenOffice(props) {
       </div>
 
       {status && Number(status.tier) === 1 && (
-        <Group title="PENDING">
+        <Group title="Your workspace is pending">
           <ul className={styles.list}>
             <li>Your application for office space is pending approval.</li>
             <li>
@@ -126,7 +126,7 @@ export default function UserGardenOffice(props) {
       )}
 
       {status && Number(status.tier) === 2 && !isPayingForDesks && (
-        <Group title="APPROVED">
+        <Group title="Your workspace is approved">
           <ul className={styles.list}>
             <li>Complete the payment for your desk or your company's office space.</li>
             <li>
@@ -150,7 +150,7 @@ export default function UserGardenOffice(props) {
       )}
 
       {status && Number(status.tier) === 2 && isPayingForDesks && (
-        <Group title="WELCOME BACK">
+        <Group title="Welcome back">
           <ul className={styles.list}>
             <li>Your office space at the Internet Development Studio Company is confirmed.</li>
             <li>We hope you enjoy the space!</li>
