@@ -6,7 +6,7 @@ import * as React from 'react';
 import { Title } from '@system/typography';
 
 const Item = (props) => {
-  let style = props.active ? { opacity: 1 } : {};
+  let style = props.active ? { color: `var(--theme-primary)`, opacity: 1 } : {};
   let squareStyle = {};
 
   if (props.href) {
@@ -32,7 +32,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
   return (
     <div className={styles.root}>
       <div className={styles.top}>
-        <Title>YOUR ACCOUNT</Title>
+        <Title>ACCOUNT</Title>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
           {props.viewer.email}
         </Item>
@@ -72,7 +72,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {props.yourOrganizations && props.yourOrganizations.length ? (
           <>
-            <Title style={{ marginTop: 24 }}>APPS & WEBSITES</Title>
+            <Title style={{ marginTop: 24 }}>WEBSITES</Title>
 
             {props.yourOrganizations.map((each, index) => {
               const thisOrganization = props.organizations.find((org) => org.id === each.organization_id);

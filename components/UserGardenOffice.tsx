@@ -65,13 +65,13 @@ export default function UserGardenOffice(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>Get workspace for you or your team</SubTitle>
+        <SubTitle>Get physical workspace</SubTitle>
         <P style={{ marginTop: 6 }}>
-          Manage your{' '}
+          Manage your physical{' '}
           <a href="https://internet.dev/office" style={{ color: `var(--theme-primary)` }} target="_blank">
             workspace
           </a>{' '}
-          at the Internet Development Studio Company in Seattle, WA. <br />
+          at the Internet Development Studio Company Office in Seattle, WA. <br />
           <br />
           We collaborate with individuals and teams who align with our goals, contribute to our ecosystem, or are part of Mana Industries’ investment portfolio. Please note, this
           space is by invitation only and not open to the public.
@@ -105,7 +105,7 @@ export default function UserGardenOffice(props) {
       </div>
 
       {status && Number(status.tier) === 1 && (
-        <Group title="Your workspace is pending">
+        <Group title="Your workspace application is pending">
           <ul className={styles.list}>
             <li>Your application for physical workspace is pending approval.</li>
             <li>
@@ -126,7 +126,7 @@ export default function UserGardenOffice(props) {
       )}
 
       {status && Number(status.tier) === 2 && !isPayingForDesks && (
-        <Group title="Your workspace is approved">
+        <Group title="Your workspace application is approved">
           <ul className={styles.list}>
             <li>Complete the payment for your desk or your company's physical workspace.</li>
             <li>
