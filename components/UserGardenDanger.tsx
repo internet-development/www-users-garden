@@ -74,7 +74,7 @@ export default function UserDanger(props) {
             You are a <strong style={{ color: `var(--theme-primary)` }}>professional user</strong>. You have access to all premium features.
           </li>
           <li style={!isOffice ? { opacity: 0.1 } : undefined}>
-            You are a <strong style={{ color: `var(--theme-primary)` }}>collaborator</strong>. You have access to our office space.
+            You are a <strong style={{ color: `var(--theme-primary)` }}>collaborator</strong>. You have access to physical workspace.
           </li>
           <li style={!isPartner ? { opacity: 0.1 } : undefined}>
             You are a <strong style={{ color: `var(--theme-primary)` }}>partner</strong>. You have special privileges.
@@ -89,7 +89,7 @@ export default function UserDanger(props) {
         <Group title="Cancel your subscription">
           <ul className={styles.list}>
             <li>Canceling your account ends all payments to our services.</li>
-            <li>You will lose API permissions and potentially office space.</li>
+            <li>You will lose API permissions and potentially physical workspace.</li>
             <li>Resubscribe anytime.</li>
           </ul>
 

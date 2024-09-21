@@ -69,12 +69,12 @@ export default function UserGardenOffice(props) {
         <P style={{ marginTop: 6 }}>
           Manage your{' '}
           <a href="https://internet.dev/office" style={{ color: `var(--theme-primary)` }} target="_blank">
-            desks
+            workspace
           </a>{' '}
-          at the Internet Development Studio Company in Seattle, WA. Our workspace features 4 distinct zones and 14 dedicated desks for individual use. Please note, this space is
-          by invitation only and not open to the public. <br />
+          at the Internet Development Studio Company in Seattle, WA. <br />
           <br />
-          We collaborate with individuals and teams who align with our goals, contribute to our ecosystem, or are part of Mana Industries’ investment portfolio.
+          We collaborate with individuals and teams who align with our goals, contribute to our ecosystem, or are part of Mana Industries’ investment portfolio. Please note, this
+          space is by invitation only and not open to the public.
           {status ? null : (
             <>
               <br />
@@ -107,7 +107,7 @@ export default function UserGardenOffice(props) {
       {status && Number(status.tier) === 1 && (
         <Group title="Your workspace is pending">
           <ul className={styles.list}>
-            <li>Your application for office space is pending approval.</li>
+            <li>Your application for physical workspace is pending approval.</li>
             <li>
               Contact the{' '}
               <a href="https://t.me/internetdevelopmentstudio" style={{ color: `var(--theme-primary)` }} target="_blank">
@@ -116,7 +116,7 @@ export default function UserGardenOffice(props) {
               team to check the status of your application.
             </li>
             <li>
-              By using our office space, you agree to our{' '}
+              By using our physical workspace, you agree to our{' '}
               <a href="https://internet.dev/office" target="_blank" style={{ color: `var(--theme-primary)` }}>
                 terms and conditions.
               </a>
@@ -128,9 +128,9 @@ export default function UserGardenOffice(props) {
       {status && Number(status.tier) === 2 && !isPayingForDesks && (
         <Group title="Your workspace is approved">
           <ul className={styles.list}>
-            <li>Complete the payment for your desk or your company's office space.</li>
+            <li>Complete the payment for your desk or your company's physical workspace.</li>
             <li>
-              By using our office space, you agree to our{' '}
+              By using our physical workspace, you agree to our{' '}
               <a href="https://internet.dev/office" target="_blank" style={{ color: `var(--theme-primary)` }}>
                 terms and conditions.
               </a>
@@ -152,10 +152,10 @@ export default function UserGardenOffice(props) {
       {status && Number(status.tier) === 2 && isPayingForDesks && (
         <Group title="Welcome back">
           <ul className={styles.list}>
-            <li>Your office space at the Internet Development Studio Company is confirmed.</li>
+            <li>Your physical workspace at the Internet Development Studio Company is confirmed.</li>
             <li>We hope you enjoy the space!</li>
             <li>
-              By using our office space, you agree to our{' '}
+              By using our physical workspace, you agree to our{' '}
               <a href="https://internet.dev/office" target="_blank" style={{ color: `var(--theme-primary)` }}>
                 terms and conditions.
               </a>

@@ -1,7 +1,8 @@
 .input {
   -webkit-appearance: none;
   color: var(--theme-text);
-  font-family: var(--font-family-mono);
+  font-family: var(--font-family);
+  font-weight: 600;
   background: var(--theme-background-input);
   box-sizing: border-box;
   width: 100%;

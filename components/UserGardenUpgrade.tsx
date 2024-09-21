@@ -23,7 +23,7 @@ export default function UserGardenUpgrade(props) {
         <div className={styles.container}>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title>FREE</Title>
+              <Title style={{ padding: 0 }}>FREE</Title>
               <H5 style={{ marginTop: 24 }}>
                 $0 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -44,7 +44,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title>PROFESSIONAL</Title>
+              <Title style={{ padding: 0 }}>PROFESSIONAL</Title>
               <H5 style={{ marginTop: 24 }}>
                 $8.99 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -75,7 +75,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title>COLLABORATOR</Title>
+              <Title style={{ padding: 0 }}>COLLABORATOR</Title>
               <H5 style={{ marginTop: 24 }}>
                 $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -105,7 +105,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title>PARTNER</Title>
+              <Title style={{ padding: 0 }}>PARTNER</Title>
               <H5 style={{ opacity: 0, marginTop: 24, visibility: 'hidden' }}>
                 $X USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -142,8 +142,8 @@ export default function UserGardenUpgrade(props) {
               .
             </div>
             <div className={styles.disclaimer}>
-              [2] Reserved desks — Our office space offers a mix of reserved and open desks. The reserved desks are allocated on based on the needs of the Internet Development
-              Studio Company. View the{' '}
+              [2] Reserved desks — Our physical workspace offers a mix of reserved and open desks. The reserved desks are allocated on based on the needs of the Internet
+              Development Studio Company. View the{' '}
               <a href="https://internet.dev/office" className={styles.link} target="_blank">
                 Office Usage Agreement
               </a>

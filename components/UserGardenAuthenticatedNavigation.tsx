@@ -32,7 +32,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
   return (
     <div className={styles.root}>
       <div className={styles.top}>
-        <Title style={{ padding: '8px 24px 8px 24px' }}>YOUR ACCOUNT</Title>
+        <Title>YOUR ACCOUNT</Title>
         <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
           {props.viewer.email}
         </Item>
@@ -63,7 +63,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {isAdmin ? (
           <>
-            <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>ADMIN</Title>
+            <Title style={{ marginTop: 24 }}>ADMIN</Title>
             <Item active={'ADMIN_TENANTS' === props.active} onClick={() => props.onNavigate({ active: 'ADMIN_TENANTS', nextOrganization: null })} mark={`─`}>
               Tenants
             </Item>
@@ -72,7 +72,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
 
         {props.yourOrganizations && props.yourOrganizations.length ? (
           <>
-            <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>APPS & WEBSITES</Title>
+            <Title style={{ marginTop: 24 }}>APPS & WEBSITES</Title>
 
             {props.yourOrganizations.map((each, index) => {
               const thisOrganization = props.organizations.find((org) => org.id === each.organization_id);
@@ -106,7 +106,7 @@ export default function UserGardenAuthenticatedNavigation(props) {
           </>
         ) : null}
 
-        <Title style={{ marginTop: 24, padding: '8px 24px 8px 24px' }}>OTHER</Title>
+        <Title style={{ marginTop: 24 }}>OTHER</Title>
         <Item href="https://txt.dev" target="_blank" mark={`┌`}>
           TXT
         </Item>

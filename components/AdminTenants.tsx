@@ -48,12 +48,18 @@ const TableText = (props) => {
 
 function AdminTenantCandidates(props) {
   return (
-    <Group title="USERS">
+    <Group title="Your physical workspace users">
       <ul className={styles.list}>
         <li>Manage applicants from this section.</li>
-        <li>Select "Grant" to assign desk access based on the applicant's payment plan. You can see if they are paying or not in the table below.</li>
-        <li>Select "Revoke" to remove their desk access.</li>
-        <li>Select "Remove" to delete an applicant from the list.</li>
+        <li>
+          Select <strong>"Grant"</strong> to assign desk access based on the applicant's payment plan. You can see if they are paying or not in the table below.
+        </li>
+        <li>
+          Select <strong>"Revoke"</strong> to remove their desk access.
+        </li>
+        <li>
+          Select <strong>"Remove"</strong> to delete an applicant from the list.
+        </li>
       </ul>
 
       <Table
@@ -75,7 +81,7 @@ function AdminTenantCandidates(props) {
                 {isApplying ? (
                   <SmallButton
                     onClick={async () => {
-                      const confirm = window.confirm(`Are you sure you want to grant ${each.email} office space?`);
+                      const confirm = window.confirm(`Are you sure you want to grant ${each.email} physical workspace?`);
                       if (!confirm) {
                         return;
                       }
@@ -100,7 +106,7 @@ function AdminTenantCandidates(props) {
                 {isApproved ? (
                   <SmallButton
                     onClick={async () => {
-                      const confirm = window.confirm(`Are you sure you want to remove ${each.email} from having office space?`);
+                      const confirm = window.confirm(`Are you sure you want to remove ${each.email} from having physical workspace?`);
 
                       if (!confirm) {
                         return;
@@ -175,8 +181,8 @@ export default function AdminTenants(props) {
   return (
     <div className={styles.root}>
       <div className={styles.section}>
-        <SubTitle>TENANTS</SubTitle>
-        <P style={{ marginTop: 6 }}>As an administrator, you can view the current office space tenants, including those paying for entire zones or individual desks.</P>
+        <SubTitle>Physical tenants</SubTitle>
+        <P style={{ marginTop: 6 }}>As an administrator, you can view the current physical workspace tenants, including those paying for entire zones or individual desks.</P>
       </div>
 
       <AdminTenantCandidates

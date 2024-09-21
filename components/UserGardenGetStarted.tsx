@@ -54,19 +54,17 @@ export default function UserDanger(props) {
     <div className={styles.root}>
       <div className={styles.section}>
         <SubTitle>Welcome</SubTitle>
-        <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and desk space on this website.</P>
+        <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and physical workspace on this website.</P>
         <div className={styles.actions}>
           <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
-            View profile
+            Settings
           </Button>
-          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Manage desk</Button>
+          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Get workspace</Button>
         </div>
       </div>
 
       <Group title="Get started">
-        <P style={{ marginTop: 6, paddingBottom: 88 }}>
-          Follow these steps to leverage our API as a centralized authentication for your service.
-        </P>
+        <P style={{ marginTop: 6, paddingBottom: 88 }}>Follow these steps to leverage our API as a centralized authentication for your service.</P>
       </Group>
 
       <Group title="How does a user sign in?">

@@ -44,8 +44,8 @@
 .list {
   padding-left: 20px;
   margin-top: 12px;
-  font-size: var(--type-scale-6);
-  line-height: 1.5;
+  font-size: var(--type-scale-7);
+  line-height: 1.444;
   font-weight: 400;
   display: block;
   text-decoration: none;
@@ -80,6 +80,8 @@
 
 .groupLabelText {
   font-size: var(--type-scale-fixed-tiny);
+  font-weight: 400;
+  letter-spacing: -0.2px;
   text-transform: uppercase;
   background: var(--theme-background);
   display: inline-block;
