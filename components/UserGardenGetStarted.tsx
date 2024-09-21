@@ -72,7 +72,7 @@ export default function UserDanger(props) {
           We offer two methods for performing authentication: one using a TypeScript request with fetch, and the other with cURL. Regardless of the programming language you use,
           you can make a network request to our API for authentication and receive the necessary information in return.
         </P>
-        <MonospacePreview title="api.internet.dev/api/users/authenticate" style={{ marginTop: 24 }}>{`
+        <MonospacePreview title="api/users/authenticate" style={{ marginTop: 24 }}>{`
 const email = '${props.viewer.email}';
 const password = '****-****-****-****';
 const source = 'your-app.com';
@@ -94,10 +94,10 @@ console.log(json);
           In both the cURL and fetch requests, the source field plays an important role. It adds a custom data field to the user’s account, helping both you and the user recognize
           that they are signing into your website. While the source field is optional, we highly recommend using it to clearly identify your web application.
         </P>
-        <MonospacePreview title="api.internet.dev/api/users/authenticate" style={{ marginTop: 24 }}>{`
+        <MonospacePreview title="api/users/authenticate" style={{ marginTop: 24 }}>{`
 curl -X POST "https://api.internet.dev/api/users/authenticate" \\
   -H "Content-Type: application/json" \\
-  -d '{"email": "your@email.com", "password": "****-****-****-****", "source": "your-app.com"}'
+  -d '{"email": "${props.viewer.email}", "password": "****-****-****-****", "source": "your-app.com"}'
         `}</MonospacePreview>
 
         <P style={{ marginTop: 88 }}>
@@ -108,7 +108,7 @@ curl -X POST "https://api.internet.dev/api/users/authenticate" \\
           </a>{' '}
           for further details on how to use this key and the capabilities it unlocks.
         </P>
-        <MonospacePreview style={{ marginTop: 24 }} title="api.internet.dev/api/users/authenticate">{`
+        <MonospacePreview style={{ marginTop: 24 }} title="api/users/authenticate">{`
 {
   "user":{
     "id" : "${props.viewer.id}",

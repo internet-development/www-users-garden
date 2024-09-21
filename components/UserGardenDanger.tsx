@@ -65,22 +65,22 @@ export default function UserDanger(props) {
       <Group title="Your account status">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
-            You are an <strong style={{ color: `var(--theme-primary)` }}>unverified user</strong>. You can not use most of the API.
+            You are an <strong>unverified user</strong>. You can not use most of the API.
           </li>
           <li style={!isVerified ? { opacity: 0.1 } : undefined}>
-            You are a <strong style={{ color: `var(--theme-primary)` }}>verified user</strong>. You can use the API.
+            You are a <strong>verified user</strong>. You can use the API.
           </li>
           <li style={!isPaying ? { opacity: 0.1 } : undefined}>
-            You are a <strong style={{ color: `var(--theme-primary)` }}>professional user</strong>. You have access to all premium features.
+            You are a <strong>professional user</strong>. You have access to all premium features.
           </li>
           <li style={!isOffice ? { opacity: 0.1 } : undefined}>
-            You are a <strong style={{ color: `var(--theme-primary)` }}>collaborator</strong>. You have access to physical workspace.
+            You are a <strong>collaborator</strong>. You have access to physical workspace.
           </li>
           <li style={!isPartner ? { opacity: 0.1 } : undefined}>
-            You are a <strong style={{ color: `var(--theme-primary)` }}>partner</strong>. You have special privileges.
+            You are a <strong>partner</strong>. You have special privileges.
           </li>
           <li style={!isAdmin ? { opacity: 0.1 } : undefined}>
-            You are an <strong style={{ color: `var(--theme-primary)` }}>administrator</strong>. You made this world.
+            You are an <strong>administrator</strong>. You made this world.
           </li>
         </ul>
       </Group>
