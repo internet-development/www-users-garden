@@ -184,6 +184,10 @@ export default function UserGardenWallet(props) {
               }
 
               const response = await props.onSendTransactionByEmail({ email, amount });
+
+              setEmail('');
+              setAmount(0);
+
               if (!response || response.error) {
                 window.alert('Something went wrong, try again.');
                 setLoading(false);
