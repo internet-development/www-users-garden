@@ -4,6 +4,7 @@ import * as Constants from '@common/constants';
 import * as React from 'react';
 
 import Button from '@system/Button';
+import ButtonPrimary from '@system/ButtonPrimary';
 import Input from '@system/Input';
 import MonospacePreview from '@system/MonospacePreview';
 
@@ -56,10 +57,10 @@ export default function UserDanger(props) {
         <SubTitle>Welcome</SubTitle>
         <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and physical workspace on this website.</P>
         <div className={styles.actions}>
-          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
-            Settings
-          </Button>
-          <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })}>Get workspace</Button>
+          <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
+            Get workspace
+          </ButtonPrimary>
+          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })}>Settings</Button>
         </div>
       </div>
 

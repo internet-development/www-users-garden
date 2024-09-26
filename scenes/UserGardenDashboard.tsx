@@ -92,7 +92,7 @@ export default function UserGardenDashboard(props) {
         viewer={props.viewer}
       />
     ),
-    USER_UPGRADE: <UserGardenUpgrade viewer={props.viewer} />,
+    USER_UPGRADE: <UserGardenUpgrade onUserGetOfficeState={props.onUserGetOfficeState} onNavigate={props.onNavigate} viewer={props.viewer} />,
     USER_ACCESS: (
       <UserGardenAccess
         onChangeUserPassword={props.onChangeUserPassword}

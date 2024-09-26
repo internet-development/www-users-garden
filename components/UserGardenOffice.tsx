@@ -4,6 +4,7 @@ import * as Constants from '@common/constants';
 import * as React from 'react';
 
 import Button from '@system/Button';
+import ButtonPrimary from '@system/ButtonPrimary';
 import Input from '@system/Input';
 
 import { P, SubTitle } from '@system/typography';
@@ -86,7 +87,7 @@ export default function UserGardenOffice(props) {
 
         {status ? null : (
           <div className={styles.actions}>
-            <Button
+            <ButtonPrimary
               loading={props.loading}
               onClick={async () => {
                 setLoading(true);
@@ -98,8 +99,8 @@ export default function UserGardenOffice(props) {
                 setLoading(false);
               }}
             >
-              Apply
-            </Button>
+              Apply for workspace
+            </ButtonPrimary>
           </div>
         )}
       </div>
@@ -138,13 +139,13 @@ export default function UserGardenOffice(props) {
           </ul>
 
           <div className={styles.actions}>
-            <Button
+            <ButtonPrimary
               onClick={async () => {
                 props.onNavigate({ active: 'USER_UPGRADE' });
               }}
             >
               Upgrade
-            </Button>
+            </ButtonPrimary>
           </div>
         </Group>
       )}

@@ -11,5 +11,9 @@ export default function ButtonWarning(props) {
     );
   }
 
+  if (props.href) {
+    return <a className={styles.root} {...props} />;
+  }
+
   return <button children={props.children} className={styles.root} disabled={props.disabled} onClick={props.onClick} id={props.id} style={props.style} />;
 }

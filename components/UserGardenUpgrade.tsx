@@ -4,10 +4,40 @@ import * as Constants from '@common/constants';
 import * as React from 'react';
 
 import Button from '@system/Button';
+import ButtonPrimary from '@system/ButtonPrimary';
 import Content from '@system/layouts/Content';
 import CheckmarkItem from '@system/documents/CheckmarkItem';
 
 import { P, H5, SubLead, Title, SubTitle } from '@system/typography';
+
+function DynamicButton(props) {
+  const [isApplicant, setApplicant] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    async function run() {
+      const next = await props.onUserGetOfficeState();
+      if (next && next.data && next.data.tier && next.data.tier > 1) {
+        setApplicant(true);
+      }
+    }
+
+    run();
+  }, [props]);
+
+  if (!isApplicant) {
+    return (
+      <Button onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} style={props.style}>
+        Apply
+      </Button>
+    );
+  }
+
+  return (
+    <ButtonPrimary href={props.href} style={props.style} target="_blank">
+      Get started
+    </ButtonPrimary>
+  );
+}
 
 export default function UserGardenUpgrade(props) {
   return (
@@ -54,9 +84,9 @@ export default function UserGardenUpgrade(props) {
                     Already obtained
                   </Button>
                 ) : (
-                  <Button href={`${Constants.LINKS.PAYING}?prefilled_email=${props.viewer.email}`} style={{ height: 48, marginTop: 24, width: '100%' }} target="_blank">
+                  <ButtonPrimary href={`${Constants.LINKS.PAYING}?prefilled_email=${props.viewer.email}`} style={{ height: 48, marginTop: 24, width: '100%' }} target="_blank">
                     Get started
-                  </Button>
+                  </ButtonPrimary>
                 )
               ) : (
                 <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="https://users.garden">
@@ -85,9 +115,12 @@ export default function UserGardenUpgrade(props) {
                     Already obtained
                   </Button>
                 ) : (
-                  <Button href={`${Constants.LINKS.GENERAL_CO_WORKING}?prefilled_email=${props.viewer.email}`} style={{ height: 48, marginTop: 24, width: '100%' }} target="_blank">
-                    Get started
-                  </Button>
+                  <DynamicButton
+                    href={`${Constants.LINKS.GENERAL_CO_WORKING}?prefilled_email=${props.viewer.email}`}
+                    onNavigate={props.onNavigate}
+                    onUserGetOfficeState={props.onUserGetOfficeState}
+                    style={{ height: 48, marginTop: 24, width: '100%' }}
+                  />
                 )
               ) : (
                 <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="https://users.garden">
@@ -106,12 +139,27 @@ export default function UserGardenUpgrade(props) {
           <div className={styles.column}>
             <div className={styles.content}>
               <Title style={{ padding: 0 }}>PARTNER</Title>
-              <H5 style={{ opacity: 0, marginTop: 24, visibility: 'hidden' }}>
-                $X USD<span className={styles.subtle}>/mo</span>
+              <H5 style={{ marginTop: 24 }}>
+                $2790 USD<span className={styles.subtle}>/mo</span>
               </H5>
-              <Button onClick={() => alert('Coming soon!')} style={{ height: 48, marginTop: 24, width: '100%' }}>
-                Apply
-              </Button>
+              {props.viewer ? (
+                props.viewer.level >= Constants.Users.tiers.PARTNER ? (
+                  <Button visual style={{ height: 48, marginTop: 24, width: '100%' }}>
+                    Already obtained
+                  </Button>
+                ) : (
+                  <DynamicButton
+                    href={`${Constants.LINKS.PARTNER}?prefilled_email=${props.viewer.email}`}
+                    onNavigate={props.onNavigate}
+                    onUserGetOfficeState={props.onUserGetOfficeState}
+                    style={{ height: 48, marginTop: 24, width: '100%' }}
+                  />
+                )
+              ) : (
+                <Button style={{ height: 48, marginTop: 24, width: '100%' }} href="https://users.garden">
+                  Sign up
+                </Button>
+              )}
               <div className={styles.caption}>
                 All the benefits of <strong>"Collaborator"</strong>, and ↴
               </div>
