@@ -3,7 +3,7 @@ export const MAX_SIZE_BYTES = 15728640;
 export const HOST = `https://api.internet.dev`;
 // export const HOST = `http://localhost:10001`;
 
-export const LINKS = HOST.startsWith('http')
+export const LINKS = !HOST.startsWith('https')
   ? {
       PAYING: 'https://buy.stripe.com/test_9AQ9AQ5jdf42axWeUU',
       GENERAL_CO_WORKING: 'https://buy.stripe.com/test_3cs28oeTNaNMbC0145',
