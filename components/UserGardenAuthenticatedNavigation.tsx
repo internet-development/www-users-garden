@@ -33,32 +33,32 @@ export default function UserGardenAuthenticatedNavigation(props) {
     <div className={styles.root}>
       <div className={styles.top}>
         <Title>ACCOUNT</Title>
-        <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`┌`}>
-          {props.viewer.email}
+        <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`┌`}>
+          Access
+        </Item>
+        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`├`}>
+          Danger
         </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
           Guide
         </Item>
+        <Item active={'USER_GRANTS' === props.active} onClick={() => props.onNavigate({ active: 'USER_GRANTS', nextOrganization: null })} mark={`├`}>
+          Grants
+        </Item>
         <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
           Office
-        </Item>
-        <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
-          Upgrades
         </Item>
         <Item active={'USER_ORGANIZATIONS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ORGANIZATIONS', nextOrganization: null })} mark={`├`}>
           Organizations
         </Item>
-        <Item active={'USER_GRANTS' === props.active} onClick={() => props.onNavigate({ active: 'USER_GRANTS', nextOrganization: null })} mark={`├`}>
-          Grants
+        <Item active={'USER_PROFILE' === props.active} onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })} mark={`├`}>
+          Settings
         </Item>
-        <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`├`}>
+        <Item active={'USER_UPGRADE' === props.active} onClick={() => props.onNavigate({ active: 'USER_UPGRADE', nextOrganization: null })} mark={`├`}>
+          Upgrades
+        </Item>
+        <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`└`}>
           Wallet
-        </Item>
-        <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`├`}>
-          Access
-        </Item>
-        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`└`}>
-          Danger
         </Item>
 
         {isAdmin ? (

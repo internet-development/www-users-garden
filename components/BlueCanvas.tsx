@@ -141,7 +141,7 @@ export default function BlueCanvasComponent(props) {
   void main () {
     float density = texture2D(uTexture, vUv).r;
     vec3 splatColor = vec3(1.0, 1.0, 1.0);
-    vec3 backgroundColor = vec3(0.4, 0.7, 1.0);
+    vec3 backgroundColor = vec3(0.8, 0.8, 0.8);
     vec3 color = mix(backgroundColor, splatColor, density);
     gl_FragColor = vec4(color, 1.0);
   }
