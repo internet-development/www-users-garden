@@ -7,40 +7,9 @@ import Button from '@system/Button';
 import Input from '@system/Input';
 import Table from '@system/Table';
 import SmallButton from '@system/documents/SmallButton';
-
-import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 const TableText = (props) => {
   return <div style={{ paddingTop: 1, ...props.style }}>{props.children}</div>;
@@ -102,7 +71,7 @@ function UserGardenApplicationsUserList(props) {
   const href = `https://${props.currentOrganization.domain.toUpperCase()}`;
 
   return (
-    <Group title="Who is in the organization?">
+    <StandardLayoutSection title="Who is in the organization?">
       <ul className={styles.list}>
         <li>
           All users who signed up through{' '}
@@ -113,7 +82,7 @@ function UserGardenApplicationsUserList(props) {
       </ul>
 
       <Table data={users} headings={['EMAIL', 'USERNAME', 'VERIFIED', 'ACTIONS']} style={{ marginTop: 24 }} />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -131,24 +100,20 @@ export default function UserGardenApplications(props) {
   const href = `https://${domainName}`;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>{domainName}</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          Manage settings for{' '}
-          <a href={href} style={{ color: `var(--theme-primary)` }}>
-            {domainName}
-          </a>{' '}
-          and see users who are signing up using your `source` configuration.
-        </P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title={`${domainName}`}>
+        Manage settings for{' '}
+        <a href={href} style={{ color: `var(--theme-primary)` }}>
+          {domainName}
+        </a>{' '}
+        and see users who are signing up using your `source` configuration.
+      </StandardHeader>
 
       <UserGardenApplicationsUserList
         currentOrganization={props.currentOrganization}
         onOrganizationAddUser={props.onOrganizationAddUser}
         onOrganizationSourceUsers={props.onOrganizationSourceUsers}
       />
-
-    </div>
+    </StandardLayout>
   );
 }

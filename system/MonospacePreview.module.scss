@@ -36,4 +36,8 @@
   color: var(--theme-text);
   overflow-wrap: break-word;
   white-space: pre-wrap;
+
+  @media (max-width: 768px) {
+    font-size: var(--type-scale-fixed-small);
+  }
 }

@@ -15,6 +15,10 @@
   padding: 8px 24px 12px 0px;
   font-weight: 600;
   font-size: var(--type-scale-fixed-tiny);
+
+  @media (max-width: 768px) {
+    font-size: var(--type-scale-fixed-label);
+  }
 }
 
 .row {
@@ -27,6 +31,10 @@
   border-bottom: 1px solid var(--theme-border);
   padding: 8px 24px 10px 0px;
   font-size: var(--type-scale-fixed-tiny);
+
+  @media (max-width: 768px) {
+    font-size: var(--type-scale-fixed-label);
+  }
 
   a {
     color: var(--theme-text);
@@ -44,4 +52,8 @@
 .empty {
   padding: 16px 16px 16px 0px;
   font-size: var(--type-scale-fixed-tiny);
+
+  @media (max-width: 768px) {
+    font-size: var(--type-scale-fixed-label);
+  }
 }

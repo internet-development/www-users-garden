@@ -6,40 +6,9 @@ import * as Utilities from '@common/utilities';
 
 import Button from '@system/Button';
 import Input from '@system/Input';
-
-import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 export default function UserGardenDashboardProfile(props) {
   const [customField, setCustomField] = React.useState<string>('');
@@ -53,16 +22,13 @@ export default function UserGardenDashboardProfile(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Settings</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          Update your user information here. Please note that some fields require verification to change and modifying certain fields may impact other connected applications. For
-          guidance, refer to the provided sections.
-        </P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Your settings">
+        Update your user information here. Please note that some fields require verification to change and modifying certain fields may impact other connected applications. For
+        guidance, refer to the provided sections.
+      </StandardHeader>
 
-      <Group title="Your account status">
+      <StandardLayoutSection title="Your account status">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong>unverified user</strong>. You can not use most of the API.
@@ -89,10 +55,10 @@ export default function UserGardenDashboardProfile(props) {
             <Button onClick={() => props.onNavigate({ active: 'USER_UPGRADE' })}>Upgrade</Button>
           </div>
         ) : null}
-      </Group>
+      </StandardLayoutSection>
 
       {!isVerified && (
-        <Group title="Verify your e-mail">
+        <StandardLayoutSection title="Verify your e-mail">
           <ul className={styles.list}>
             <li>You must verify your e-mail to use our services.</li>
           </ul>
@@ -113,10 +79,10 @@ export default function UserGardenDashboardProfile(props) {
               <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['email']}
             </div>
           )}
-        </Group>
+        </StandardLayoutSection>
       )}
 
-      <Group title="Your application data">
+      <StandardLayoutSection title="Your application data">
         <ul className={styles.list}>
           <li>This data comes from applications you have been using.</li>
           <li>Your custom data is editable.</li>
@@ -201,9 +167,9 @@ export default function UserGardenDashboardProfile(props) {
             <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['data']}
           </div>
         )}
-      </Group>
+      </StandardLayoutSection>
 
-      <Group title="Change your username">
+      <StandardLayoutSection title="Change your username">
         <ul className={styles.list}>
           <li>Your username must be at least 2 characters.</li>
           <li>Your username must be unique.</li>
@@ -228,7 +194,7 @@ export default function UserGardenDashboardProfile(props) {
             <span style={{ color: `var(--theme-success)` }}>✓</span> {props.status['username']}
           </div>
         )}
-      </Group>
-    </div>
+      </StandardLayoutSection>
+    </StandardLayout>
   );
 }

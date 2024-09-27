@@ -10,42 +10,13 @@ import Input from '@system/Input';
 import Table from '@system/Table';
 import TextArea from '@system/TextArea';
 import SmallButton from '@system/documents/SmallButton';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P, SubTitle } from '@system/typography';
 
 const TABLE_HEADINGS_ORGANIZATION = ['USERNAME', 'EMAIL', 'STATUS', ''];
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
 
 const TableText = (props) => {
   return <div style={{ paddingTop: 1 }}>{props.children}</div>;
@@ -53,7 +24,7 @@ const TableText = (props) => {
 
 function UserGardenUserTable(props) {
   return (
-    <Group title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
+    <StandardLayoutSection title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
       {Number(props.selectedOrganizationMembership.level) === Constants.Users.tiers.ADMIN ? (
         <>
           <ul className={styles.list}>
@@ -70,19 +41,19 @@ function UserGardenUserTable(props) {
         </>
       )}
       <Table data={props.data} headings={TABLE_HEADINGS_ORGANIZATION} style={{ marginTop: 24 }} />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
 function UserGardenUserEmptyTable(props) {
   return (
-    <Group title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
+    <StandardLayoutSection title={`Manage ${props.selectedOrganization.domain.toUpperCase()} users`}>
       <ul className={styles.list}>
         <li>Changes are being processed.</li>
       </ul>
 
       <Table data={[{ id: 1, data: ['Please wait...'] }]} headings={['STATUS']} style={{ marginTop: 24 }} />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -90,7 +61,7 @@ function UserGardenUserAdd(props) {
   const [email, setEmail] = React.useState<string>('');
 
   return (
-    <Group title="Add a new member">
+    <StandardLayoutSection title="Add a new member">
       <ul className={styles.list}>
         <li>Add any user by e-mail.</li>
         <li>They can see all members in the organization.</li>
@@ -109,13 +80,13 @@ function UserGardenUserAdd(props) {
           Add
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
 function UserGardenUserDanger(props) {
   return (
-    <Group title="Remove yourself">
+    <StandardLayoutSection title="Remove yourself">
       <ul className={styles.list}>
         <li>Remove yourself from your organization.</li>
         <li>If you are an admin, you must give admin rights to someone else before leaving.</li>
@@ -132,13 +103,13 @@ function UserGardenUserDanger(props) {
           Leave
         </ButtonWarning>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
 function UserGardenOrganizationPublicAccess(props) {
   return (
-    <Group title="Give public access">
+    <StandardLayoutSection title="Give public access">
       <ul className={styles.list}>
         <li>Your organization is PRIVATE</li>
         <li>If you make your organization public, everyone can access your organization's API and data.</li>
@@ -154,13 +125,13 @@ function UserGardenOrganizationPublicAccess(props) {
           Make public
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
 function UserGardenOrganizationPrivateAccess(props) {
   return (
-    <Group title="Revoke public access">
+    <StandardLayoutSection title="Revoke public access">
       <ul className={styles.list}>
         <li>Your organization is PUBLIC</li>
         <li>If you make your organization private, only members of your organization can access your organization's API and data.</li>
@@ -175,7 +146,7 @@ function UserGardenOrganizationPrivateAccess(props) {
           Make private
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -185,7 +156,7 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email ? props.organization.data.email.text : '');
 
   return (
-    <Group title="Create a custom verify e-mail">
+    <StandardLayoutSection title="Create a custom verify e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your verification e-mail to your users.</li>
       </ul>
@@ -227,7 +198,7 @@ function UserGardenOrganizationCustomVerifyEmail(props) {
           Save
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -239,7 +210,7 @@ function UserGardenOrganizationCustomResetPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_reset_password ? props.organization.data.email_reset_password.text : '');
 
   return (
-    <Group title="Create a custom reset password e-mail">
+    <StandardLayoutSection title="Create a custom reset password e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your reset password e-mail to your users.</li>
       </ul>
@@ -281,7 +252,7 @@ function UserGardenOrganizationCustomResetPasswordEmail(props) {
           Save
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -293,7 +264,7 @@ function UserGardenOrganizationCustomSendPasswordEmail(props) {
   const [text, setText] = React.useState<string>(props.organization.data && props.organization.data.email_send_password ? props.organization.data.email_send_password.text : '');
 
   return (
-    <Group title="Create a custom send password e-mail">
+    <StandardLayoutSection title="Create a custom send password e-mail">
       <ul className={styles.list}>
         <li>You can customize the content of your e-mail when we send your users their password.</li>
       </ul>
@@ -328,7 +299,7 @@ function UserGardenOrganizationCustomSendPasswordEmail(props) {
           Save
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -487,17 +458,14 @@ export default function UserGardenOrganizations(props) {
   }, [selectedOrganization]);
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Your organizations</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          Manage your organization and its external members. Adding members allows the root user to grant access to anyone they select. The first person to create an organization
-          automatically receives administrative privileges.
-        </P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Your organizations">
+        Manage your organization and its external members. Adding members allows the root user to grant access to anyone they select. The first person to create an organization
+        automatically receives administrative privileges.
+      </StandardHeader>
 
       {props.isPotentialAdmin && (
-        <Group title="Join your default organization">
+        <StandardLayoutSection title="Join your default organization">
           <ul className={styles.list}>
             <li>Because of your e-mail, you can automatically join "{Utilities.getDomainFromEmail(props.viewer.email)}"</li>
             <li>You must verify your e-mail first.</li>
@@ -517,10 +485,10 @@ export default function UserGardenOrganizations(props) {
               Join {Utilities.getDomainFromEmail(props.viewer.email)}
             </Button>
           </div>
-        </Group>
+        </StandardLayoutSection>
       )}
 
-      <Group title="Your memberships">
+      <StandardLayoutSection title="Your memberships">
         <Table
           data={data}
           headings={TABLE_HEADINGS}
@@ -540,7 +508,7 @@ export default function UserGardenOrganizations(props) {
           style={{ marginTop: 24 }}
           value={selected}
         />
-      </Group>
+      </StandardLayoutSection>
 
       {selectedOrganization ? (
         <UserGardenUserAdd
@@ -696,6 +664,6 @@ export default function UserGardenOrganizations(props) {
           onSetLoading={setLoading}
         />
       ) : null}
-    </div>
+    </StandardLayout>
   );
 }

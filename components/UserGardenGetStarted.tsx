@@ -7,40 +7,11 @@ import Button from '@system/Button';
 import ButtonPrimary from '@system/ButtonPrimary';
 import Input from '@system/Input';
 import MonospacePreview from '@system/MonospacePreview';
+import StandardLayout from '@components/StandardLayout';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
-import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
+import { P } from '@system/typography';
 
 export default function UserDanger(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -52,23 +23,26 @@ export default function UserDanger(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Welcome</SubTitle>
-        <P style={{ marginTop: 6 }}>Welcome! You can manage your account, organization, and physical workspace on this website.</P>
-        <div className={styles.actions}>
-          <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
-            Get workspace
-          </ButtonPrimary>
-          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })}>Settings</Button>
-        </div>
-      </div>
+    <StandardLayout>
+      <StandardHeader
+        title="Welcome"
+        footerElement={
+          <div className={styles.actions}>
+            <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} style={{ margin: `0 24px 16px 0` }}>
+              Get workspace
+            </ButtonPrimary>
+            <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })}>Settings</Button>
+          </div>
+        }
+      >
+        Welcome! You can manage your account, organization, and physical workspace on this website.
+      </StandardHeader>
 
-      <Group title="Get started">
+      <StandardLayoutSection title="Get started">
         <P style={{ marginTop: 6, paddingBottom: 88 }}>Follow these steps to leverage our API as a centralized authentication for your service.</P>
-      </Group>
+      </StandardLayoutSection>
 
-      <Group title="How does a user sign in?">
+      <StandardLayoutSection title="How does a user sign in?">
         <P style={{ marginTop: 6 }}>
           We offer two methods for performing authentication: one using a TypeScript request with fetch, and the other with cURL. Regardless of the programming language you use,
           you can make a network request to our API for authentication and receive the necessary information in return.
@@ -171,7 +145,7 @@ export async function getServerSideProps(context) {
   };
 }
         `}</MonospacePreview>
-      </Group>
-    </div>
+      </StandardLayoutSection>
+    </StandardLayout>
   );
 }

@@ -7,40 +7,9 @@ import * as Utilities from '@common/utilities';
 import Button from '@system/Button';
 import Input from '@system/Input';
 import Table from '@system/Table';
-
-import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 const TableText = (props) => {
   return <div style={{ paddingTop: 1, ...props.style }}>{props.children}</div>;
@@ -48,14 +17,14 @@ const TableText = (props) => {
 
 function UserGardenWalletTransactions(props) {
   return (
-    <Group title="Your transaction history">
+    <StandardLayoutSection title="Your transaction history">
       <ul className={styles.list}>
         <li>All your account transactions are listed here.</li>
         <li>All your monthly subscription deposits are listed here.</li>
       </ul>
 
       <Table data={props.transactions} headings={['ACTOR', 'DATE', 'AMOUNT']} style={{ marginTop: 24 }} />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -129,26 +98,23 @@ export default function UserGardenWallet(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Your credits</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          Manage your INTDEV credits. INTDEV credits ▚▚ are used to pay for premium features in applications, games, and services. You can also exchange credits with other users on
-          the platform.
-        </P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Your credits">
+        Manage your INTDEV credits. INTDEV credits ▚▚ are used to pay for premium features in applications, games, and services. You can also exchange credits with other users on
+        the platform.
+      </StandardHeader>
 
-      <Group title="Your total balance">
+      <StandardLayoutSection title="Your total balance">
         <ul className={styles.list}>
           <li>
             <strong>{balance.toLocaleString()} ▚▚</strong>
           </li>
         </ul>
-      </Group>
+      </StandardLayoutSection>
 
       <UserGardenWalletTransactions transactions={transactions} />
 
-      <Group title="Send credits">
+      <StandardLayoutSection title="Send credits">
         <ul className={styles.list}>
           <li>Enter an e-mail address to send credits to any premium user.</li>
           <li>Only premium users have credits; if they are not subscribed, they do not have an account.</li>
@@ -202,7 +168,7 @@ export default function UserGardenWallet(props) {
             Send {amount} ▚▚
           </Button>
         </div>
-      </Group>
-    </div>
+      </StandardLayoutSection>
+    </StandardLayout>
   );
 }

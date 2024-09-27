@@ -1,6 +1,10 @@
 .header {
   max-width: 768px;
   padding: 35px 24px 88px 24px;
+
+  @media (max-width: 480px) {
+    padding: 35px 16px 128px 16px;
+  }
 }
 
 .image {

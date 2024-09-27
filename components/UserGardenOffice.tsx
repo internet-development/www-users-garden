@@ -6,40 +6,9 @@ import * as React from 'react';
 import Button from '@system/Button';
 import ButtonPrimary from '@system/ButtonPrimary';
 import Input from '@system/Input';
-
-import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 export default function UserGardenOffice(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -64,49 +33,49 @@ export default function UserGardenOffice(props) {
   }, [props]);
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Get physical workspace</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          Manage your physical{' '}
-          <a href="https://internet.dev/office" style={{ color: `var(--theme-primary)` }} target="_blank">
-            workspace
-          </a>{' '}
-          at the Internet Development Studio Company Office in Seattle, WA. <br />
-          <br />
-          We collaborate with individuals and teams who align with our goals, contribute to our ecosystem, or are part of Mana Industries’ investment portfolio. Please note, this
-          space is by invitation only and not open to the public.
-          {status ? null : (
-            <>
-              <br />
-              <br />
-              Apply to get approval for space.
-            </>
-          )}
-        </P>
-
+    <StandardLayout>
+      <StandardHeader
+        title="Get physical workspace"
+        footerElement={
+          status ? null : (
+            <div className={styles.actions}>
+              <ButtonPrimary
+                loading={props.loading}
+                onClick={async () => {
+                  setLoading(true);
+                  const response = await props.onUserApplyOfficeSpace({ email: props.viewer.email });
+                  const next = await props.onUserGetOfficeState();
+                  if (next && next.data) {
+                    setStatus(next.data);
+                  }
+                  setLoading(false);
+                }}
+              >
+                Apply for workspace
+              </ButtonPrimary>
+            </div>
+          )
+        }
+      >
+        Manage your physical{' '}
+        <a href="https://internet.dev/office" style={{ color: `var(--theme-primary)` }} target="_blank">
+          workspace
+        </a>{' '}
+        at the Internet Development Studio Company Office in Seattle, WA. <br />
+        <br />
+        We collaborate with individuals and teams who align with our goals, contribute to our ecosystem, or are part of Mana Industries’ investment portfolio. Please note, this
+        space is by invitation only and not open to the public.
         {status ? null : (
-          <div className={styles.actions}>
-            <ButtonPrimary
-              loading={props.loading}
-              onClick={async () => {
-                setLoading(true);
-                const response = await props.onUserApplyOfficeSpace({ email: props.viewer.email });
-                const next = await props.onUserGetOfficeState();
-                if (next && next.data) {
-                  setStatus(next.data);
-                }
-                setLoading(false);
-              }}
-            >
-              Apply for workspace
-            </ButtonPrimary>
-          </div>
+          <>
+            <br />
+            <br />
+            Apply to get approval for space.
+          </>
         )}
-      </div>
+      </StandardHeader>
 
       {status && Number(status.tier) === 1 && (
-        <Group title="Your workspace application is pending">
+        <StandardLayoutSection title="Your workspace application is pending">
           <ul className={styles.list}>
             <li>Your application for physical workspace is pending approval.</li>
             <li>
@@ -123,11 +92,11 @@ export default function UserGardenOffice(props) {
               </a>
             </li>
           </ul>
-        </Group>
+        </StandardLayoutSection>
       )}
 
       {status && Number(status.tier) === 2 && !isPayingForDesks && (
-        <Group title="Your workspace application is approved">
+        <StandardLayoutSection title="Your workspace application is approved">
           <ul className={styles.list}>
             <li>Complete the payment for your desk or your company's physical workspace.</li>
             <li>
@@ -147,11 +116,11 @@ export default function UserGardenOffice(props) {
               Upgrade
             </ButtonPrimary>
           </div>
-        </Group>
+        </StandardLayoutSection>
       )}
 
       {status && Number(status.tier) === 2 && isPayingForDesks && (
-        <Group title="Welcome back">
+        <StandardLayoutSection title="Welcome back">
           <ul className={styles.list}>
             <li>Your physical workspace at the Internet Development Studio Company is confirmed.</li>
             <li>We hope you enjoy the space!</li>
@@ -162,8 +131,8 @@ export default function UserGardenOffice(props) {
               </a>
             </li>
           </ul>
-        </Group>
+        </StandardLayoutSection>
       )}
-    </div>
+    </StandardLayout>
   );
 }

@@ -6,42 +6,11 @@ import * as React from 'react';
 import Button from '@system/Button';
 import ButtonWarning from '@system/ButtonWarning';
 import Input from '@system/Input';
-
-import { P, SubTitle } from '@system/typography';
+import StandardLayout from '@components/StandardLayout';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 const CONFIRM_DELETE_KEY = `DELETE-THIS-ACCOUNT-NOW`;
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
 
 export default function UserDanger(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -53,16 +22,13 @@ export default function UserDanger(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Dangerous account changes</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          You can delete your account and subscriptions to our services here. Please note that if you do so, you’ll need to recreate your account to access anything built on the
-          Internet Development Studio Company’s API.
-        </P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Dangerous account changes">
+        You can delete your account and subscriptions to our services here. Please note that if you do so, you’ll need to recreate your account to access anything built on the
+        Internet Development Studio Company’s API.
+      </StandardHeader>
 
-      <Group title="Your account status">
+      <StandardLayoutSection title="Your account status">
         <ul className={styles.list}>
           <li style={isVerified ? { opacity: 0.1 } : undefined}>
             You are an <strong>unverified user</strong>. You can not use most of the API.
@@ -83,10 +49,10 @@ export default function UserDanger(props) {
             You are an <strong>administrator</strong>. You made this world.
           </li>
         </ul>
-      </Group>
+      </StandardLayoutSection>
 
       {isPaying ? (
-        <Group title="Cancel your subscription">
+        <StandardLayoutSection title="Cancel your subscription">
           <ul className={styles.list}>
             <li>Canceling your account ends all payments to our services.</li>
             <li>You will lose API permissions and potentially physical workspace.</li>
@@ -120,23 +86,23 @@ export default function UserDanger(props) {
               Cancel
             </ButtonWarning>
           </div>
-        </Group>
+        </StandardLayoutSection>
       ) : (
-        <Group title="You do not have a subscription">
+        <StandardLayoutSection title="You do not have a subscription">
           <ul className={styles.list}>
             <li>You are not paying for services.</li>
           </ul>
-        </Group>
+        </StandardLayoutSection>
       )}
 
       {isPaying ? (
-        <Group title="Delete your account">
+        <StandardLayoutSection title="Delete your account">
           <ul className={styles.list}>
             <li>Cancel your subscription first before deleting your account.</li>
           </ul>
-        </Group>
+        </StandardLayoutSection>
       ) : (
-        <Group title="Delete your account">
+        <StandardLayoutSection title="Delete your account">
           <ul className={styles.list}>
             <li>Deleting your account completely removes you from the Internet Development Studio Company's infrastructure.</li>
             <li>Recreate your account at anytime.</li>
@@ -167,8 +133,8 @@ export default function UserDanger(props) {
               Delete my account
             </ButtonWarning>
           </div>
-        </Group>
+        </StandardLayoutSection>
       )}
-    </div>
+    </StandardLayout>
   );
 }

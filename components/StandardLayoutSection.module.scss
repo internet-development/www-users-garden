@@ -1,4 +1,4 @@
-.child {
+.section {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -12,6 +12,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 }
 
 .line {
@@ -24,21 +28,4 @@
   min-width: 10%;
   width: 100%;
   padding: 24px 0px 24px 0px;
-}
-
-.list {
-  padding-left: 20px;
-  margin-top: 12px;
-  font-size: var(--type-scale-7);
-  line-height: 1.444;
-  font-weight: 400;
-  display: block;
-  text-decoration: none;
-  color: var(--theme-text);
-  font-family: var(--font-family);
-  letter-spacing: 0;
-
-  &:visited {
-    color: var(--theme-text);
-  }
 }

@@ -5,26 +5,10 @@ import * as React from 'react';
 
 import Button from '@system/Button';
 import Input from '@system/Input';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
 
 import { P, SubTitle, Title } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
 
 const Group = (props) => {
   return (
@@ -51,17 +35,16 @@ export default function UserGardenGrants(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Create grants</SubTitle>
-        <P style={{ marginTop: 6 }}>View all your grants and assign grants to other users. To give a grant, you must be an administrator or an organization’s admin.</P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Create grants">
+        View all your grants and assign grants to other users. To give a grant, you must be an administrator or an organization’s admin.
+      </StandardHeader>
 
       <Group isComingSoon>
         <ul className={styles.list}>
           <li style={{ opacity: 0.1 }}>This feature is in development.</li>
         </ul>
       </Group>
-    </div>
+    </StandardLayout>
   );
 }

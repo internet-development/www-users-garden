@@ -17,7 +17,7 @@
   letter-spacing: 0.2px;
   line-height: 32px;
   font-weight: 600;
-  overflow-wrap: break-word;
+  white-space: nowrap;
   user-select: none;
   cursor: pointer;
   transition: 200ms ease all;
@@ -49,5 +49,6 @@
   cursor: wait;
   transition: 200ms ease all;
   transform: scale(1);
+  white-space: nowrap;
   text-decoration: none;
 }

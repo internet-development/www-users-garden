@@ -8,7 +8,7 @@ import ButtonPrimary from '@system/ButtonPrimary';
 import Content from '@system/layouts/Content';
 import CheckmarkItem from '@system/documents/CheckmarkItem';
 
-import { P, H5, SubLead, Title, SubTitle } from '@system/typography';
+import { P, H5, SubLead, SubTitle } from '@system/typography';
 
 function DynamicButton(props) {
   const [isApplicant, setApplicant] = React.useState<boolean>(false);
@@ -53,7 +53,7 @@ export default function UserGardenUpgrade(props) {
         <div className={styles.container}>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title style={{ padding: 0 }}>FREE</Title>
+              <SubTitle style={{ padding: 0 }}>Free</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $0 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -74,7 +74,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title style={{ padding: 0 }}>PROFESSIONAL</Title>
+              <SubTitle style={{ padding: 0 }}>Professional</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $8.99 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -105,7 +105,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title style={{ padding: 0 }}>COLLABORATOR</Title>
+              <SubTitle style={{ padding: 0 }}>Collaborator</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $329 USD<span className={styles.subtle}>/mo</span>
               </H5>
@@ -138,7 +138,7 @@ export default function UserGardenUpgrade(props) {
           </div>
           <div className={styles.column}>
             <div className={styles.content}>
-              <Title style={{ padding: 0 }}>PARTNER</Title>
+              <SubTitle style={{ padding: 0 }}>Partner</SubTitle>
               <H5 style={{ marginTop: 24 }}>
                 $2790 USD<span className={styles.subtle}>/mo</span>
               </H5>

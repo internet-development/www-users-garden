@@ -7,40 +7,11 @@ import Button from '@system/Button';
 import Input from '@system/Input';
 import Table from '@system/Table';
 import SmallButton from '@system/documents/SmallButton';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
 
 const TableText = (props) => {
   return <div style={{ paddingTop: 1, ...props.style }}>{props.children}</div>;
@@ -48,7 +19,7 @@ const TableText = (props) => {
 
 function AdminTenantCandidates(props) {
   return (
-    <Group title="Your physical workspace users">
+    <StandardLayoutSection title="Your physical workspace users">
       <ul className={styles.list}>
         <li>Manage applicants from this section.</li>
         <li>
@@ -160,7 +131,7 @@ function AdminTenantCandidates(props) {
         headings={['EMAIL', 'COLLABORATOR', 'PARTNER', 'APPROVED', 'ACTIONS']}
         style={{ marginTop: 24 }}
       />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -179,11 +150,10 @@ export default function AdminTenants(props) {
   }, [props]);
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Physical tenants</SubTitle>
-        <P style={{ marginTop: 6 }}>As an administrator, you can view the current physical workspace tenants, including those paying for entire zones or individual desks.</P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Physical tenants">
+        As an administrator, you can view the current physical workspace tenants, including those paying for entire zones or individual desks.
+      </StandardHeader>
 
       <AdminTenantCandidates
         onGetAllTenants={props.onGetAllTenants}
@@ -192,6 +162,6 @@ export default function AdminTenants(props) {
         onTenantUpdate={props.onTenantUpdate}
         tenants={tenants}
       />
-    </div>
+    </StandardLayout>
   );
 }

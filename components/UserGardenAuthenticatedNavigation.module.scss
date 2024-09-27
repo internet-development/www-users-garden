@@ -37,6 +37,10 @@
   @media (max-width: 768px) {
     padding: 0 12px 0 10px;
   }
+
+  @media (max-width: 568px) {
+    padding: 8px 12px 0 12px;
+  }
 }
 
 .left {
@@ -44,6 +48,10 @@
   margin-right: 4px;
   font-size: var(--type-scale-fixed-large);
   line-height: var(--type-scale-fixed-large);
+
+  @media (max-width: 568px) {
+    display: none;
+  }
 }
 
 .right {
@@ -54,5 +62,9 @@
 
   @media (max-width: 768px) {
     font-size: var(--type-scale-fixed-tiny);
+  }
+
+  @media (max-width: 568px) {
+    font-size: var(--type-scale-fixed-label);
   }
 }

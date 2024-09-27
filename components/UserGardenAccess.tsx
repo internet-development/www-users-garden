@@ -7,47 +7,18 @@ import * as Utilities from '@common/utilities';
 import Button from '@system/Button';
 import Cookies from 'js-cookie';
 import Input from '@system/Input';
+import StandardHeader from '@components/StandardHeader';
+import StandardLayout from '@components/StandardLayout';
+import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P, SubTitle } from '@system/typography';
-
-const Item = (props) => {
-  if (props.href) {
-    return (
-      <a className={styles.item} style={props.style} href={props.href} target={props.target}>
-        <span className={styles.left}>⎯</span>
-        <span className={styles.right}>{props.children}</span>
-      </a>
-    );
-  }
-
-  return (
-    <li className={styles.item} style={props.style} onClick={props.onClick}>
-      <span className={styles.left}>⎯</span>
-      <span className={styles.right}>{props.children}</span>
-    </li>
-  );
-};
-
-const Group = (props) => {
-  return (
-    <div className={styles.child}>
-      <div className={styles.left}>
-        <figure className={styles.line} />
-      </div>
-      <div className={styles.right}>
-        <SubTitle style={{ marginTop: 24 }}>{props.title}</SubTitle>
-        {props.children}
-      </div>
-    </div>
-  );
-};
 
 function UserAccessChangePassword(props) {
   const [password, setPassword] = React.useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = React.useState<string>('');
 
   return (
-    <Group title="Change your password">
+    <StandardLayoutSection title="Change your password">
       <ul className={styles.list}>
         <li>Changing your password is irreversible.</li>
         <li>Your password must be at least 4 characters.</li>
@@ -107,18 +78,18 @@ function UserAccessChangePassword(props) {
           Change
         </Button>
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
 function UserAccessViewUserID(props) {
   return (
-    <Group title="Your user ID">
+    <StandardLayoutSection title="Your user ID">
       <ul className={styles.list}>
         <li>This is your User ID, in case you need it for any API operations.</li>
       </ul>
       <Input autoComplete="off" defaultValue={props.viewer.id} name="user_id" readOnly style={{ marginTop: 16 }} />
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
@@ -127,7 +98,7 @@ function UserAccessViewAPIKey(props) {
   const [password, setPassword] = React.useState<string>('');
 
   return (
-    <Group title="Manage your API key">
+    <StandardLayoutSection title="Manage your API key">
       <ul className={styles.list}>
         <li>Your API key allows you to programmatically access our API.</li>
         <li>You are only permitted to have one API key per account.</li>
@@ -187,11 +158,11 @@ function UserAccessViewAPIKey(props) {
           </Button>
         )}
       </div>
-    </Group>
+    </StandardLayoutSection>
   );
 }
 
-export default function UserAccess(props) {
+export default function UserGardenAccess(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const isVerified = props.viewer.level >= Constants.Users.tiers.VERIFIED;
@@ -201,11 +172,10 @@ export default function UserAccess(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
 
   return (
-    <div className={styles.root}>
-      <div className={styles.section}>
-        <SubTitle>Manage account access</SubTitle>
-        <P style={{ marginTop: 6 }}>Manage your account access: you can change your password here or generate a new API key to programmatically access our API.</P>
-      </div>
+    <StandardLayout>
+      <StandardHeader title="Manage account access">
+        Manage your account access: you can change your password here or generate a new API key to programmatically access our API.
+      </StandardHeader>
 
       <UserAccessChangePassword
         loading={props.loading}
@@ -231,6 +201,6 @@ export default function UserAccess(props) {
         viewer={props.viewer}
         sessionKey={props.sessionKey}
       />
-    </div>
+    </StandardLayout>
   );
 }
