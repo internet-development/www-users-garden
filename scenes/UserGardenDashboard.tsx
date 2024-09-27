@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import AdminTenants from '@components/AdminTenants';
 import AnyTextHeader from '@components/AnyTextHeader';
+import BlueCanvas from '@components/BlueCanvas';
 import DashboardWithSidebarLayout from '@system/layouts/DashboardWithSidebarLayout';
 import UserGardenGetStarted from '@components/UserGardenGetStarted';
 import UserGardenAccess from '@components/UserGardenAccess';
@@ -108,9 +109,12 @@ export default function UserGardenDashboard(props) {
 
   return (
     <div className={styles.root}>
-      <AnyTextHeader>
-        <img className={styles.logo} src="/apple-touch-icon.png" alt="The logo" />
-      </AnyTextHeader>
+      <nav className={styles.nav}>
+        <BlueCanvas />
+        <div className={styles.content}>
+          <h1 className={styles.text}></h1>
+        </div>
+      </nav>
       <DashboardWithSidebarLayout sidebar={sidebarElement}>{CHILD_ELEMENT_MAP[props.active]}</DashboardWithSidebarLayout>
     </div>
   );

@@ -10,6 +10,10 @@
   height: 100%;
   padding-top: 28px;
   width: 100%;
+
+  @media (max-width: 568px) {
+    padding-top: 30px;
+  }
 }
 
 .item {
@@ -39,7 +43,7 @@
   }
 
   @media (max-width: 568px) {
-    padding: 8px 12px 0 12px;
+    padding: 8px 6px 0 6px;
   }
 }
 

@@ -4,5 +4,30 @@
 }
 
 .content {
-  padding: 24px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav {
+  background: var(--theme-primary);
+  color: var(--theme-background);
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.content {
+  grid-row-start: 1;
+  grid-column-start: 1;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.text {
+  color: var(--theme-background);
+  font-size: var(--type-scale-fixed-tiny);
+  line-height: 100%;
+  text-transform: uppercase;
 }

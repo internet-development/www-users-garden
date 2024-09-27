@@ -391,6 +391,8 @@ function ExampleRootSinglePageApplication(props) {
             }
 
             setLoading(true);
+            Cookies.remove('gardening_session');
+            setKey('');
             const response = await Queries.onUserAuthenticate({ email, password });
             setLoading(false);
             if (!response) {
@@ -400,15 +402,10 @@ function ExampleRootSinglePageApplication(props) {
               });
               return;
             }
-            Cookies.remove('gardening_session');
-            setKey('');
 
-            const confirm = window.confirm('Would you like to save your Cookie to maintain a session?');
-            if (confirm) {
-              setKey(response.user.key);
-              Cookies.set('gardening_session', response.user.key, { secure: true });
-            }
-
+            // NOTE(jimmylee) // Authenticate
+            setKey(response.user.key);
+            Cookies.set('gardening_session', response.user.key, { secure: true });
             setUser(response.user);
             window.location.reload();
           }}
