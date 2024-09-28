@@ -6,7 +6,7 @@ import * as React from 'react';
 import { Title } from '@system/typography';
 
 const Item = (props) => {
-  let style = props.active ? { color: `var(--theme-primary)`, opacity: 1 } : {};
+  let style = props.active ? { ...props.style, color: `var(--theme-primary)`, opacity: 1 } : { ...props.style };
   let squareStyle = {};
 
   if (props.href) {
@@ -35,9 +35,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Title>ACCOUNT</Title>
         <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`┌`}>
           Access
-        </Item>
-        <Item active={'USER_DANGER' === props.active} onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })} mark={`├`}>
-          Danger
         </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
           Guide
@@ -107,14 +104,19 @@ export default function UserGardenAuthenticatedNavigation(props) {
         ) : null}
 
         <Title style={{ marginTop: 24 }}>OTHER</Title>
-        <Item href="https://txt.dev" target="_blank" mark={`┌`}>
-          TXT
+        <Item
+          active={'USER_DANGER' === props.active}
+          onClick={() => props.onNavigate({ active: 'USER_DANGER', nextOrganization: null })}
+          mark={`┌`}
+          style={{ color: `var(--theme-error)` }}
+        >
+          Danger
         </Item>
-        <Item href="https://internet.dev" target="_blank" mark={`├`}>
-          INTDEV
+        <Item href="https://internet.dev/office" target="_blank" mark={`├`}>
+          Workspace
         </Item>
         <Item href="https://wireframes.internet.dev" target="_blank" mark={`├`}>
-          Templates
+          Wireframes
         </Item>
         <Item onClick={props.onSignOut} mark={`└`}>
           Sign out
