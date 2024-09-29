@@ -316,7 +316,7 @@ export default function BlueCanvasComponent(props) {
         if (timeAccumulator >= config.SPEED) {
           timeAccumulator = 0;
           // splat(canvas.width * 0.5, canvas.height, 0, 48 * 8);
-          splat(0, canvas.height, canvas.width * 0.2, 0);
+          splat(0, canvas.height, canvas.width * 0.3, 8);
         }
       }
 
