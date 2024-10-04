@@ -30,14 +30,15 @@
 }
 
 .children {
-  font-size: var(--type-scale-fixed-large);
+  font-size: var(--type-scale-fixed-small);
   background: var(--color-gray-10);
   padding: 8px;
   color: var(--theme-text);
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  line-height: 1;
 
   @media (max-width: 768px) {
-    font-size: var(--type-scale-fixed-small);
+    font-size: var(--type-scale-fixed-tiny);
   }
 }
