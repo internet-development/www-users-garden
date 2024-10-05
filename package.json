@@ -13,19 +13,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "aes-js": "^3.1.2",
     "d3": "^7.9.0",
     "js-cookie": "^3.0.5",
-    "next": "^14.2.3",
+    "next": "^14.2.14",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sass": "1.77.2"
+    "sass": "1.79.4"
   },
   "devDependencies": {
-    "@types/node": "^20.12.12",
-    "@types/react": "^18.3.2",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.3",
+    "@types/node": "^22.7.4",
+    "@types/react": "^18.3.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.6.2"
   }
 }
