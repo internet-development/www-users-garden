@@ -6,6 +6,7 @@ import * as Utilities from '@common/utilities';
 
 import ActionItem from '@system/documents/ActionItem';
 import AnyTextHeader from '@components/AnyTextHeader';
+import Apple from '@root/system/svg/social/Apple';
 import Button from '@system/Button';
 import ButtonPrimary from '@system/ButtonPrimary';
 import Cookies from 'js-cookie';
@@ -312,6 +313,11 @@ function ExampleRootSinglePageApplication(props) {
         <Button style={{ width: '100%', minHeight: 48, marginTop: 48 }} href={`${Constants.HOST}/authenticate-google?domain=REDIRECT_USERS_GARDEN`} target="_blank">
           <Google height="24px" style={{ marginRight: 16 }} />
           Sign in with Google
+        </Button>
+
+        <Button style={{ width: '100%', minHeight: 48, marginTop: 24 }} href={`${Constants.HOST}/authenticate-apple?domain=REDIRECT_USERS_GARDEN`} target="_blank">
+          <Apple height="24px" style={{ marginRight: 16 }} />
+          Sign in with Apple
         </Button>
 
         <InputLabel style={{ marginTop: 48 }}>E-mail</InputLabel>
