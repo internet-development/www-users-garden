@@ -1,6 +1,6 @@
 @font-face {
-  font-family: 'ServerMono-Regular';
-  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/6c8ad1f3-2ad9-44a9-88db-46ff3f19c4f3.woff') format('woff');
+  font-family: 'IosevkaTerm-Regular';
+  src: url('https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/6397be61-3ea4-459d-8a3e-fd95168cb214.woff2') format('woff2');
 }
 
 html,
@@ -358,7 +358,7 @@ body {
   --type-scale-fixed-label: 10px;
 
   --font-family: -apple-system, BlinkMacSystemFont, helvetica neue, helvetica, sans-serif;
-  --font-family-mono: 'ServerMono-Regular', Consolas, monaco, monospace;
+  --font-family-mono: 'IosevkaTerm-Regular', Consolas, monaco, monospace;
   --font-family-serif: Georgia, Times New Roman, serif;
   --theme-border: var(--color-gray-20);
   --theme-primary: var(--color-blue-60);
