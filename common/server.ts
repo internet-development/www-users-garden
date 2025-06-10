@@ -1,7 +1,7 @@
 import * as Constants from '@common/constants';
 import * as Utilities from '@common/utilities';
 
-import aesjs from 'aes-js';
+import aesjs from '@modules/aes';
 
 // NOTE(jimmylee)
 /*
