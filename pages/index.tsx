@@ -21,6 +21,8 @@ import UserGardenDashboard from '@scenes/UserGardenDashboard';
 import { P, H3, H4, SubTitle } from '@system/typography';
 import { FormHeading, FormSubHeading, FormParagraph, InputLabel } from '@system/typography/forms';
 import { useModal } from '@system/providers/ModalContextProvider';
+import Bluesky from '@root/system/svg/social/Bluesky';
+import ButtonWarning from '@system/ButtonPrimary';
 
 function ExampleRootSinglePageApplication(props) {
   const { showModal } = useModal();
@@ -49,6 +51,9 @@ function ExampleRootSinglePageApplication(props) {
   const [yourOrganizations, setYourOrganizations] = React.useState<Record<string, any>[]>([]);
   const [transactions, setTransactions] = React.useState<Record<string, any>[]>([]);
 
+  const [blueskyHandle, setBlueskyHandle] = React.useState<string>('');
+  const [showBlueskyInput, setShowBlueskyInput] = React.useState<boolean>(false);
+
   React.useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -74,6 +79,17 @@ function ExampleRootSinglePageApplication(props) {
 
     init();
   }, [key]);
+
+  const handleBlueskySubmit = () => {
+    if (Utilities.isEmpty(blueskyHandle)) {
+      showModal({
+        name: 'ERROR',
+        message: 'You must provide a Bluesky handle.',
+      });
+      return;
+    }
+    window.location.href = `${Constants.HOST}/authenticate-bluesky?domain=REDIRECT_USERS_GARDEN&handle=${encodeURIComponent(blueskyHandle)}`;
+  };
 
   const children = props.viewer ? (
     <>
@@ -319,6 +335,48 @@ function ExampleRootSinglePageApplication(props) {
           <Apple height="24px" style={{ marginRight: 16 }} />
           Sign in with Apple
         </Button>
+
+        {!showBlueskyInput && <Button
+          style={{ width: '100%', minHeight: 48, marginTop: 24 }}
+          onClick={() => setShowBlueskyInput(true)}
+        >
+          <Bluesky height="24px" style={{ marginRight: 16 }} />
+          Sign in with Bluesky
+        </Button>}
+
+
+        <div
+          style={{
+            transition: 'max-height 0.4s ease-in-out, opacity 0.3s ease-in-out',
+            maxHeight: showBlueskyInput ? 500 : 0,
+            opacity: showBlueskyInput ? 1 : 0,
+            marginTop: showBlueskyInput ? 16 : 0,
+          }}
+        >
+          <InputLabel>Bluesky Handle</InputLabel>
+          <Input
+            onChange={(e) => setBlueskyHandle(e.target.value)}
+            name="blueskyHandle"
+            style={{ marginTop: 8 }}
+            type="text"
+            placeholder="e.g. @handle.bsky.social"
+            value={blueskyHandle}
+          />
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'row', gap: 8 }}>
+            <ButtonPrimary
+              onClick={handleBlueskySubmit}
+              style={{ width: '50%', minHeight: 48 }}
+            >
+              Sign in with Bluesky
+            </ButtonPrimary>
+            <ButtonWarning
+              onClick={() => setShowBlueskyInput(false)}
+              style={{ width: '50%', minHeight: 48 }}
+            >
+              Cancel
+            </ButtonWarning>
+          </div>
+        </div>
 
         <InputLabel style={{ marginTop: 48 }}>E-mail</InputLabel>
         <Input onChange={(e) => setEmail(e.target.value)} name="email" style={{ marginTop: 8 }} type="text" placeholder="Type your e-mail" value={email} />
