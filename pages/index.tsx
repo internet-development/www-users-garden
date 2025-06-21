@@ -351,27 +351,34 @@ function ExampleRootSinglePageApplication(props) {
             maxHeight: showBlueskyInput ? 500 : 0,
             opacity: showBlueskyInput ? 1 : 0,
             marginTop: showBlueskyInput ? 16 : 0,
+            overflow: 'hidden',
           }}
-        >
+        > 
           <InputLabel>Bluesky Handle</InputLabel>
-          <Input
-            onChange={(e) => setBlueskyHandle(e.target.value)}
-            name="blueskyHandle"
-            style={{ marginTop: 8 }}
-            type="text"
-            placeholder="e.g. @handle.bsky.social"
-            value={blueskyHandle}
-          />
+          {/* NOTE(binaryfiddler): padding around input is to allow room for the input's box shadow to show up when placed in a parent with overflow: hidden  */}
+          <div style={{
+            paddingLeft: 1,
+            paddingRight: 1,
+          }}>
+            <Input
+              onChange={(e) => setBlueskyHandle(e.target.value)}
+              name="blueskyHandle"
+              style={{ marginTop: 8}}
+              type="text"
+              placeholder="e.g. @handle.bsky.social"
+              value={blueskyHandle}
+            />
+          </div>
           <div style={{ marginTop: 16, display: 'flex', flexDirection: 'row', gap: 8 }}>
             <ButtonPrimary
               onClick={handleBlueskySubmit}
-              style={{ width: '50%', minHeight: 48 }}
+              style={{ flex: 1, minHeight: 48 }}
             >
               Sign in with Bluesky
             </ButtonPrimary>
             <ButtonWarning
               onClick={() => setShowBlueskyInput(false)}
-              style={{ width: '50%', minHeight: 48 }}
+              style={{ flex: 1, minHeight: 48 }}
             >
               Cancel
             </ButtonWarning>
