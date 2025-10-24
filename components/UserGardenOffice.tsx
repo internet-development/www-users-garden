@@ -2,17 +2,27 @@ import styles from '@components/UserGardenOffice.module.scss';
 
 import * as Constants from '@common/constants';
 import * as React from 'react';
+import * as Utilities from '@common/utilities';
 
 import Button from '@system/Button';
 import ButtonPrimary from '@system/ButtonPrimary';
 import Input from '@system/Input';
+import Table from '@system/Table';
 import StandardHeader from '@components/StandardHeader';
 import StandardLayout from '@components/StandardLayout';
 import StandardLayoutSection from '@components/StandardLayoutSection';
 
+const TABLE_HEADINGS_INVOICE = ['INVOICES'];
+
+const TableText = (props) => {
+  return <div style={{ paddingTop: 1 }}>{props.children}</div>;
+};
+
+
 export default function UserGardenOffice(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [status, setStatus] = React.useState<Record<string, any> | null>(null);
+  const [invoices, setInvoices] = React.useState<Array<{ id: any; data: any[] }>>([]);
 
   const isVerified = props.viewer.level >= Constants.Users.tiers.VERIFIED;
   const isPaying = props.viewer.level >= Constants.Users.tiers.PAYING;
@@ -26,6 +36,15 @@ export default function UserGardenOffice(props) {
       const next = await props.onUserGetOfficeState();
       if (next && next.data) {
         setStatus(next.data);
+      }
+
+      const invoices = await props.onUserGetInvoices({ id: props.viewer.id });
+      if (invoices && invoices.data) {
+        setInvoices(invoices.data.map(each => {
+          return (
+            {id: each.id, data: [<TableText>Invoice created on <a href={each.invoice_pdf}>{Utilities.toDateISOString(each.created)}</a></TableText>]}
+          );
+        }));
       }
     }
 
@@ -133,6 +152,19 @@ export default function UserGardenOffice(props) {
           </ul>
         </StandardLayoutSection>
       )}
+
+      <StandardLayoutSection title="Your payment history">
+        <ul className={styles.list}>
+          <li>These are all the invoices mapped to your INTDEV account's e-mail.</li>
+        </ul>
+
+        <Table
+          data={invoices}
+          headings={TABLE_HEADINGS_INVOICE}
+          style={{ marginTop: 24 }}
+        />
+      </StandardLayoutSection>
+  
     </StandardLayout>
   );
 }

@@ -45,6 +45,11 @@ export async function onSetUserData({ updates, id, key, forcePush = false }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id, updates, forcePush }) }, 'data');
 }
 
+export async function onUserGetInvoices({ key, id }) {
+  const route = `${Constants.HOST}/api/users/subscriptions/get-current-invoices `;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) }, 'data');
+}
+
 export async function onOrganizationSourceUsers({ key, organizationId }) {
   const route = `${Constants.HOST}/api/users/list-by-source`;
   return await fetchAndExpect({ route, key, body: JSON.stringify({ organizationId }) }, 'data');

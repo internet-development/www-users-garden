@@ -97,6 +97,10 @@ function ExampleRootSinglePageApplication(props) {
         active={active}
         currentOrganization={currentOrganization}
         isPotentialAdmin={isPotentialAdmin}
+        onUserGetInvoices={async ({ id }) => {
+          const response = await Queries.onUserGetInvoices({ key, id });
+          return response;
+        }}
         onCheckAccountOwner={async ({ id }) => {
           const response = await Queries.onCheckAccountOwner({ key, id });
           return response;

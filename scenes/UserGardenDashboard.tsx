@@ -55,6 +55,7 @@ export default function UserGardenDashboard(props) {
       <UserGardenOffice
         onNavigate={props.onNavigate}
         onUserApplyOfficeSpace={props.onUserApplyOfficeSpace}
+        onUserGetInvoices={props.onUserGetInvoices}
         onUserGetOfficeState={props.onUserGetOfficeState}
         viewer={props.viewer}
       />
