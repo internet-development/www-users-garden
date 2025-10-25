@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as Utilities from '@common/utilities';
 
 import Button from '@system/Button';
-import Cookies from 'js-cookie';
+import Cookies from '@modules/cookies';
 import Input from '@system/Input';
 import StandardHeader from '@components/StandardHeader';
 import StandardLayout from '@components/StandardLayout';

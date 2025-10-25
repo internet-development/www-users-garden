@@ -3,7 +3,7 @@ import styles from '@system/modals/Modals.module.scss';
 import * as React from 'react';
 import * as Utilities from '@common/utilities';
 
-import Cookies from 'js-cookie';
+import Cookies from '@modules/cookies';
 import OutsideElementEvent from '@system/detectors/OutsideElementEvent';
 
 const MODAL_WIDTH = 240;

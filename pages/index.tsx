@@ -9,7 +9,7 @@ import AnyTextHeader from '@components/AnyTextHeader';
 import Apple from '@root/system/svg/social/Apple';
 import Button from '@system/Button';
 import ButtonPrimary from '@system/ButtonPrimary';
-import Cookies from 'js-cookie';
+import Cookies from '@modules/cookies';
 import GlobalModalManager from '@system/modals/GlobalModalManager';
 import Google from '@system/svg/social/Google';
 import Input from '@system/Input';

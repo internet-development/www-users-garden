@@ -3,7 +3,7 @@ import * as Utilities from '@common/utilities';
 import * as Server from '@common/server';
 
 import AnyTextHeader from '@components/AnyTextHeader';
-import Cookies from 'js-cookie';
+import Cookies from '@modules/cookies';
 
 function OAuthPage(props) {
   React.useEffect(() => {
