@@ -11,7 +11,7 @@ export const LINKS = !HOST.startsWith('https')
     }
   : {
       PAYING: 'https://buy.stripe.com/28og0B2f9eIj8Io9AA',
-      GENERAL_CO_WORKING: 'https://buy.stripe.com/7sI7u5f1V2ZB1fW145',
+      GENERAL_CO_WORKING: 'https://buy.stripe.com/14A3cugRqaR99AQd0y6Zy04',
       PARTNER: 'https://buy.stripe.com/8wMaGh6vp43F5wccMO',
     };
 

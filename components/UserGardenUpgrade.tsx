@@ -107,7 +107,7 @@ export default function UserGardenUpgrade(props) {
             <div className={styles.content}>
               <SubTitle style={{ padding: 0 }}>Collaborator</SubTitle>
               <H5 style={{ marginTop: 24 }}>
-                $329 USD<span className={styles.subtle}>/mo</span>
+                $404 USD<span className={styles.subtle}>/mo</span>
               </H5>
               {props.viewer ? (
                 props.viewer.level >= Constants.Users.tiers.GENERAL_CO_WORKING ? (
