@@ -1,4 +1,4 @@
-import styles from '@components/UserGardenAuthenticatedNavigation.module.scss';
+import styles from '@components/UserGardenAuthenticatedNavigation.module.css';
 
 import * as Constants from '@common/constants';
 import * as React from 'react';
@@ -38,9 +38,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
         </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
           Guide
-        </Item>
-        <Item active={'USER_GRANTS' === props.active} onClick={() => props.onNavigate({ active: 'USER_GRANTS', nextOrganization: null })} mark={`├`}>
-          Grants
         </Item>
         <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
           Office

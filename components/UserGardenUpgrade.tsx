@@ -1,4 +1,4 @@
-import styles from '@components/UserGardenUpgrade.module.scss';
+import styles from '@components/UserGardenUpgrade.module.css';
 
 import * as Constants from '@common/constants';
 import * as React from 'react';

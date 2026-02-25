@@ -1,4 +1,4 @@
-import styles from '@system/diagrams/ArrowLine.module.scss';
+import styles from '@system/diagrams/ArrowLine.module.css';
 import * as React from 'react';
 
 const ArrowLine = ({ start, end }) => {

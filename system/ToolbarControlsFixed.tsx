@@ -1,4 +1,4 @@
-import styles from '@system/ToolbarControlsFixed.module.scss';
+import styles from '@system/ToolbarControlsFixed.module.css';
 
 import * as React from 'react';
 import * as Utilities from '@common/utilities';

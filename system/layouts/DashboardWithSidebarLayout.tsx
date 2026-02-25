@@ -1,4 +1,4 @@
-import styles from '@system/layouts/DashboardWithSidebarLayout.module.scss';
+import styles from '@system/layouts/DashboardWithSidebarLayout.module.css';
 
 import * as React from 'react';
 

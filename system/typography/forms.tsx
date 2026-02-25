@@ -1,4 +1,4 @@
-import styles from '@system/typography/FormTypography.module.scss';
+import styles from '@system/typography/FormTypography.module.css';
 
 export function FormHeading(props) {
   return <h1 className={styles.formHeading} {...props} />;

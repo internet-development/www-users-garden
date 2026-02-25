@@ -1,4 +1,4 @@
-import styles from '@system/layouts/AppLayout.module.scss';
+import styles from '@system/layouts/AppLayout.module.css';
 
 import * as React from 'react';
 

@@ -1,4 +1,4 @@
-import styles from '@system/graphs/ChartLegend.module.scss';
+import styles from '@system/graphs/ChartLegend.module.css';
 
 export default function ChartLegend(props) {
   return (

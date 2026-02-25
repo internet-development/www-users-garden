@@ -46,7 +46,6 @@ function ExampleRootSinglePageApplication(props) {
   // User data.
   const [currentUser, setUser] = React.useState<Record<string, any> | null>(props.viewer);
   const [currentOrganization, setCurrentOrganization] = React.useState<Record<string, any> | null>(null);
-  const [grants, setGrants] = React.useState<Record<string, any>[]>([]);
   const [organizations, setOrganizations] = React.useState<Record<string, any>[]>([]);
   const [yourOrganizations, setYourOrganizations] = React.useState<Record<string, any>[]>([]);
   const [transactions, setTransactions] = React.useState<Record<string, any>[]>([]);
@@ -140,7 +139,6 @@ function ExampleRootSinglePageApplication(props) {
         onTenantRemove={async ({ id }) => {
           return await Queries.onTenantRemove({ key, id });
         }}
-        onChangeGrants={() => {}}
         onChangeOrganizations={(org) => {
           setCurrentOrganization(org);
         }}

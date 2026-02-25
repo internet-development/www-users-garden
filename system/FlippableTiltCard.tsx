@@ -1,4 +1,4 @@
-import styles from '@system/FlippableTiltCard.module.scss';
+import styles from '@system/FlippableTiltCard.module.css';
 
 import * as React from 'react';
 

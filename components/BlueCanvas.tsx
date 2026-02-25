@@ -1,6 +1,6 @@
 'use client';
 
-import styles from '@components/BlueCanvas.module.scss';
+import styles from '@components/BlueCanvas.module.css';
 
 import * as React from 'react';
 

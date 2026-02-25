@@ -1,4 +1,4 @@
-import styles from '@system/layouts/Content.module.scss';
+import styles from '@system/layouts/Content.module.css';
 
 import * as React from 'react';
 

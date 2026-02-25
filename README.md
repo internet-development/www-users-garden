@@ -1,35 +1,34 @@
 # Users Garden
 
-- Manage your own account
-- Manage your credits
-- Manage your organization
-- Let your users manage themselves
-- See who is signing up for your applications
-- Customize your verification e-mail
+A tool for clients to manage their usage of the [Internet Development](https://internet.dev) API. Manage accounts, credits, organizations, and application users.
 
-### Setup (MacOS)
+## Setup
 
-Start by cloning the repository.
-
-Then run the server
+Requires Node.js >= 18.
 
 ```sh
 npm install
 npm run dev
 ```
 
-Go to `http://localhost:10000` in your browser of choice.
+Visit `http://localhost:10000`.
 
-Enjoy! The template uses `10000` as our `port` for more compatibility with [Render.com](https://render.com)
+## Scripts
 
-### Scripts (Optional)
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server on port 10000 |
+| `npm run build` | Production build |
+| `npm start` | Start production server on port 10000 |
+| `npm run lint` | Run linter |
 
-If you need to run node script without running the server, use this example to get started
+## Environment Variables
 
-```sh
-npm run script example
-```
+Optional, for server-side features:
 
-### Contact
+- `API_AES_KEY` — AES encryption key
+- `API_IV_KEY` — Initialization vector key
 
-If you have questions ping me on Twitter, [@wwwjim](https://www.twitter.com/wwwjim). Or you can ping [@internetxstudio](https://x.com/internetxstudio).
+## License
+
+MIT (Internet Development Studio Company)

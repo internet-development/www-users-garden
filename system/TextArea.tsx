@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import styles from '@system/TextArea.module.scss';
+import styles from '@system/TextArea.module.css';
 
 function TextArea(props) {
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);

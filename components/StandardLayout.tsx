@@ -1,4 +1,4 @@
-import styles from '@components/StandardLayout.module.scss';
+import styles from '@components/StandardLayout.module.css';
 
 import * as React from 'react';
 

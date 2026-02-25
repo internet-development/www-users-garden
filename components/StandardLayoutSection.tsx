@@ -1,4 +1,4 @@
-import styles from '@components/StandardLayoutSection.module.scss';
+import styles from '@components/StandardLayoutSection.module.css';
 
 import * as React from 'react';
 

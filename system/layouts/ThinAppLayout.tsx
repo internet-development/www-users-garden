@@ -1,4 +1,4 @@
-import styles from '@system/layouts/ThinAppLayout.module.scss';
+import styles from '@system/layouts/ThinAppLayout.module.css';
 
 import * as React from 'react';
 

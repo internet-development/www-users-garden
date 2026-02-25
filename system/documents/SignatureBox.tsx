@@ -1,4 +1,4 @@
-import styles from '@system/documents/SignatureBox.module.scss';
+import styles from '@system/documents/SignatureBox.module.css';
 
 import * as React from 'react';
 

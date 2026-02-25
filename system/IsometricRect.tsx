@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Utilities from '@common/utilities';
 
-import styles from '@system/IsometricRect.module.scss';
+import styles from '@system/IsometricRect.module.css';
 
 interface ResizableMonospaceWindowProps {
   children?: React.ReactNode;

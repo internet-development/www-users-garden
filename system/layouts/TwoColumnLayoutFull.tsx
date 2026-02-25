@@ -1,4 +1,4 @@
-import styles from '@system/layouts/TwoColumnLayoutFull.module.scss';
+import styles from '@system/layouts/TwoColumnLayoutFull.module.css';
 
 import * as React from 'react';
 

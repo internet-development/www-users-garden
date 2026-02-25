@@ -1,4 +1,4 @@
-import styles from '@system/KeyHeader.module.scss';
+import styles from '@system/KeyHeader.module.css';
 
 import * as React from 'react';
 

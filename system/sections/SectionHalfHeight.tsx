@@ -1,4 +1,4 @@
-import styles from '@system/sections/SectionHalfHeight.module.scss';
+import styles from '@system/sections/SectionHalfHeight.module.css';
 
 import * as React from 'react';
 

@@ -1,4 +1,4 @@
-import styles from '@system/scroll/ScrollCarouselHorizontal.module.scss';
+import styles from '@system/scroll/ScrollCarouselHorizontal.module.css';
 
 import * as React from 'react';
 

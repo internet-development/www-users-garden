@@ -1,4 +1,4 @@
-import styles from '@system/modals/Modals.module.scss';
+import styles from '@system/modals/Modals.module.css';
 
 import * as Queries from '@common/queries';
 import * as React from 'react';

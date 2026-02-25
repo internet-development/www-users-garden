@@ -1,4 +1,4 @@
-import styles from '@system/animations/TextSwapper.module.scss';
+import styles from '@system/animations/TextSwapper.module.css';
 
 import * as React from 'react';
 

@@ -1,4 +1,4 @@
-import styles from '@system/MonospacePreview.module.scss';
+import styles from '@system/MonospacePreview.module.css';
 
 import * as React from 'react';
 import * as Utilities from '@common/utilities';

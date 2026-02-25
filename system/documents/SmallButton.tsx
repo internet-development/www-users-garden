@@ -1,4 +1,4 @@
-import styles from '@system/documents/SmallButton.module.scss';
+import styles from '@system/documents/SmallButton.module.css';
 
 export default function SmallButton(props) {
   if (props.loading) {

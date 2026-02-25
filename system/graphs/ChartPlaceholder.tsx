@@ -1,4 +1,4 @@
-import styles from '@system/graphs/ChartPlaceholder.module.scss';
+import styles from '@system/graphs/ChartPlaceholder.module.css';
 
 export default function ChartPlaceholder(props) {
   return (

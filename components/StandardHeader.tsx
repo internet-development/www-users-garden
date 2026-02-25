@@ -1,4 +1,4 @@
-import styles from '@components/StandardHeader.module.scss';
+import styles from '@components/StandardHeader.module.css';
 
 import * as React from 'react';
 

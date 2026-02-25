@@ -1,4 +1,4 @@
-import styles from '@system/Button.module.scss';
+import styles from '@system/Button.module.css';
 
 import Loader from '@system/Loader';
 

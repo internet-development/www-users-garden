@@ -1,4 +1,4 @@
-import styles from '@system/documents/CheckmarkItem.module.scss';
+import styles from '@system/documents/CheckmarkItem.module.css';
 
 import React, { useState } from 'react';
 

@@ -1,4 +1,4 @@
-import styles from '@components/UserGardenDashboardProfile.module.scss';
+import styles from '@components/UserGardenDashboardProfile.module.css';
 
 import * as Constants from '@common/constants';
 import * as React from 'react';

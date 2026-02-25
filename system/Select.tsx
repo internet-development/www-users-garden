@@ -1,4 +1,4 @@
-import styles from '@system/Select.module.scss';
+import styles from '@system/Select.module.css';
 
 import * as Utilities from '@common/utilities';
 

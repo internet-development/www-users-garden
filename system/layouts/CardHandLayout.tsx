@@ -1,4 +1,4 @@
-import styles from '@system/layouts/CardHandLayout.module.scss';
+import styles from '@system/layouts/CardHandLayout.module.css';
 import * as React from 'react';
 
 // Source: https://commons.wikimedia.org/wiki/File:Card_back_01.svg

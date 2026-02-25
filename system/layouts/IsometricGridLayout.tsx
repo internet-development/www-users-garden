@@ -1,4 +1,4 @@
-import styles from '@system/layouts/IsometricGridLayout.module.scss';
+import styles from '@system/layouts/IsometricGridLayout.module.css';
 
 import * as React from 'react';
 

@@ -1,4 +1,4 @@
-import styles from '@system/FormUpload.module.scss';
+import styles from '@system/FormUpload.module.css';
 
 import React, { useState } from 'react';
 

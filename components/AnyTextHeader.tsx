@@ -1,4 +1,4 @@
-import styles from '@components/AnyTextHeader.module.scss';
+import styles from '@components/AnyTextHeader.module.css';
 
 import * as React from 'react';
 

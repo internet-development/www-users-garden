@@ -1,4 +1,4 @@
-import styles from '@system/ButtonWarning.module.scss';
+import styles from '@system/ButtonWarning.module.css';
 
 import Loader from '@system/Loader';
 

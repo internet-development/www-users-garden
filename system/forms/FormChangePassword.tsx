@@ -1,4 +1,4 @@
-import styles from '@system/forms/FormChangePassword.module.scss';
+import styles from '@system/forms/FormChangePassword.module.css';
 
 import * as React from 'react';
 import * as Utilities from '@common/utilities';

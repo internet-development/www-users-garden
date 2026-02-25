@@ -1,4 +1,4 @@
-import styles from '@system/Footer.module.scss';
+import styles from '@system/Footer.module.css';
 
 import * as React from 'react';
 

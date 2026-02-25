@@ -1,4 +1,4 @@
-import styles from '@system/sections/SectionFullHeight.module.scss';
+import styles from '@system/sections/SectionFullHeight.module.css';
 
 import * as React from 'react';
 

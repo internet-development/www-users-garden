@@ -1,4 +1,4 @@
-import styles from '@system/layouts/ThreeColumnAppLayout.module.scss';
+import styles from '@system/layouts/ThreeColumnAppLayout.module.css';
 
 import * as React from 'react';
 

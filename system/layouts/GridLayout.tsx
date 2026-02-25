@@ -1,4 +1,4 @@
-import styles from '@system/layouts/GridLayout.module.scss';
+import styles from '@system/layouts/GridLayout.module.css';
 
 import * as React from 'react';
 

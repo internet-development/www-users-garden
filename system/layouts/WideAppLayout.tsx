@@ -1,4 +1,4 @@
-import styles from '@system/layouts/WideAppLayout.module.scss';
+import styles from '@system/layouts/WideAppLayout.module.css';
 
 import * as React from 'react';
 

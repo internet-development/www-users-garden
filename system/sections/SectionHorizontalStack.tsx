@@ -1,4 +1,4 @@
-import styles from '@system/sections/SectionHorizontalStack.module.scss';
+import styles from '@system/sections/SectionHorizontalStack.module.css';
 
 import * as React from 'react';
 

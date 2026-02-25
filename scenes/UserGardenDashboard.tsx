@@ -1,4 +1,4 @@
-import styles from '@scenes/UserGardenDashboard.module.scss';
+import styles from '@scenes/UserGardenDashboard.module.css';
 
 import * as React from 'react';
 
@@ -16,8 +16,6 @@ import UserGardenOffice from '@components/UserGardenOffice';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
 import UserGardenUpgrade from '@components/UserGardenUpgrade';
 
-// TODO(jimmylee)
-import UserGardenGrants from '@components/UserGardenGrants';
 import UserGardenWallet from '@components/UserGardenWallet';
 
 export default function UserGardenDashboard(props) {
@@ -50,7 +48,6 @@ export default function UserGardenDashboard(props) {
         status={props.status}
       />
     ),
-    USER_GRANTS: <UserGardenGrants onChangeGrants={props.onChangeGrants} viewer={props.viewer} />,
     USER_OFFICE: (
       <UserGardenOffice
         onNavigate={props.onNavigate}

@@ -1,4 +1,4 @@
-import styles from '@system/scroll/ScrollVertical.module.scss';
+import styles from '@system/scroll/ScrollVertical.module.css';
 
 import * as React from 'react';
 
