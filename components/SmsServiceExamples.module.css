@@ -1,0 +1,62 @@
+.root {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  color: var(--theme-text);
+  font-family: var(--font-family);
+}
+
+.conversation {
+  min-width: 0;
+}
+
+.context {
+  margin-bottom: 24px;
+}
+
+.heading {
+  font-family: var(--font-family);
+  font-size: var(--type-scale-fixed-medium);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.description {
+  margin-top: 12px;
+  font-size: var(--type-scale-fixed-small);
+  line-height: 1.7;
+}
+
+.outgoing, .incoming {
+  padding: 16px 20px;
+  margin-top: 16px;
+  border-radius: 12px;
+  font-size: var(--type-scale-fixed-small);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.messages > :first-child {
+  margin-top: 0;
+}
+
+.outgoing {
+  margin-left: 24px;
+  background: var(--theme-button);
+  color: var(--theme-button-text);
+  border-bottom-right-radius: 0;
+}
+
+.incoming {
+  margin-right: 12px;
+  background: var(--theme-foreground);
+  box-shadow: inset 0 0 0 1px var(--theme-border);
+  border-bottom-left-radius: 0;
+}
+
+@media (max-width: 768px) {
+  .root {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}

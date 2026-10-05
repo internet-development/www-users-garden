@@ -183,6 +183,14 @@ Multiples of 4: `4px, 6px, 8px, 12px, 16px, 24px, 32px, 48px, 64px, 128px`. Most
 
 ## API Integration
 
+### Backend Workspace and Production Access
+
+- **`repo:apis`** is the sibling backend repository at `../apis` (`/Users/angel/Development/apis`). It owns the API served at `https://api.internet.dev` and is available for coordinated backend improvements when a Users Garden task needs them.
+- Trace client requests from `common/queries.ts` and `common/server.ts` into the actual handlers, authorization rules, and data models in `../apis` before assuming an API limitation or introducing a client workaround. Read that repository’s `AGENTS.md` and applicable nested instructions before working there.
+- **Production access is available locally**, as confirmed by the maintainer. Use existing local access and relevant production evidence when needed to understand actual behavior, diagnose the selected task, and infer important, concrete next steps. Do not assume the frontend is the only workspace available for completing a feature or fix.
+- Ground follow-ups in the client/backend source and observed behavior; record the specific problem, affected repository and files, expected result, and stopping condition in `NEXT.md`. Respect the current task’s scope and any request to reserve the next task for later.
+- Keep credentials and private production data out of source, documentation, and tool output. Use read-only investigation where sufficient; production mutations and deployment must follow the current user’s authorization and environment permissions. Local access alone is not evidence that a change has been deployed or verified.
+
 ### Request Pattern
 
 ```tsx

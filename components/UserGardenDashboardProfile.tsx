@@ -9,6 +9,7 @@ import Input from '@system/Input';
 import StandardHeader from '@components/StandardHeader';
 import StandardLayout from '@components/StandardLayout';
 import StandardLayoutSection from '@components/StandardLayoutSection';
+import UserGardenSmsSettings from '@components/UserGardenSmsSettings';
 
 export default function UserGardenDashboardProfile(props) {
   const [customField, setCustomField] = React.useState<string>('');
@@ -23,10 +24,13 @@ export default function UserGardenDashboardProfile(props) {
 
   return (
     <StandardLayout>
-      <StandardHeader title="Your settings">
-        Update your user information here. Please note that some fields require verification to change and modifying certain fields may impact other connected applications. For
-        guidance, refer to the provided sections.
-      </StandardHeader>
+      <div className={styles.header}>
+        <StandardHeader title="Your settings">Manage your phone number, text-message consent, and account information.</StandardHeader>
+      </div>
+
+      <StandardLayoutSection title="Text messages · optional">
+        <UserGardenSmsSettings key={`${props.viewer.id}:${props.sessionKey}`} phone={props.savedPhone} verified={isVerified} onGet={props.onGetSmsSettings} onSave={props.onSaveSmsPhone} onRequest={props.onRequestSmsConsent} onRemove={props.onRemoveSmsPhone} />
+      </StandardLayoutSection>
 
       <StandardLayoutSection title="Your account status">
         <ul className={styles.list}>

@@ -1,3 +1,7 @@
+.header > header {
+  padding-bottom: 24px;
+}
+
 .image {
   width: 100%;
   display: block;

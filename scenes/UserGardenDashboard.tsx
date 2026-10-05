@@ -38,6 +38,7 @@ export default function UserGardenDashboard(props) {
     USER_PROFILE: (
       <UserGardenDashboardProfile
         viewer={props.viewer}
+        savedPhone={props.savedPhone}
         onChange={props.onChangeCurrentUser}
         onChangeData={props.onChangeCurrentUserData}
         onNavigate={props.onNavigate}
@@ -45,6 +46,11 @@ export default function UserGardenDashboard(props) {
         onSaveCurrentUserData={props.onSaveCurrentUserData}
         onSaveCurrentUserDataField={props.onSaveCurrentUserDataField}
         onSendVerifyEmail={props.onSendVerifyEmail}
+        onGetSmsSettings={props.onGetSmsSettings}
+        onSaveSmsPhone={props.onSaveSmsPhone}
+        onRequestSmsConsent={props.onRequestSmsConsent}
+        onRemoveSmsPhone={props.onRemoveSmsPhone}
+        sessionKey={props.sessionKey}
         status={props.status}
       />
     ),

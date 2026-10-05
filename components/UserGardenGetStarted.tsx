@@ -42,6 +42,13 @@ export default function UserDanger(props) {
         <P style={{ marginTop: 6, paddingBottom: 88 }}>Here is everything you need to start using our API for authentication, user management, and more.</P>
       </StandardLayoutSection>
 
+      <StandardLayoutSection title="Optional account updates by text">
+        <P style={{ marginTop: 6 }}>Open Settings to save your phone number and request a consent text when messaging is available. Reply YES to enable service texts, NO to decline, HELP for help, or CANCEL to stop. After consent, text TOKENS for your INTDEV credit balance or DESK for your workspace application status. SMS consent does not book a desk or give an organization or application access to your account.</P>
+        <div className={styles.actions}>
+          <Button onClick={() => props.onNavigate({ active: 'USER_PROFILE', nextOrganization: null })}>Text settings</Button>
+        </div>
+      </StandardLayoutSection>
+
       <StandardLayoutSection title="Tell your agent how to use our API">
         <P style={{ marginTop: 6 }}>
           If you're building with an AI agent or coding assistant, you can give it our skills file. It has everything your agent needs to understand every endpoint, including authentication, user management, credits, organizations, and more.

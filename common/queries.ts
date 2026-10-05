@@ -1,5 +1,6 @@
 import * as Constants from '@common/constants';
 import * as Server from '@common/server';
+import * as Sms from '@common/sms';
 import * as Utilities from '@common/utilities';
 
 const REQUEST_HEADERS = {
@@ -189,3 +190,42 @@ export async function onGetViewer({ key }) {
   const { viewer } = await Server.tryKeyWithoutCookie(key);
   return viewer;
 }
+
+export async function onSaveUserPhone({ key, id, phone }: { key: string; id: string; phone: string }): Promise<{ success: true; phone: string; viewer: Record<string, any> } | { success: false; message: string }> {
+  const normalized = phone === '' ? '' : Sms.normalizePhoneNumber(phone);
+  if (normalized === null) return { success: false, message: 'Enter a valid phone number, including its country code.' };
+  const result = await onSetUserData({ key, id, updates: { phone: normalized }, forcePush: false });
+  if (result?.success !== true) return { success: false, message: 'We could not save your phone number. Please try again.' };
+  const viewer = await onGetViewer({ key });
+  if (viewer?.id !== id || viewer?.data?.phone !== normalized) return { success: false, message: 'Your account was updated, but we could not confirm the saved number. Reload Settings to check it.' };
+  return { success: true, phone: viewer.data.phone, viewer };
+}
+
+async function requestSmsSettings(key: string, action: string, body: Record<string, unknown> = {}): Promise<Sms.SmsResult> {
+  try {
+    const response = await fetch(`${Constants.HOST}/api/users/sms/${action}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(25000),
+      cache: 'no-store',
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || result?.success !== true) return { success: false, message: result?.error === true && typeof result.message === 'string' ? result.message : response.status === 404 ? 'Text settings are awaiting service setup. Please try again later.' : 'We could not confirm your text settings. Refresh status before requesting another text.' };
+    const data = result.data;
+    const contact = data?.contact;
+    if (typeof data?.available !== 'boolean' || (contact !== null && (!contact || !Sms.normalizePhoneNumber(contact.phone) || !['saved', 'pending', 'confirmed', 'declined', 'stopped'].includes(contact.status)))) return { success: false, message: 'We could not read your text settings. Please refresh status.' };
+    return { success: true, data };
+  } catch {
+    return { success: false, message: 'We could not confirm the result. Check your phone and refresh status before requesting another text.' };
+  }
+}
+
+export async function onGetSmsSettings({ key }: { key: string }) { return requestSmsSettings(key, 'status'); }
+export async function onSaveSmsPhone({ key, phone }: { key: string; phone: string }) { return requestSmsSettings(key, 'save', { phone }); }
+export async function onRequestSmsConsent({ key, phone, requestId }: { key: string; phone: string; requestId: string }) {
+  const saved = await onSaveSmsPhone({ key, phone });
+  if (!saved.success) return saved;
+  return requestSmsSettings(key, 'request-consent', { phone, requestId, requestConsent: true, consentVersion: Sms.SMS_CONSENT_VERSION });
+}
+export async function onRemoveSmsPhone({ key }: { key: string }) { return requestSmsSettings(key, 'remove'); }

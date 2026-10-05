@@ -1,9 +1,11 @@
 .root {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   box-shadow: 0 1px 0 0 var(--theme-border);
   min-height: 48px;
+  font-family: var(--font-family-mono);
 }
 
 .left {
@@ -15,6 +17,26 @@
   padding: 0 12px 0 12px;
   -webkit-appearance: none;
   transition: 200ms ease width;
+}
+
+.right {
+  position: absolute;
+  right: 12px;
+  top: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 4px;
+}
+
+a.item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
 }
 
 .item {
@@ -35,5 +57,15 @@
 
   &:hover {
     opacity: 0.8;
+  }
+}
+
+@media (max-width: 480px) {
+  .right {
+    right: 0;
+  }
+
+  .right .item {
+    padding: 0 8px;
   }
 }

@@ -17,6 +17,7 @@ import MonospacePreview from '@system/MonospacePreview';
 import Page from '@components/Page';
 import ThinAppLayout from '@system/layouts/ThinAppLayout';
 import UserGardenDashboard from '@scenes/UserGardenDashboard';
+import WaterFrame from '@components/WaterFrame';
 
 import { P, H3, H4, SubTitle } from '@system/typography';
 import { FormHeading, FormSubHeading, FormParagraph, InputLabel } from '@system/typography/forms';
@@ -45,6 +46,7 @@ function ExampleRootSinglePageApplication(props) {
   // NOTE(jimmylee)
   // User data.
   const [currentUser, setUser] = React.useState<Record<string, any> | null>(props.viewer);
+  const [savedPhone, setSavedPhone] = React.useState<string>(typeof props.viewer?.data?.phone === 'string' ? props.viewer.data.phone : '');
   const [currentOrganization, setCurrentOrganization] = React.useState<Record<string, any> | null>(null);
   const [organizations, setOrganizations] = React.useState<Record<string, any>[]>([]);
   const [yourOrganizations, setYourOrganizations] = React.useState<Record<string, any>[]>([]);
@@ -52,6 +54,22 @@ function ExampleRootSinglePageApplication(props) {
 
   const [blueskyHandle, setBlueskyHandle] = React.useState<string>('');
   const [showBlueskyInput, setShowBlueskyInput] = React.useState<boolean>(false);
+
+  const onGetSmsSettings = React.useCallback(() => Queries.onGetSmsSettings({ key }), [key]);
+  const phoneSession = React.useRef({ key, id: currentUser?.id });
+  phoneSession.current = { key, id: currentUser?.id };
+  const onSaveSmsPhone = React.useCallback(async (phone: string) => {
+    const id = currentUser?.id;
+    if (!id) return { success: false as const, message: 'Sign in to save your phone number.' };
+    const result = await Queries.onSaveUserPhone({ key, id, phone });
+    if (result.success && phoneSession.current.key === key && phoneSession.current.id === id) {
+      setUser(result.viewer);
+      setSavedPhone(result.phone);
+    }
+    return result;
+  }, [key, currentUser?.id]);
+  const onRequestSmsConsent = React.useCallback((phone: string, requestId: string) => Queries.onRequestSmsConsent({ key, phone, requestId }), [key]);
+  const onRemoveSmsPhone = React.useCallback(() => onSaveSmsPhone(''), [onSaveSmsPhone]);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -96,6 +114,11 @@ function ExampleRootSinglePageApplication(props) {
         active={active}
         currentOrganization={currentOrganization}
         isPotentialAdmin={isPotentialAdmin}
+        savedPhone={savedPhone}
+        onGetSmsSettings={onGetSmsSettings}
+        onSaveSmsPhone={onSaveSmsPhone}
+        onRequestSmsConsent={onRequestSmsConsent}
+        onRemoveSmsPhone={onRemoveSmsPhone}
         onUserGetInvoices={async ({ id }) => {
           const response = await Queries.onUserGetInvoices({ key, id });
           return response;
@@ -207,6 +230,8 @@ function ExampleRootSinglePageApplication(props) {
             return;
           }
 
+          if (name === 'phone' && typeof value === 'string') nextData.phone = value;
+
           const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData });
           if (!response) {
             alert('Something went wrong, try again later.');
@@ -220,6 +245,7 @@ function ExampleRootSinglePageApplication(props) {
           }
 
           setUser(nextUser);
+          setSavedPhone(typeof nextUser.data?.phone === 'string' ? nextUser.data.phone : '');
         }}
         onSaveCurrentUserData={async () => {
           if (!currentUser) return;
@@ -229,6 +255,8 @@ function ExampleRootSinglePageApplication(props) {
             alert('You must provide an object');
             return;
           }
+
+          if (typeof currentUser.data.phone === 'string') nextData.phone = currentUser.data.phone;
 
           const response = await Queries.onSetUserData({ key, id: props.viewer.id, updates: nextData, forcePush: true });
           if (!response) {
@@ -243,6 +271,7 @@ function ExampleRootSinglePageApplication(props) {
           }
 
           setUser(nextUser);
+          setSavedPhone(typeof nextUser.data?.phone === 'string' ? nextUser.data.phone : '');
         }}
         onSaveCurrentUser={async () => {
           if (!currentUser) return;
@@ -274,6 +303,7 @@ function ExampleRootSinglePageApplication(props) {
           }
 
           setUser(nextUser);
+          setSavedPhone(typeof nextUser.data?.phone === 'string' ? nextUser.data.phone : '');
           setStatus({ ...status, username: `Your username was set to ${nextUser.username}` });
         }}
         onSendVerifyEmail={async () => {
@@ -319,11 +349,7 @@ function ExampleRootSinglePageApplication(props) {
     <>
       <AnyTextHeader>USERS.GARDEN</AnyTextHeader>
       <ThinAppLayout>
-        <img
-          style={{ display: 'block', width: '100%' }}
-          src="https://intdev-global.s3.us-west-2.amazonaws.com/public/internet-dev/f908a250-6899-419b-988d-ae906876ec85.jpg"
-          alt="Home Page Image"
-        />
+        <WaterFrame />
 
         <H3 style={{ marginTop: 24 }}>Auth + API for your applications.</H3>
         <H4 style={{ marginTop: 16 }}>Manage all of your users, applications, and physical co-working space.</H4>
@@ -490,6 +516,9 @@ function ExampleRootSinglePageApplication(props) {
         <div style={{ marginTop: 24 }}>
           <ActionItem icon={`⊹`} href="https://txt.dev/wwwjim/intdev-acceptable-use" target="_blank">
             Acceptable Use Policy
+          </ActionItem>
+          <ActionItem icon={`⊹`} href="/settings-preview">
+            SMS Policy
           </ActionItem>
           <ActionItem icon={`⊹`} href="https://txt.dev/wwwjim/intdev-terms-of-service" target="_blank">
             Terms of Service
