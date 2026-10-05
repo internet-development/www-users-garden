@@ -1,8 +1,15 @@
+// NOTE(angel) Copyright (c) 2024-2026 Internet Development Studio Company. MIT; retain LICENSE.md when reusing.
 export const HASH_GLSL = `
-float hash13(vec3 p) {
-  p = fract(p * 0.1031);
-  p += dot(p, p.zyx + 31.32);
-  return fract((p.x + p.y) * p.z);
+float pondCellRandom(vec3 cell) {
+  highp uvec3 coordinates = uvec3(ivec3(cell));
+  highp uint state = 0x4752444eu;
+  for (int axis = 0; axis < 3; axis++) {
+    state += coordinates[axis];
+    state = (state << 11u) | (state >> 21u);
+    state *= 0x6e624eb7u;
+    state ^= state >> 15u;
+  }
+  return float(state >> 8u) * (1.0 / 16777216.0);
 }
 `;
 
@@ -11,14 +18,14 @@ float valueNoise(vec3 p) {
   vec3 cell = floor(p);
   vec3 frac = fract(p);
   vec3 weight = frac * frac * (3.0 - 2.0 * frac);
-  float c000 = hash13(cell + vec3(0.0, 0.0, 0.0));
-  float c100 = hash13(cell + vec3(1.0, 0.0, 0.0));
-  float c010 = hash13(cell + vec3(0.0, 1.0, 0.0));
-  float c110 = hash13(cell + vec3(1.0, 1.0, 0.0));
-  float c001 = hash13(cell + vec3(0.0, 0.0, 1.0));
-  float c101 = hash13(cell + vec3(1.0, 0.0, 1.0));
-  float c011 = hash13(cell + vec3(0.0, 1.0, 1.0));
-  float c111 = hash13(cell + vec3(1.0, 1.0, 1.0));
+  float c000 = pondCellRandom(cell + vec3(0.0, 0.0, 0.0));
+  float c100 = pondCellRandom(cell + vec3(1.0, 0.0, 0.0));
+  float c010 = pondCellRandom(cell + vec3(0.0, 1.0, 0.0));
+  float c110 = pondCellRandom(cell + vec3(1.0, 1.0, 0.0));
+  float c001 = pondCellRandom(cell + vec3(0.0, 0.0, 1.0));
+  float c101 = pondCellRandom(cell + vec3(1.0, 0.0, 1.0));
+  float c011 = pondCellRandom(cell + vec3(0.0, 1.0, 1.0));
+  float c111 = pondCellRandom(cell + vec3(1.0, 1.0, 1.0));
   float x00 = mix(c000, c100, weight.x);
   float x10 = mix(c010, c110, weight.x);
   float x01 = mix(c001, c101, weight.x);

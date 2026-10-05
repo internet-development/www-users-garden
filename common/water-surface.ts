@@ -1,6 +1,7 @@
 import { NOISE_LIBRARY_GLSL } from '@common/water-noise';
-import { KOI_COUNT, KOI_GLSL } from '@common/water-koi';
+import { KOI_COUNT, KOI_SPINE_POINTS, KOI_GLSL } from '@common/water-koi';
 import { POND_PAD_COUNT, POND_FLOWER_COUNT, POND_PROJECTION, POND_ELEVATION, POND_SHEAR } from '@common/pond-layout';
+import { POND_PROJECTION_GLSL, WATER_EXTENT, WATER_HEIGHT_SCALE } from '@common/pond-projection';
 
 
 export const waterSurfaceSource = `#version 300 es
@@ -15,8 +16,11 @@ uniform sampler2D uLife;
 uniform sampler2D uKoiPaint;
 uniform bool uKoiReady;
 uniform vec4 uKoi[${KOI_COUNT}];
+uniform vec4 uKoiMotion[${KOI_COUNT}];
+uniform vec4 uKoiSpine[${KOI_COUNT * KOI_SPINE_POINTS}];
 uniform float uFishTime;
 uniform float uTime;
+uniform vec2 uResolution;
 in vec2 uv;
 out vec4 result;
 
@@ -26,6 +30,7 @@ const vec3 uSunDirection = vec3(-0.5, 0.62, 0.42);
 vec3 vWorldPosition;
 
 ${NOISE_LIBRARY_GLSL}
+${POND_PROJECTION_GLSL}
 
 float detailHeight(vec2 point, vec2 drift) {
   float coarse = fbm3(vec3(point * uDetailScale + drift, 0.0));
@@ -98,12 +103,10 @@ float sunGGX(vec3 normal, vec3 view, vec3 light, float roughness) {
 }
 
 vec2 brushCoordinates(vec2 point, vec2 flow) {
-  vec2 along = normalize(vec2(1.0, 1.0));
-  vec2 across = vec2(-along.y, along.x);
-  vec2 p = vec2(dot(point, along), dot(point, across));
+  vec2 p = point;
   p += vec2(sin(p.y * 0.026 + uTime * 0.07), cos(p.x * 0.018 - uTime * 0.05)) * 2.4;
-  p += vec2(dot(flow, along), dot(flow, across)) * 12.0;
-  return p / 310.0 + vec2(uTime * 0.002, -uTime * 0.0007);
+  p += flow * 12.0;
+  return p / vec2(390.0, 230.0) + vec2(uTime * 0.002, -uTime * 0.0007);
 }
 
 vec3 paintedWater(vec3 water, vec4 pigment, vec4 scumble, vec3 normal, float ripple) {
@@ -113,7 +116,7 @@ vec3 paintedWater(vec3 water, vec4 pigment, vec4 scumble, vec3 normal, float rip
   vec3 strokes = mix(pigment.rgb, scumble.rgb, 0.14);
   strokes *= mix(vec3(0.75, 1.09, 0.91), vec3(1.15, 0.92, 1.18), hue);
   strokes *= 0.52 + 0.38 * light;
-  float glaze = 0.55 + smoothstep(0.02, 0.14, ripple) * 0.05;
+  float glaze = 0.29 + smoothstep(0.02, 0.14, ripple) * 0.04;
   vec3 painted = mix(water, strokes, glaze);
   float bristle = smoothstep(0.68, 0.84, pigment.a) * smoothstep(0.4, 0.9, light);
   painted += vec3(0.79, 0.81, 0.69) * bristle * (0.018 + ripple * 0.2);
@@ -131,10 +134,22 @@ vec3 displayColor(vec3 color) {
   return mix(color * 12.92, 1.055 * pow(color, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), color));
 }
 
+vec3 treeLine(vec2 point) {
+  float altitude = (point.y - bankHeight(point.x)) / 0.31;
+  float wind = sin(uTime * 6.2 + point.x * 14.0) * 0.001 * smoothstep(0.08, 0.85, altitude);
+  vec2 coord = vec2(point.x + wind, 1.0 - altitude);
+  float mip = max(0.0, log2(float(textureSize(uTreeLine, 0).x) / uResolution.x));
+  if (uAssetsReady) return textureLod(uTreeLine, clamp(coord, 0.0, 1.0), mip).rgb * 0.78;
+  return linearColor(vec3(0.42, 0.52, 0.44));
+}
+
 vec3 canopyReflection(vec2 point, vec3 normal) {
-  vec2 coord = point * vec2(0.82, 0.55) + normal.xz * 0.024 + vec2(0.09, 0.27);
-  if (uAssetsReady) return texture(uTreeLine, coord).rgb;
-  return linearColor(vec3(0.35, 0.47, 0.40));
+  float distance = bankHeight(point.x) - point.y;
+  vec2 ground = screenToPond(point);
+  float ripple = sin(ground.y * 145.0 + sin(ground.x * 24.0) * 1.5 + uTime * 11.0);
+  vec2 distortion = pondToScreen(normal.xz * 0.035) - vec2(0.5);
+  vec2 mirrored = vec2(point.x + distortion.x + ripple * 0.0015, bankHeight(point.x) + distance * 0.84 + distortion.y);
+  return treeLine(mirrored) * vec3(0.73, 0.87, 0.83);
 }
 
 float heightAt(vec2 point) {
@@ -145,52 +160,59 @@ ${KOI_GLSL}
 
 vec3 lilyReflections(vec3 color, vec2 point, vec3 normal) {
   if (!uAssetsReady) return color;
+  vec2 distortion = vec2(normal.x + normal.z * ${POND_SHEAR}, normal.z * ${POND_PROJECTION});
   for (int index = 0; index < ${POND_PAD_COUNT}; index++) {
     vec4 pad = uPads[index];
-    vec2 d = (point - pad.xy + normal.xz * 0.0015) / pad.zw;
+    vec2 d = (point - pad.xy + distortion * 0.0015) / pad.zw;
     if (dot(d, d) < 3.5) color *= 1.0 - exp(-dot(d, d) * 1.9) * 0.22;
   }
   for (int index = 0; index < ${POND_FLOWER_COUNT}; index++) {
     vec4 flower = uFlowers[index];
-    vec2 d = (point - flower.xy + vec2(0.0, 0.012) + normal.xz * 0.002) / flower.zw;
+    vec2 d = (point - flower.xy + vec2(0.0, 0.012) + distortion * 0.002) / flower.zw;
     if (dot(d, d) < 3.0) color = mix(color, vec3(0.64, 0.54, 0.57), exp(-dot(d, d) * 2.6) * 0.10);
   }
   return color;
 }
 
 void main() {
-  vec2 along = normalize(vec2(1.0, 1.0));
-  vec2 across = vec2(-along.y, along.x);
-  vec2 ground = vec2(uv.x - 0.5 - (uv.y - 0.5) * ${POND_SHEAR}, (uv.y - 0.5) / ${POND_PROJECTION});
-  vec2 point = along * ground.x * 370.0 + across * ground.y * 370.0;
-  vec2 waterUv = uv;
+  float bank = bankHeight(uv.x);
+  if (uv.y > bank + 0.002) {
+    vec3 trees = treeLine(uv);
+    float bankShade = 1.0 - smoothstep(0.0, 0.016, uv.y - bank);
+    trees *= 1.0 - bankShade * 0.28;
+    result = vec4(displayColor(trees), 1.0);
+    return;
+  }
+  vec2 ground = screenToPond(uv);
+  vec2 point = ground * 370.0;
+  vec2 waterUv = pondToWater(ground);
   vec2 texel = 1.0 / vec2(textureSize(water, 0));
   float height = heightAt(waterUv);
-  vec2 rippleSlope = vec2(heightAt(waterUv + vec2(texel.x, 0.0)) - heightAt(waterUv - vec2(texel.x, 0.0)), heightAt(waterUv + vec2(0.0, texel.y)) - heightAt(waterUv - vec2(0.0, texel.y))) / (4.0 * texel);
-  vec2 flow = along * rippleSlope.x + across * rippleSlope.y;
+  vec2 rippleSlope = vec2(heightAt(waterUv + vec2(texel.x, 0.0)) - heightAt(waterUv - vec2(texel.x, 0.0)), heightAt(waterUv + vec2(0.0, texel.y)) - heightAt(waterUv - vec2(0.0, texel.y))) * ${WATER_HEIGHT_SCALE} / (2.0 * texel * ${WATER_EXTENT});
+  vec2 flow = rippleSlope;
   vWorldPosition = vec3(point.x, height, point.y);
   vec2 drift = normalize(vec2(1.0, 0.55)) * uTime * uDetailSpeed;
   float center = detailHeight(point, drift);
   vec2 detailGradient = vec2(detailHeight(point + vec2(2.0, 0.0), drift) - center, detailHeight(point + vec2(0.0, 2.0), drift) - center) * 0.18;
-  detailGradient += capillaryGradient(point) + flow * 1.4;
+  detailGradient += capillaryGradient(point) + flow;
   vec2 brushUv = brushCoordinates(point, flow);
   vec4 pigment = texture(uPigment, brushUv);
   vec4 scumble = texture(uPigment, brushUv * vec2(1.731, 1.371) + vec2(0.37, 0.61));
   float paintDx = texture(uPigment, brushUv + vec2(1.0 / 2048.0, 0.0)).a - pigment.a;
   float paintDz = texture(uPigment, brushUv + vec2(0.0, 1.0 / 2048.0)).a - pigment.a;
-  detailGradient += vec2(paintDx - paintDz, paintDx + paintDz) * 0.22;
+  detailGradient += vec2(paintDx, paintDz) * 0.035;
   vec3 normal = normalize(vec3(-detailGradient.x, 1.0, -detailGradient.y));
-  vec3 view = normalize(vec3(-across.x * ${POND_ELEVATION}, ${POND_PROJECTION}, -across.y * ${POND_ELEVATION}));
+  vec3 view = normalize(vec3(0.0, ${POND_PROJECTION}, -${POND_ELEVATION}));
   vec3 sun = normalize(uSunDirection);
   float nv = max(dot(normal, view), 0.0);
   float fresnel = fresnelWater(nv);
   float filmThickness = 380.0 + 330.0 * fbm3(vec3(point * 0.008, uTime * 0.025)) + height * 4.0;
   vec3 spectralFresnel = mix(vec3(fresnel), thinFilmFresnel(nv, filmThickness), 0.7);
-  vec3 waterColor = linearColor(vec3(0.46, 0.63, 0.64));
-  vec3 deepColor = linearColor(vec3(0.19, 0.36, 0.40));
+  vec3 waterColor = linearColor(vec3(0.31, 0.54, 0.51));
+  vec3 deepColor = linearColor(vec3(0.08, 0.24, 0.28));
   vec3 scatterColor = linearColor(vec3(0.729, 0.847, 0.835));
   vec3 refractedView = refract(-view, normal, 1.0 / 1.333);
-  float depthMix = 0.5 + height * 0.07;
+  float depthMix = 0.34 + height * 0.07 + smoothstep(0.12, 0.72, uv.y) * 0.22;
   float depth = 15.0 + 12.0 * (1.0 - depthMix);
   vec3 transmission = exp(-vec3(0.043, 0.022, 0.012) * depth / max(-refractedView.y, 0.28));
   vec3 body = mix(deepColor, waterColor, depthMix) * (0.4 + 0.6 * max(dot(normal, sun), 0.0));
@@ -200,12 +222,22 @@ void main() {
   vec3 color = body * (1.0 - spectralFresnel) + sky * spectralFresnel;
   color = paintedWater(color, pigment, scumble, normal, length(rippleSlope));
 
-  float edge = max(abs(uv.x - 0.5), abs(uv.y - 0.5)) * 2.0;
-  float canopy = smoothstep(0.28, 1.0, edge) * (0.2 + valueNoise(vec3(uv * 4.0, 4.1)) * 0.28);
-  color = mix(color, canopyReflection(uv, normal) * vec3(0.58, 0.78, 0.76), canopy);
+  float bankDistance = bank - uv.y;
+  float reflection = (1.0 - smoothstep(0.015, 0.40, bankDistance)) * (0.50 + pigment.a * 0.14);
+  color = mix(color, canopyReflection(uv, normal), reflection);
+  float shore = exp(-bankDistance * 95.0);
+  color *= 1.0 - shore * 0.38;
+  float reflectedLight = pow(0.5 + 0.5 * sin(uv.y * 340.0 + sin(uv.x * 15.0) + uTime * 5.0), 14.0);
+  color += linearColor(vec3(0.69, 0.72, 0.52)) * reflectedLight * shore * 0.065;
   float livingWash = texture(uLife, uv).r;
   color += vec3(0.022, 0.028, 0.012) * livingWash;
   color = paintedKoi(color, uv, normal, fresnel);
+  float rippleLight = clamp(dot(rippleSlope, normalize(vec2(-0.5, 0.42))), -0.08, 0.12);
+  color += linearColor(vec3(0.85, 0.90, 0.78)) * rippleLight * 0.42;
+  float crest = smoothstep(0.00012, 0.0018, max(height, 0.0));
+  float trough = smoothstep(0.00012, 0.0022, max(-height, 0.0));
+  color += linearColor(vec3(0.78, 0.86, 0.80)) * crest * 0.035;
+  color *= 1.0 - trough * 0.10;
 
   float variance = dot(dFdx(normal), dFdx(normal)) + dot(dFdy(normal), dFdy(normal));
   float roughness = clamp(0.115 + sqrt(variance) * 0.15, 0.115, 0.25);
@@ -217,6 +249,7 @@ void main() {
   color += linearColor(vec3(1.0, 0.957, 0.863)) * (min(specular, 1.5) * 0.48 + (glint * 0.8 + glitter * 0.08) * (fresnel + 0.035)) * paintedGlint;
   color = max(color * 1.04 - 0.006, vec3(0.0));
   color = lilyReflections(color, uv, normal);
-  result = vec4(displayColor(color), 1.0);
+  float shoreBlend = smoothstep(bank - 0.002, bank + 0.002, uv.y);
+  result = vec4(mix(displayColor(color), displayColor(treeLine(uv) * 0.72), shoreBlend), 1.0);
 }
 `;

@@ -1,4 +1,5 @@
 import { LILY_PARTS, LILY_PATCHES, POND_PROJECTION, POND_ELEVATION, POND_SHEAR } from '@common/pond-layout';
+import { POND_PROJECTION_GLSL, WATER_EXTENT, WATER_HEIGHT_SCALE } from '@common/pond-projection';
 
 function color(hex: number) {
   return [hex >> 16, (hex >> 8) & 255, hex & 255].map((channel) => {
@@ -145,20 +146,22 @@ out vec2 vUv;
 out vec3 vColor;
 out vec3 vNormal;
 flat out int vKind;
+${POND_PROJECTION_GLSL}
 void main() {
   vec4 cluster = uPatches[int(patchIndex)];
   float c = cos(cluster.w), s = sin(cluster.w);
   vec2 offset = vec2(c * position.x + s * position.z, -s * position.x + c * position.z) * cluster.z;
   vec2 point = cluster.xy + vec2(offset.x + offset.y * ${POND_SHEAR}, offset.y * ${POND_PROJECTION});
-  vec2 fieldUv = point;
+  vec2 fieldUv = screenToWater(point);
   float height = texture(water, fieldUv).r;
-  float dx = texture(water, fieldUv + vec2(0.005, 0.0)).r - height;
-  float dz = texture(water, fieldUv + vec2(0.0, 0.005)).r - height;
-  float elevation = position.y * cluster.z + height * 0.06;
+  vec2 texel = 1.0 / vec2(textureSize(water, 0));
+  float dx = (texture(water, fieldUv + vec2(texel.x, 0.0)).r - texture(water, fieldUv - vec2(texel.x, 0.0)).r) * ${WATER_HEIGHT_SCALE} / (2.0 * texel.x * ${WATER_EXTENT});
+  float dz = (texture(water, fieldUv + vec2(0.0, texel.y)).r - texture(water, fieldUv - vec2(0.0, texel.y)).r) * ${WATER_HEIGHT_SCALE} / (2.0 * texel.y * ${WATER_EXTENT});
+  float elevation = position.y * cluster.z + height * ${WATER_HEIGHT_SCALE};
   point.y += elevation * ${POND_ELEVATION};
   vUv = pigmentUv;
   vColor = pigmentColor;
-  vNormal = normalize(vec3(c * normal.x + s * normal.z - dx * 14.0, normal.y, -s * normal.x + c * normal.z - dz * 14.0));
+  vNormal = normalize(vec3(c * normal.x + s * normal.z - dx, normal.y, -s * normal.x + c * normal.z - dz));
   vKind = int(kind);
   gl_Position = vec4(point * 2.0 - 1.0, 0.3 + cluster.y * 0.12 + offset.y * ${POND_ELEVATION} - elevation * ${POND_PROJECTION}, 1.0);
 }`;
@@ -175,7 +178,16 @@ out vec4 result;
 void main() {
   vec3 normal = normalize(vNormal) * (gl_FrontFacing ? 1.0 : -1.0);
   vec3 pigment = vColor;
-  if (vKind == 0) pigment *= texture(uLeaf, vUv).rgb * vec3(0.88, 0.9, 0.74);
+  if (vKind == 0) {
+    pigment *= texture(uLeaf, vUv).rgb * vec3(0.76, 0.88, 0.67);
+    vec2 leaf = (vUv - 0.5) * 2.0;
+    float radial = length(leaf);
+    float veins = pow(0.5 + 0.5 * cos(atan(leaf.y, leaf.x) * 11.0 + radial * 2.0), 26.0);
+    veins *= smoothstep(0.08, 0.25, radial) * (1.0 - smoothstep(0.65, 0.98, radial));
+    pigment = mix(pigment, pigment * 0.68 + vec3(0.10, 0.15, 0.035), veins * 0.20);
+    float rim = smoothstep(0.89, 0.98, radial);
+    pigment = mix(pigment, pigment * vec3(1.2, 0.74, 0.66), rim * 0.22);
+  }
   if (vKind == 1) pigment *= texture(uPetal, vUv).rgb;
   float brushValue = dot(pigment, vec3(0.2126, 0.7152, 0.0722));
   float light = dot(normal, normalize(vec3(-0.5, 0.62, 0.42))) * 0.5 + 0.5 + (brushValue - 0.65) * 0.12;
@@ -184,6 +196,12 @@ void main() {
   vec3 shade = mix(vec3(1.0), shadow, (1.0 - paintedLight) * (vKind == 0 ? 0.3 : 0.5));
   vec3 warm = vKind == 0 ? vec3(0.753, 0.799, 0.503) : vec3(1.0, 0.888, 0.665);
   vec3 painted = mix(pigment * shade, pigment * 0.88 + warm * 0.12, paintedLight * 0.24);
+  if (vKind == 1) {
+    float cupShadow = (1.0 - smoothstep(0.0, 0.48, vUv.y)) * 0.19;
+    painted *= 1.0 - cupShadow;
+    float petalGlow = pow(max(dot(-normal, normalize(vec3(-0.5, 0.62, 0.42))), 0.0), 2.0);
+    painted += vec3(0.13, 0.08, 0.045) * petalGlow * smoothstep(0.45, 1.0, vUv.y);
+  }
   painted = mix(painted * 12.92, 1.055 * pow(max(painted, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), painted));
   result = vec4(painted, 1.0);
 }`;

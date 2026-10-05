@@ -4,7 +4,7 @@
 
 **Users Garden** is a client-facing tool for managing API usage, built with Next.js and React. It provides user account management, credit management, organization management, and user self-management capabilities.
 
-- **License:** MIT (Copyright 2024 Internet Development Studio Company)
+- **License:** MIT (Copyright 2024-2026 Internet Development Studio Company). Original project work, including the 3D pond scene and supplied artwork, is free to use with the company copyright and MIT license notice retained. Preserve applicable third-party notices; see `LICENSE.md`, `THIRD_PARTY_NOTICES.md`, and `public/artwork/LICENSE.txt`.
 - **API Backend:** `https://api.internet.dev`
 
 ---
@@ -13,7 +13,7 @@
 
 - **Next.js** ^16 with Pages Router (not App Router)
 - **React** ^19 with function components
-- **TypeScript** ^5.9 (strict mode off, strictNullChecks on)
+- **TypeScript** ^7.0 (ES2017 target, bundler module resolution, strict mode off, strictNullChecks on)
 - **D3** ^7.9 for data visualization
 - **CSS Modules** (`.module.css`) for component-scoped styling
 - **No state management library** — React Context + local state only
@@ -49,6 +49,8 @@ modules/            → Custom modules (cookies, cors, encryption)
 ## Path Aliases
 
 Defined in `tsconfig.json`. Always use these aliases instead of relative paths.
+
+Alias targets resolve relative to `tsconfig.json` without `baseUrl`; TypeScript 7 no longer supports that option.
 
 | Alias | Maps To |
 |---|---|

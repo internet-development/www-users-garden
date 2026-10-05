@@ -1,3 +1,11 @@
+Users Garden artwork by Internet Development Studio Company
+https://internet.dev
+
+The artwork and accompanying prompt files in this directory are supplied
+under the MIT License below. Free to use, copy, modify, and distribute,
+including commercially, with the copyright and full license notice retained.
+Keep this file with any copies or substantial portions of the artwork.
+
 MIT License
 
 Copyright (c) 2024-2026 Internet Development Studio Company

@@ -83,7 +83,12 @@ Users Garden is the client-facing dashboard for the Internet Development API. It
 
 ## [NEXT WORK]
 
-No task selected.
+Restore the pond test loader's compatibility with TypeScript 7 in `repo:www-users-garden`.
+
+- **Evidence:** `package.json` installs TypeScript `^7.0.2`, but `tests/pond.test.cjs` loads source through `ts.transpileModule`, `ts.ModuleKind.CommonJS`, and `ts.ScriptTarget.ES2020`. Inspecting the installed TypeScript 7.0.2 exports confirms all three APIs are undefined. The production build now passes with the updated `tsconfig.json`; this is a separate test-tooling issue.
+- **Bounded change:** Replace the removed compiler-API calls in `tests/pond.test.cjs` with a loader compatible with the installed tooling. Keep the existing assertions, scene modules, and `@common/` resolution intact. Update the `test:pond` command in `package.json` or its README instructions only if the new loader requires it.
+- **Compatibility:** Keep TypeScript 7, the working production configuration, and the declared Node support in mind. Do not add dependencies without explicit approval or change pond behavior to satisfy the tests.
+- **Stopping condition:** `npm run test:pond` runs every existing pond assertion successfully with the installed TypeScript 7 toolchain, and any changed test command is documented. Stop after restoring the test runner; do not expand into renderer or feature changes.
 
 ## [POST WORK]
 

@@ -28,3 +28,21 @@
 .hiddenCanvas {
   visibility: hidden;
 }
+
+.signature {
+  position: absolute;
+  right: 13.6%;
+  bottom: 12.9%;
+  width: 21%;
+  max-width: 120px;
+  color: var(--color-white);
+  opacity: 0.76;
+  pointer-events: none;
+  user-select: none;
+}
+
+.signature svg {
+  width: 100%;
+  height: auto;
+  color: inherit;
+}

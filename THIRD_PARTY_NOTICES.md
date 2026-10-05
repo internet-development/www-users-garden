@@ -1,13 +1,17 @@
-# WebGL Water
+# Credits and third-party notices
 
-`common/water.ts` adapts the heightfield integration and cosine drop equations from [WebGL Water](https://madebyevan.com/webgl-water/) by Evan Wallace ([source](https://github.com/evanw/webgl-water/blob/master/water.js)). The painted landscape rendering, frame integration, and resource lifecycle are specific to Users Garden. The original source identifies its license as MIT.
+## Users Garden and 3D pond scene
 
-Copyright (c) 2011 Evan Wallace
+Original project work is by [Internet Development Studio Company](https://internet.dev), Copyright (c) 2024-2026. This includes the scene composition, painted landscape rendering, koi and lily rendering, pond navigation, Life integration, frame integration, and resource lifecycle. It is free to use under the [MIT License](LICENSE.md), including commercially, with the company copyright and full license notice retained.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The scene's wave solver and procedural noise are implemented for Users Garden. The wave solver uses current and previous height fields, a nine-point spatial stencil, and compact polynomial disturbances. The noise generator uses an integer hash of lattice coordinates.
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+## Dependency notices
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The application also includes vendored utilities and package dependencies. Their copyright and license notices remain in their source files and distributed license files and must be preserved when that code is reused. These are dependency license notices, separate from the company's scene and artwork credits.
 
-The frame artwork at `public/artwork/garden-frame.jpg` is the existing Users Garden login image, previously served from the project's public Internet Development S3 bucket.
+## Artwork
+
+The artwork in `public/artwork/` is supplied by Internet Development Studio Company under the [MIT License](public/artwork/LICENSE.txt), with the company copyright and full license notice retained when reused. This covers `garden-frame.jpg`, both koi atlases, the lily pad and petal textures, the tree-line texture, and accompanying prompt files.
+
+The frame artwork at `public/artwork/garden-frame.jpg` is the existing Users Garden login image, previously served from the project's public Internet Development S3 bucket. The koi atlases and tree-line texture were generated for Users Garden with the built-in image tool; the exact prompts are saved beside them as `.prompt.txt` files.

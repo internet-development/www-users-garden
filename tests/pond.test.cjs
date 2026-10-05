@@ -17,6 +17,8 @@ function load(name) {
 
 const { stepLife, PondLife, LIFE_SIZE } = load('@common/pond-life');
 const { KoiSchool, KOI_COUNT } = load('@common/water-koi');
+const { pondClearance } = load('@common/pond-navigation');
+const projection = load('@common/pond-projection');
 const layout = load('@common/pond-layout');
 const { createLilyGeometry } = load('@common/water-lilies');
 
@@ -96,7 +98,7 @@ test('lilies have distinct arrangements, bloom scales, colors and finite mesh da
   }
 });
 
-test('living activity changes the koi destinations and motion', () => {
+test('living activity varies the koi swimming pace', () => {
   const pads = new Float32Array(layout.POND_PAD_COUNT * 4);
   layout.updatePondLayout(0, new Float32Array(24), pads, new Float32Array(layout.POND_FLOWER_COUNT * 4));
   const living = new KoiSchool(pads), quiet = new KoiSchool(pads);
@@ -111,17 +113,17 @@ test('living activity changes the koi destinations and motion', () => {
   assert.notDeepEqual(a, b);
 });
 
-test('koi move through open water and avoid the current lily pads over five minutes', () => {
+test('koi keep completing circuits without stalls, jumps, or lily collisions over thirty minutes', () => {
   const life = new PondLife();
   const patches = new Float32Array(24), pads = new Float32Array(layout.POND_PAD_COUNT * 4), flowers = new Float32Array(layout.POND_FLOWER_COUNT * 4);
   layout.updatePondLayout(0, patches, pads, flowers);
   const school = new KoiSchool(pads);
   const poses = new Float32Array(KOI_COUNT * 4);
   const initial = school.fish.map((fish) => [fish.x, fish.y]);
-  let smallestClearance = Infinity;
-  let closestState = null;
   const furthest = new Float64Array(KOI_COUNT);
-  for (let frame = 0; frame < 18000; frame++) {
+  const previous = school.fish.map((fish) => [fish.x, fish.y]);
+  const windows = school.fish.map(() => [Infinity, Infinity, -Infinity, -Infinity]);
+  for (let frame = 0; frame < 108000; frame++) {
     const time = frame / 60;
     layout.updatePondLayout(time, patches, pads, flowers);
     life.advance(1 / 60);
@@ -129,18 +131,40 @@ test('koi move through open water and avoid the current lily pads over five minu
     for (let index = 0; index < school.fish.length; index++) {
       const fish = school.fish[index];
       assert.ok(Number.isFinite(fish.angle));
-      assert.ok(fish.x > fish.size * 1.3 && fish.x < 1 - fish.size * 1.3);
-      assert.ok(fish.y > fish.size * 1.3 && fish.y < 1 - fish.size * 1.3);
+      assert.ok(Math.hypot(fish.x - previous[index][0], fish.y - previous[index][1]) < 0.004, 'Koi jumps while turning around a lily');
+      previous[index] = [fish.x, fish.y];
       furthest[index] = Math.max(furthest[index], Math.hypot(fish.x - initial[index][0], fish.y - initial[index][1]));
-      for (const along of [-0.72, 0, 0.64]) {
-        const clearance = layout.padClearance(fish.x + Math.cos(fish.angle) * fish.size * along, fish.y + Math.sin(fish.angle) * fish.size * along, pads) - fish.size * 0.34;
-        if (clearance < smallestClearance) { smallestClearance = clearance; closestState = { time, index, x: fish.x, y: fish.y, angle: fish.angle, along }; }
+      const window = windows[index];
+      window[0] = Math.min(window[0], fish.x); window[1] = Math.min(window[1], fish.y);
+      window[2] = Math.max(window[2], fish.x); window[3] = Math.max(window[3], fish.y);
+      if (frame % 480 === 479) {
+        assert.ok(Math.hypot(window[2] - window[0], window[3] - window[1]) > 0.055, `Fish ${index} stalls near ${fish.x}, ${fish.y} at ${time}s`);
+        windows[index] = [Infinity, Infinity, -Infinity, -Infinity];
+      }
+      for (const [x, z, radius] of school.hulls[index]) {
+        assert.ok(pondClearance(x, z, radius, pads), `Fish ${index} crosses a lily or the bank at ${time}s`);
       }
     }
   }
-  assert.ok(smallestClearance >= -0.002, `minimum lily clearance: ${smallestClearance}; ${JSON.stringify(closestState)}`);
+  assert.ok(school.fish.every((fish) => fish.laps >= 8), 'Every fish must complete repeated loops');
   assert.ok(furthest.every((distance) => distance > 0.25), `movement extents: ${Array.from(furthest)}`);
   const before = poses.slice();
   school.update(0, life, pads, poses);
   assert.deepEqual(poses, before);
+});
+
+test('pond projection round-trips pointer positions and foreshortens circular ripples', () => {
+  for (const point of [[0.1, 0.1], [0.5, 0.45], [0.9, 0.7]]) {
+    const ground = projection.screenToPond(...point);
+    const screen = projection.pondToScreen(...ground);
+    assert.ok(Math.hypot(screen[0] - point[0], screen[1] - point[1]) < 1e-12);
+    const field = projection.screenToWater(...point);
+    assert.ok(field.every((value) => value > 0 && value < 1));
+  }
+  const x = projection.pondToScreen(0.1, 0), y = projection.pondToScreen(0, 0.1);
+  assert.equal(x[1], 0.5);
+  assert.ok(Math.abs((y[1] - 0.5) / (x[0] - 0.5) - layout.POND_PROJECTION) < 1e-12);
+  assert.ok(y[0] > 0.5, 'The ripple inherits the pond shear');
+  assert.equal(projection.isPondWater(0.5, 0.96), false);
+  assert.equal(projection.isPondWater(0.5, 0.3), true);
 });

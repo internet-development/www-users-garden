@@ -1,11 +1,12 @@
 {
   "name": "www-users-garden",
   "description": "a tool for clients to manage their usage of our API",
+  "author": "Internet Development Studio Company (https://internet.dev)",
   "engines": {
     "node": ">=18"
   },
   "license": "MIT",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "scripts": {
     "dev": "next -p 10000",
     "build": "next build",
@@ -15,15 +16,15 @@
   },
   "dependencies": {
     "d3": "^7.9.0",
-    "next": "^16.1.6",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@types/node": "^25.3.0",
-    "@types/react": "^19.2.14",
-    "baseline-browser-mapping": "^2.10.0",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "baseline-browser-mapping": "^2.11.27",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }

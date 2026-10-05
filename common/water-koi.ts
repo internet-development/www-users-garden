@@ -1,136 +1,73 @@
-import { padClearance, POND_PROJECTION, POND_SHEAR } from '@common/pond-layout';
+import { PondCircuit } from '@common/pond-navigation';
+import { pondToScreen } from '@common/pond-projection';
+import { POND_PROJECTION, POND_ELEVATION } from '@common/pond-layout';
 import type { PondLife } from '@common/pond-life';
 
 export const KOI_COUNT = 4;
+export const KOI_SPINE_POINTS = 9;
+const SPINE = [-1.30, -1.0, -0.7, -0.4, -0.1, 0.2, 0.5, 0.75, 0.98];
+const WIDTHS = [0.02, 0.10, 0.12, 0.18, 0.23, 0.23, 0.21, 0.14, 0.025];
 
-const BODY_SAMPLES = [-0.72, 0, 0.64];
-
-type Koi = { x: number; y: number; angle: number; size: number; targetX: number; targetY: number; remaining: number };
+type Koi = { x: number; y: number; angle: number; size: number; arc: number; stroke: number; bend: number; speed: number; laps: number };
 
 export class KoiSchool {
   readonly fish: Koi[];
-  private seed = 97241;
+  readonly motion = new Float32Array(KOI_COUNT * 4);
+  readonly spines = new Float32Array(KOI_COUNT * KOI_SPINE_POINTS * 4);
+  readonly circuit: PondCircuit;
+  readonly hulls: number[][][] = Array.from({ length: KOI_COUNT }, () => []);
 
   constructor(pads: Float32Array) {
-    this.fish = [[0.47, 0.30, 1.3, 0.14], [0.47, 0.51, -0.25, 0.123], [0.69, 0.56, 2.7, 0.13], [0.50, 0.79, -1.4, 0.12]].map(([x, y, angle, size]) => ({ x, y, angle, size, targetX: 0.5, targetY: 0.5, remaining: 0 }));
-    for (const fish of this.fish) this.constrain(fish, pads);
+    this.circuit = new PondCircuit(pads, 0.056);
+    this.fish = [0.155, 0.14, 0.15, 0.135].map((size, index) => ({ x: 0, y: 0, angle: 0, size, arc: this.circuit.length * (0.09 + index * 0.25), stroke: index * 2.3, bend: 0, speed: 0.036, laps: 0 }));
+    this.update(0, { sample: () => 0 }, pads, new Float32Array(KOI_COUNT * 4));
   }
 
-  private random() {
-    this.seed = (Math.imul(this.seed, 1664525) + 1013904223) >>> 0;
-    return this.seed / 4294967296;
-  }
-
-  private chooseTarget(fish: Koi, life: PondLife, pads: Float32Array) {
-    let score = -Infinity;
-    for (let index = 0; index < 24; index++) {
-      const x = 0.13 + this.random() * 0.74;
-      const y = 0.13 + this.random() * 0.74;
-      const distance = Math.hypot(x - fish.x, y - fish.y);
-      if (padClearance(x, y, pads) < fish.size * 0.8 || distance < 0.12) continue;
-      const value = life.sample(x, y) * 2 + this.random() * 0.25 - Math.abs(distance - 0.3) * 0.7;
-      if (value > score) { score = value; fish.targetX = x; fish.targetY = y; }
-    }
-    fish.remaining = 7 + this.random() * 7;
-  }
-
-  private fits(x: number, y: number, angle: number, size: number, pads: Float32Array) {
-    const margin = size * 1.4 + 0.006;
-    if (x < margin || y < margin || x > 1 - margin || y > 1 - margin) return false;
-    for (const along of BODY_SAMPLES) {
-      if (padClearance(x + Math.cos(angle) * size * along, y + Math.sin(angle) * size * along, pads) < size * 0.34 + 0.002) return false;
-    }
-    return true;
-  }
-
-  private constrain(fish: Koi, pads: Float32Array) {
-    const margin = fish.size * 1.4 + 0.006;
-    const radius = fish.size * 0.34;
-    for (let pass = 0; pass < 5; pass++) {
-      let moved = false;
-      for (let index = 0; index < pads.length; index += 4) {
-        const limit = Math.max(pads[index + 2], pads[index + 3]) + radius;
-        for (const along of BODY_SAMPLES) {
-          const x = fish.x + Math.cos(fish.angle) * fish.size * along;
-          const y = fish.y + Math.sin(fish.angle) * fish.size * along;
-          const dx = x - pads[index], dy = y - pads[index + 1];
-          const distance = Math.hypot(dx, dy);
-          if (distance < limit) {
-            moved = true;
-            const direction = distance > 0.000001 ? 1 / distance : 0;
-            fish.x += (direction ? dx * direction : 1) * (limit - distance + 0.00001);
-            fish.y += (direction ? dy * direction : 0) * (limit - distance + 0.00001);
-          }
-        }
-      }
-      fish.x = Math.max(margin, Math.min(1 - margin, fish.x));
-      fish.y = Math.max(margin, Math.min(1 - margin, fish.y));
-      if (!moved) break;
-    }
-  }
-
-  update(dt: number, life: PondLife, pads: Float32Array, poses: Float32Array) {
+  update(dt: number, life: Pick<PondLife, 'sample'>, _pads: Float32Array, poses: Float32Array) {
+    const arcs = this.fish.map((fish) => fish.arc);
     for (let index = 0; index < this.fish.length; index++) {
       const fish = this.fish[index];
       if (dt > 0) {
-        fish.remaining -= dt;
-        if (fish.remaining <= 0 || Math.hypot(fish.targetX - fish.x, fish.targetY - fish.y) < 0.055) this.chooseTarget(fish, life, pads);
-        let fx = fish.targetX - fish.x, fy = fish.targetY - fish.y;
-        const targetDistance = Math.max(0.001, Math.hypot(fx, fy));
-        fx /= targetDistance; fy /= targetDistance;
-        fx += (life.sample(fish.x + 0.04, fish.y) - life.sample(fish.x - 0.04, fish.y)) * 1.4;
-        fy += (life.sample(fish.x, fish.y + 0.04) - life.sample(fish.x, fish.y - 0.04)) * 1.4;
-        const hx = Math.cos(fish.angle), hy = Math.sin(fish.angle);
-        const lookX = fish.x + hx * (fish.size * 1.1 + 0.018);
-        const lookY = fish.y + hy * (fish.size * 1.1 + 0.018);
-        for (let pad = 0; pad < pads.length; pad += 4) {
-          const dx = lookX - pads[pad], dy = lookY - pads[pad + 1];
-          const distance = Math.max(0.0001, Math.hypot(dx, dy));
-          const limit = Math.max(pads[pad + 2], pads[pad + 3]) + fish.size * 0.34 + 0.055;
-          if (distance >= limit) continue;
-          const nx = dx / distance, ny = dy / distance;
-          const weight = (1 - distance / limit) ** 2 * 14;
-          const side = hx * -ny + hy * nx >= 0 ? 1 : -1;
-          fx += (nx * 1.9 - ny * side) * weight;
-          fy += (ny * 1.9 + nx * side) * weight;
+        let pace = 0.035 + index * 0.001 + life.sample(fish.x, fish.y) * 0.011;
+        for (let neighbor = 0; neighbor < arcs.length; neighbor++) {
+          if (neighbor === index) continue;
+          const ahead = ((arcs[neighbor] - arcs[index]) % this.circuit.length + this.circuit.length) % this.circuit.length;
+          if (ahead < fish.size * 2.5) pace *= 0.75 + ahead / (fish.size * 2.5) * 0.25;
         }
-        for (const neighbor of this.fish) {
-          if (neighbor === fish) continue;
-          const dx = fish.x - neighbor.x, dy = fish.y - neighbor.y;
-          const distance = Math.max(0.001, Math.hypot(dx, dy));
-          const separation = (fish.size + neighbor.size) * 0.8;
-          if (distance < separation) { fx += dx / distance * (1 - distance / separation) * 2; fy += dy / distance * (1 - distance / separation) * 2; }
-        }
-        const wall = 0.14;
-        fx += Math.max(0, wall - fish.x) * 35 - Math.max(0, fish.x - 1 + wall) * 35;
-        fy += Math.max(0, wall - fish.y) * 35 - Math.max(0, fish.y - 1 + wall) * 35;
-        const angle = Math.atan2(fy, fx);
-        const turn = Math.atan2(Math.sin(angle - fish.angle), Math.cos(angle - fish.angle));
-        const desiredTurn = Math.max(-1.25 * dt, Math.min(1.25 * dt, turn));
-        const speed = (0.018 + index * 0.0015 + life.sample(fish.x, fish.y) * 0.008) * (1 - Math.min(0.35, Math.abs(turn) * 0.12));
-        let moved = false;
-        for (const direction of [1, 0, -0.6]) {
-          for (const rotation of [desiredTurn, 0, 1.25 * dt, -1.25 * dt]) {
-            const heading = fish.angle + rotation;
-            const x = fish.x + Math.cos(heading) * speed * dt * direction;
-            const y = fish.y + Math.sin(heading) * speed * dt * direction;
-            if (!this.fits(x, y, heading, fish.size, pads)) continue;
-            fish.x = x; fish.y = y; fish.angle = heading;
-            moved = true;
-            if (direction <= 0) fish.remaining = Math.min(fish.remaining, 0.4);
-            break;
-          }
-          if (moved) break;
-        }
-        if (!moved) {
-          this.constrain(fish, pads);
-          fish.remaining = 0;
-        }
+        fish.speed += (Math.max(0.025, pace) - fish.speed) * Math.min(1, dt * 1.6);
+        fish.arc += fish.speed * dt;
+        fish.laps = Math.floor(fish.arc / this.circuit.length);
+        fish.stroke += dt * (1.6 + fish.speed * 34);
       }
-      poses[index * 4] = fish.x;
-      poses[index * 4 + 1] = fish.y;
-      poses[index * 4 + 2] = fish.size;
-      poses[index * 4 + 3] = fish.angle;
+      const center = this.circuit.sample(fish.arc);
+      const before = this.circuit.sample(fish.arc - 0.018), after = this.circuit.sample(fish.arc + 0.018);
+      const heading = Math.atan2(after[1] - before[1], after[0] - before[0]);
+      const screen = pondToScreen(center[0], center[1]);
+      const forward = pondToScreen(center[0] + Math.cos(heading), center[1] + Math.sin(heading));
+      const angle = Math.atan2(forward[1] - screen[1], forward[0] - screen[0]);
+      if (dt > 0) {
+        const turn = Math.atan2(Math.sin(angle - fish.angle), Math.cos(angle - fish.angle));
+        fish.bend += (Math.max(-1, Math.min(1, turn / dt)) - fish.bend) * Math.min(1, dt * 3);
+      }
+      fish.x = screen[0]; fish.y = screen[1]; fish.angle = angle;
+      this.hulls[index] = [];
+      for (let sample = 0; sample < KOI_SPINE_POINTS; sample++) {
+        const along = SPINE[sample];
+        const arc = fish.arc + along * fish.size;
+        const point = this.circuit.sample(arc);
+        const a = this.circuit.sample(arc - 0.006), b = this.circuit.sample(arc + 0.006);
+        const length = Math.max(0.00001, Math.hypot(b[0] - a[0], b[1] - a[1]));
+        const tailWeight = Math.pow(Math.max(0, (0.7 - along) / 2.0), 2);
+        const swing = Math.sin(fish.stroke + along * 3.7) * tailWeight * fish.size * 0.10;
+        point[0] -= (b[1] - a[1]) / length * swing;
+        point[1] += (b[0] - a[0]) / length * swing;
+        const offset = (index * KOI_SPINE_POINTS + sample) * 4;
+        this.spines[offset] = point[0]; this.spines[offset + 1] = point[1];
+        this.spines[offset + 2] = along; this.spines[offset + 3] = WIDTHS[sample] * fish.size;
+        this.hulls[index].push([point[0], point[1], WIDTHS[sample] * fish.size]);
+      }
+      poses.set([fish.x, fish.y, fish.size, fish.angle], index * 4);
+      this.motion.set([fish.stroke, fish.bend, 0.010 + index * 0.004 + Math.sin(fish.stroke * 0.17 + index) * 0.003, fish.speed / 0.045], index * 4);
     }
   }
 }
@@ -151,25 +88,59 @@ float koiTriangle(vec2 p, vec2 a, vec2 b, vec2 c, float softness) {
 vec3 paintedKoi(vec3 waterColor, vec2 screen, vec3 waterNormal, float fresnel) {
   for (int index = 0; index < ${KOI_COUNT}; index++) {
     vec4 pose = uKoi[index];
+    vec4 motion = uKoiMotion[index];
     vec2 offset = screen - pose.xy;
-    if (dot(offset, offset) > pose.z * pose.z * 2.3) continue;
+    if (dot(offset, offset) > pose.z * pose.z * 3.0) continue;
     float seed = float(index) * 3.71 + 0.8;
-    vec2 refracted = offset + waterNormal.xz * (0.003 + float(index) * 0.0004);
-    refracted = vec2(refracted.x - refracted.y * ${POND_SHEAR} / ${POND_PROJECTION}, refracted.y / ${POND_PROJECTION});
-    float heading = atan(sin(pose.w) / ${POND_PROJECTION}, cos(pose.w) - sin(pose.w) * ${POND_SHEAR} / ${POND_PROJECTION});
-    float cosine = cos(heading), sine = sin(heading);
-    vec2 p = vec2(cosine * refracted.x + sine * refracted.y, -sine * refracted.x + cosine * refracted.y) / pose.z;
-    float tailWeight = pow(clamp((0.7 - p.x) / 1.8, 0.0, 1.0), 2.0);
-    float stroke = uFishTime * (2.1 + float(index) * 0.16) + seed;
-    p.y -= sin(stroke + p.x * 3.7) * tailWeight * 0.17;
+    vec2 ground = screenToPond(screen) + waterNormal.xz * motion.z * 0.16;
+    float nearest = 1000.0;
+    vec2 p = vec2(0.0);
+    vec2 direction = vec2(1.0, 0.0);
+    for (int segment = 0; segment < ${KOI_SPINE_POINTS - 1}; segment++) {
+      vec4 a = uKoiSpine[index * ${KOI_SPINE_POINTS} + segment];
+      vec4 b = uKoiSpine[index * ${KOI_SPINE_POINTS} + segment + 1];
+      vec2 tangent = b.xy - a.xy;
+      float lengthSquared = max(dot(tangent, tangent), 0.000001);
+      float t = clamp(dot(ground - a.xy, tangent) / lengthSquared, 0.0, 1.0);
+      vec2 delta = ground - mix(a.xy, b.xy, t);
+      float distance = dot(delta, delta);
+      if (distance < nearest) {
+        nearest = distance;
+        direction = tangent / sqrt(lengthSquared);
+        p = vec2(mix(a.z, b.z, t), koiCross(tangent, delta) / sqrt(lengthSquared) / pose.z);
+      }
+    }
+    if (nearest > pose.z * pose.z * 0.25) continue;
+    float stroke = motion.x;
     if (uKoiReady) {
+      vec2 shadowOffset = vec2(-0.6, 0.4) * motion.z / pose.z;
+      vec2 shadow = p + vec2(dot(direction, shadowOffset), koiCross(direction, shadowOffset));
+      float silhouette = exp(-pow((shadow.x + 0.10) / 0.72, 4.0) - pow(shadow.y / 0.25, 2.0) * 1.9);
+      waterColor *= 1.0 - silhouette * 0.23;
       float flutter = sin(stroke * 0.73 + p.x * 2.0) * 0.025;
       vec2 illustration = vec2((p.x + 1.30) / 2.25, 0.5 - (p.y + flutter * smoothstep(0.15, 0.43, abs(p.y))) / 0.88);
       if (illustration.x < 0.0 || illustration.x > 1.0 || illustration.y < 0.0 || illustration.y > 1.0) continue;
-      vec2 atlasUv = vec2(illustration.x, 1.0 - (float(index) + illustration.y) / ${KOI_COUNT.toFixed(1)});
+      float center = index == 0 ? 0.152 : index == 1 ? 0.392 : index == 2 ? 0.630 : 0.865;
+      float atlasY = center + (illustration.y - 0.5) * 0.25;
+      float top = index == 0 ? 0.0 : index == 1 ? 0.274 : index == 2 ? 0.512 : 0.751;
+      float bottom = index == 0 ? 0.268 : index == 1 ? 0.508 : index == 2 ? 0.748 : 1.0;
+      if (atlasY < top || atlasY > bottom) continue;
+      vec2 atlasUv = vec2(illustration.x, 1.0 - atlasY);
       vec4 paint = texture(uKoiPaint, atlasUv, -0.4);
-      vec3 underwater = mix(paint.rgb * vec3(0.92, 0.98, 1.0), waterColor, 0.09 + float(index) * 0.01);
-      waterColor = mix(waterColor, underwater, paint.a * 0.94 * (1.0 - fresnel * 0.55));
+      float girth = mix(0.10, 0.23, smoothstep(-0.72, 0.15, p.x)) * (1.0 - smoothstep(0.53, 1.05, p.x) * 0.62);
+      float side = clamp(p.y / max(girth, 0.035), -0.96, 0.96);
+      float roundness = sqrt(1.0 - side * side);
+      vec3 skinNormal = normalize(vec3(-direction.y * side, roundness, direction.x * side));
+      float diffuse = max(dot(skinNormal, normalize(vec3(-0.5, 0.62, 0.42))), 0.0);
+      vec3 halfway = normalize(normalize(vec3(-0.5, 0.62, 0.42)) + normalize(vec3(0.0, ${POND_PROJECTION}, -${POND_ELEVATION})));
+      float gleam = pow(max(dot(skinNormal, halfway), 0.0), 38.0) * 0.055;
+      float caustic = pow(0.5 + 0.5 * sin(p.x * 31.0 + p.y * 18.0 + sin(p.x * 12.0 - uFishTime * 0.8) * 2.0), 10.0);
+      vec3 wetColor = paint.rgb * vec3(0.86, 0.97, 0.93) * (0.61 + diffuse * 0.45);
+      wetColor += vec3(0.80, 0.88, 0.75) * gleam * smoothstep(-0.65, -0.2, p.x);
+      wetColor += vec3(0.07, 0.09, 0.06) * caustic * paint.a;
+      vec3 underwater = mix(wetColor, waterColor, 0.12 + motion.z * 2.0);
+      float fin = smoothstep(girth * 0.85, girth * 1.55, abs(p.y));
+      waterColor = mix(waterColor, underwater, paint.a * (0.97 - fin * 0.23) * (1.0 - fresnel * 0.42));
       continue;
     }
     float soft = clamp(max(fwidth(p.x), fwidth(p.y)) * 0.75, 0.012, 0.065);

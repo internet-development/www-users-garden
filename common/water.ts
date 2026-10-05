@@ -1,3 +1,5 @@
+// NOTE(angel) Original scene work: Copyright (c) 2024-2026 Internet Development Studio Company. MIT; retain LICENSE.md and applicable THIRD_PARTY_NOTICES.md credits when reusing.
+
 import { createWaterPigment } from '@common/water-pigment';
 import { createWaterTrees } from '@common/water-trees';
 import { KOI_COUNT, KoiSchool } from '@common/water-koi';
@@ -5,8 +7,8 @@ import { LIFE_SIZE, PondLife } from '@common/pond-life';
 import { LILY_PATCHES, POND_PAD_COUNT, POND_FLOWER_COUNT, updatePondLayout } from '@common/pond-layout';
 import { createLilyGeometry, lilyVertexSource, lilyFragmentSource } from '@common/water-lilies';
 import { waterSurfaceSource } from '@common/water-surface';
+import { POND_PROJECTION_GLSL, WATER_RESOLUTION, WATER_EXTENT, WATER_ORIGIN, screenToWater, pondToScreen, isPondWater } from '@common/pond-projection';
 
-// NOTE(angel) Heightfield integration and cosine drops adapted from Evan Wallace's MIT-licensed WebGL Water (2011). See THIRD_PARTY_NOTICES.md.
 const vertexSource = `#version 300 es
 in vec2 position;
 out vec2 uv;
@@ -15,23 +17,51 @@ void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }`;
 
+// NOTE(angel) The wave field stores current and previous heights. Disturbances offset both to preserve their local velocity.
 const simulationSource = `#version 300 es
 precision highp float;
 uniform sampler2D water;
 uniform vec2 drop;
 uniform float strength;
 uniform float advance;
+uniform float dropRadius;
 in vec2 uv;
 out vec4 result;
+${POND_PROJECTION_GLSL}
+bool pondCell(ivec2 cell, ivec2 dimensions) {
+  if (any(lessThan(cell, ivec2(0))) || any(greaterThanEqual(cell, dimensions))) return false;
+  vec2 point = (vec2(cell) + 0.5) / vec2(dimensions);
+  return isPondWater(pondToScreen(point * ${WATER_EXTENT} + vec2(${WATER_ORIGIN[0]}, ${WATER_ORIGIN[1]})));
+}
+float cellHeight(ivec2 cell, ivec2 dimensions, float bankHeight) {
+  return pondCell(cell, dimensions) ? texelFetch(water, cell, 0).r : bankHeight;
+}
 void main() {
-  vec2 d = 1.0 / vec2(textureSize(water, 0));
-  vec2 state = texture(water, uv).rg;
-  float average = (texture(water, uv + vec2(d.x, 0.0)).r + texture(water, uv - vec2(d.x, 0.0)).r + texture(water, uv + vec2(0.0, d.y)).r + texture(water, uv - vec2(0.0, d.y)).r) * 0.25;
-  state.g = mix(state.g, (state.g + (average - state.r) * 2.0) * 0.994, advance);
-  state.r += state.g * advance;
-  float radius = max(0.0, 1.0 - length(uv - drop) / 0.045);
-  state.r += (0.5 - cos(radius * 3.14159265) * 0.5) * strength;
-  result = vec4(state, 0.0, 1.0);
+  ivec2 dimensions = textureSize(water, 0);
+  ivec2 cell = ivec2(gl_FragCoord.xy);
+  if (!pondCell(cell, dimensions)) { result = vec4(0.0); return; }
+  vec2 heights = texelFetch(water, cell, 0).rg;
+  if (advance > 0.0) {
+    float axial = cellHeight(cell + ivec2(1, 0), dimensions, heights.x)
+      + cellHeight(cell + ivec2(-1, 0), dimensions, heights.x)
+      + cellHeight(cell + ivec2(0, 1), dimensions, heights.x)
+      + cellHeight(cell + ivec2(0, -1), dimensions, heights.x);
+    float diagonal = cellHeight(cell + ivec2(1, 1), dimensions, heights.x)
+      + cellHeight(cell + ivec2(-1, 1), dimensions, heights.x)
+      + cellHeight(cell + ivec2(1, -1), dimensions, heights.x)
+      + cellHeight(cell + ivec2(-1, -1), dimensions, heights.x);
+    float curvature = (4.0 * axial + diagonal - 20.0 * heights.x) / 6.0;
+    float nextHeight = heights.x + 0.984 * (heights.x - heights.y) + 0.45 * curvature;
+    heights = vec2(nextHeight, heights.x);
+  }
+  if (strength != 0.0) {
+    vec2 offset = (uv - drop) / max(dropRadius, 0.0001);
+    float distanceSquared = dot(offset, offset);
+    float support = max(0.0, 1.0 - distanceSquared);
+    float displacement = strength * support * support * (1.0 - 4.0 * min(distanceSquared, 1.0));
+    heights += vec2(displacement);
+  }
+  result = vec4(heights, 0.0, 1.0);
 }`;
 
 export function createWater(canvas: HTMLCanvasElement) {
@@ -71,6 +101,7 @@ export function createWater(canvas: HTMLCanvasElement) {
   let lastDrop = 0;
   let lastPointer = 0;
   let lastLilyWake = 0;
+  let lastKoiWake = 0;
   let current = 0;
 
   function release() {
@@ -153,7 +184,7 @@ export function createWater(canvas: HTMLCanvasElement) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 192, 192, 0, gl.RGBA, gl.HALF_FLOAT, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, WATER_RESOLUTION, WATER_RESOLUTION, 0, gl.RGBA, gl.HALF_FLOAT, null);
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
       if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('Water surface is unsupported.');
@@ -203,10 +234,14 @@ export function createWater(canvas: HTMLCanvasElement) {
   const dropLocation = gl.getUniformLocation(simulation, 'drop');
   const strengthLocation = gl.getUniformLocation(simulation, 'strength');
   const advanceLocation = gl.getUniformLocation(simulation, 'advance');
+  const radiusLocation = gl.getUniformLocation(simulation, 'dropRadius');
   const pigmentLocation = gl.getUniformLocation(surface, 'uPigment');
   const timeLocation = gl.getUniformLocation(surface, 'uTime');
+  const resolutionLocation = gl.getUniformLocation(surface, 'uResolution');
   const fishTimeLocation = gl.getUniformLocation(surface, 'uFishTime');
   const koiLocation = gl.getUniformLocation(surface, 'uKoi[0]');
+  const koiMotionLocation = gl.getUniformLocation(surface, 'uKoiMotion[0]');
+  const koiSpineLocation = gl.getUniformLocation(surface, 'uKoiSpine[0]');
   const treesLocation = gl.getUniformLocation(surface, 'uTreeLine');
   const readyLocation = gl.getUniformLocation(surface, 'uAssetsReady');
   const surfacePads = gl.getUniformLocation(surface, 'uPads[0]');
@@ -218,15 +253,18 @@ export function createWater(canvas: HTMLCanvasElement) {
   const leafLocation = gl.getUniformLocation(lilies, 'uLeaf');
   const petalLocation = gl.getUniformLocation(lilies, 'uPetal');
 
-  function step(x = 0, y = 0, strength = 0, advance = 1) {
+  function step(x = 0, y = 0, strength = 0, advance = 1, radius = 0.045) {
+    if (strength && !isPondWater(x, y)) return;
+    const point = screenToWater(x, y);
     gl!.useProgram(simulation);
     gl!.disable(gl!.DEPTH_TEST);
     gl!.bindVertexArray(quad);
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, framebuffers[1 - current]);
-    gl!.viewport(0, 0, 192, 192);
+    gl!.viewport(0, 0, WATER_RESOLUTION, WATER_RESOLUTION);
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, textures[current]);
-    gl!.uniform2f(dropLocation, x, y);
+    gl!.uniform2f(dropLocation, point[0], point[1]);
+    gl!.uniform1f(radiusLocation, radius / WATER_EXTENT);
     gl!.uniform1f(strengthLocation, strength);
     gl!.uniform1f(advanceLocation, advance);
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
@@ -246,12 +284,15 @@ export function createWater(canvas: HTMLCanvasElement) {
     gl!.bindTexture(gl!.TEXTURE_2D, pigment);
     gl!.uniform1i(pigmentLocation, 1);
     gl!.uniform1f(timeLocation, elapsed * 0.00006);
+    gl!.uniform2f(resolutionLocation, canvas.width, canvas.height);
     gl!.activeTexture(gl!.TEXTURE4);
     gl!.bindTexture(gl!.TEXTURE_2D, trees);
     gl!.uniform1i(treesLocation, 4);
     gl!.uniform1i(readyLocation, assetsReady ? 1 : 0);
     const lifeTime = elapsed * 0.001;
     gl!.uniform4fv(koiLocation, koi);
+    gl!.uniform4fv(koiMotionLocation, school.motion);
+    gl!.uniform4fv(koiSpineLocation, school.spines);
     gl!.uniform1f(fishTimeLocation, lifeTime);
     gl!.uniform4fv(surfacePads, pads);
     gl!.uniform4fv(surfaceFlowers, flowers);
@@ -322,6 +363,18 @@ export function createWater(canvas: HTMLCanvasElement) {
         lastLilyWake = elapsed;
         for (let index = 0; index < LILY_PATCHES.length; index++) step(patches[index * 4], patches[index * 4 + 1], -0.0008, 0);
       }
+      if (elapsed - lastKoiWake > 160) {
+        lastKoiWake = elapsed;
+        for (let index = 0; index < school.fish.length; index++) {
+          const fish = school.fish[index];
+          const hull = school.hulls[index];
+          const tail = pondToScreen(hull[0][0], hull[0][1]);
+          const nose = pondToScreen(hull[hull.length - 1][0], hull[hull.length - 1][1]);
+          const pace = fish.speed / 0.04;
+          step(tail[0], tail[1], Math.sin(fish.stroke) * 0.010 * pace, 0, 0.027);
+          step(nose[0], nose[1], 0.005 * pace, 0, 0.034);
+        }
+      }
       for (let index = 0; index < 4; index++) step();
       draw();
     }
@@ -335,7 +388,7 @@ export function createWater(canvas: HTMLCanvasElement) {
   }
 
   function ripple(x = 0.48, y = 0.52) {
-    if (disposed || gl!.isContextLost()) return;
+    if (disposed || gl!.isContextLost() || !isPondWater(x, y)) return;
     life.disturb(x, y);
     lifeDirty = true;
     step(x, y, 0.025, 0);
@@ -369,21 +422,22 @@ export function createWater(canvas: HTMLCanvasElement) {
   resize();
   schedule();
 
-  async function loadPainting(path: string) {
+  async function loadPainting(path: string, flipY = true) {
     const response = await fetch(path, { signal: controller.signal });
     if (!response.ok) throw new Error('Unable to load a painted surface.');
-    const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: flipY ? 'flipY' : 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
     if (disposed) { bitmap.close(); throw new Error('Water frame was removed.'); }
     bitmaps.add(bitmap);
     return bitmap;
   }
 
-  const ready = Promise.allSettled([loadPainting('/artwork/lily-pad-monet.png'), loadPainting('/artwork/lily-petal-monet.png'), loadPainting('/artwork/koi-monet-atlas.png')]).then((images) => {
+  const ready = Promise.allSettled([loadPainting('/artwork/lily-pad-monet.png'), loadPainting('/artwork/lily-petal-monet.png'), loadPainting('/artwork/koi-monet-overhead.png'), loadPainting('/artwork/pond-treeline-monet.png', false)]).then((images) => {
     if (disposed || gl.isContextLost()) return false;
     const leafImage = images[0], petalImage = images[1];
     if (leafImage.status !== 'fulfilled' || petalImage.status !== 'fulfilled') return false;
     try {
-      const treePainting = createWaterTrees(leafImage.value, petalImage.value);
+      const treeImage = images[3];
+      const treePainting = treeImage.status === 'fulfilled' ? treeImage.value : createWaterTrees(leafImage.value, petalImage.value);
       const geometry = createLilyGeometry();
       for (const [unit, texture, source] of [[2, leaf, leafImage.value], [3, petal, petalImage.value], [4, trees, treePainting]] as const) {
         gl.activeTexture(gl.TEXTURE0 + unit);

@@ -1,6 +1,8 @@
-export const POND_PROJECTION = 0.72;
+export const POND_PROJECTION = 0.52;
 export const POND_ELEVATION = Math.sqrt(1 - POND_PROJECTION * POND_PROJECTION);
-export const POND_SHEAR = 0.14;
+export const POND_SHEAR = 0.2;
+export const POND_BANK = 0.755;
+export const POND_BANK_SLOPE = 0.10;
 export const POND_PATCH_COUNT = 6;
 
 export type LilyPart = {
@@ -17,12 +19,12 @@ export type LilyPart = {
 };
 
 export const LILY_PATCHES = [
-  [0.15, 0.18, 0.43, -0.32],
-  [0.83, 0.20, 0.34, 0.55],
-  [0.13, 0.83, 0.35, -0.55],
-  [0.83, 0.83, 0.42, 0.4],
-  [0.30, 0.61, 0.27, -0.8],
-  [0.73, 0.39, 0.23, 0.85],
+  [0.16, 0.14, 0.43, -0.32],
+  [0.82, 0.18, 0.38, 0.55],
+  [0.12, 0.63, 0.25, -0.55],
+  [0.85, 0.65, 0.30, 0.4],
+  [0.30, 0.44, 0.26, -0.8],
+  [0.70, 0.43, 0.25, 0.85],
 ];
 
 export const LILY_PARTS: LilyPart[][] = [
@@ -69,6 +71,10 @@ export const LILY_PARTS: LilyPart[][] = [
 export const POND_PAD_COUNT = LILY_PARTS.reduce((count, parts) => count + parts.filter((part) => part.kind === 'pad').length, 0);
 export const POND_FLOWER_COUNT = LILY_PARTS.reduce((count, parts) => count + parts.filter((part) => part.kind === 'flower').length, 0);
 
+export function pondBankHeight(x: number) {
+  return POND_BANK + (x - 0.5) * POND_BANK_SLOPE + Math.sin(x * 5.4 + 0.7) * 0.01;
+}
+
 export function updatePondLayout(time: number, patches: Float32Array, pads: Float32Array, flowers: Float32Array) {
   let padIndex = 0, flowerIndex = 0;
   for (let index = 0; index < POND_PATCH_COUNT; index++) {
@@ -89,16 +95,23 @@ export function updatePondLayout(time: number, patches: Float32Array, pads: Floa
       target[offset + 1] = y + (-s * part.x + c * part.z) * base[2] * POND_PROJECTION;
       const angle = yaw + part.yaw;
       const pc = Math.cos(angle), ps = Math.sin(angle);
-      target[offset + 2] = Math.hypot((pc - ps * POND_SHEAR) * part.radiusX, (ps + pc * POND_SHEAR) * part.radiusZ) * base[2] * 1.12;
-      target[offset + 3] = Math.hypot(ps * part.radiusX, pc * part.radiusZ) * base[2] * POND_PROJECTION * 1.12 + part.lift * base[2] * POND_ELEVATION;
+      target[offset + 2] = Math.hypot((pc - ps * POND_SHEAR) * part.radiusX, (ps + pc * POND_SHEAR) * part.radiusZ) * base[2] * 1.28;
+      target[offset + 3] = Math.hypot(ps * part.radiusX, pc * part.radiusZ) * base[2] * POND_PROJECTION * 1.28 + part.lift * base[2] * POND_ELEVATION;
     }
   }
+}
+
+export function ellipseClearance(x: number, y: number, rx: number, ry: number) {
+  const radial = Math.hypot(x / rx, y / ry);
+  const gradient = Math.hypot(x / (rx * rx), y / (ry * ry));
+  return gradient > 0.000001 ? radial * (radial - 1) / gradient : -Math.min(rx, ry);
 }
 
 export function padClearance(x: number, y: number, pads: Float32Array) {
   let nearest = Infinity;
   for (let index = 0; index < pads.length; index += 4) {
-    nearest = Math.min(nearest, Math.hypot(x - pads[index], y - pads[index + 1]) - Math.max(pads[index + 2], pads[index + 3]));
+    const rx = pads[index + 2], ry = pads[index + 3];
+    nearest = Math.min(nearest, ellipseClearance(x - pads[index], y - pads[index + 1], rx, ry));
   }
   return nearest;
 }
