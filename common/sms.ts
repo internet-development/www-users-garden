@@ -1,8 +1,8 @@
 export const SMS_CONSENT_VERSION = '2026-10-02';
 export const SMS_CONSENT_PROMPT = 'Internet Development Studio Company: Reply YES to agree to receive customer-care and service-support text messages from Internet Development Studio Company. Message frequency varies. Message and data rates may apply. Reply HELP for help or CANCEL to opt out. Reply NO to decline.';
-export const SMS_NUMBER = '+14256992634';
-export const SMS_NUMBER_DISPLAY = '(425) 699-2634';
-export const SMS_CONSENT_URL = 'https://internet.dev/consent';
+export const SMS_NUMBER = '+14256516819';
+export const SMS_NUMBER_DISPLAY = '(425) 651-6819';
+export const SMS_CONSENT_URL = 'https://users.garden/settings-preview';
 export const SMS_TERMS_URL = 'https://txt.dev/wwwjim/intdev-terms-of-service';
 export const SMS_PRIVACY_URL = 'https://txt.dev/wwwjim/intdev-privacy-policy';
 

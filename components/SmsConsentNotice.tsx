@@ -16,7 +16,7 @@ export default function SmsConsentNotice(props: { login?: boolean; compact?: boo
       <blockquote className={styles.prompt}>{Sms.SMS_CONSENT_PROMPT}</blockquote>
       {props.explanation !== false ? <p className={styles.description}>Saving a number or signing in does not subscribe you. Consent is recorded only after your YES reply. SMS consent does not give an organization or application access to your account.</p> : null}
       <div className={styles.links}>
-        <a href={Sms.SMS_CONSENT_URL}>SMS consent</a>
+        <a href={Sms.SMS_CONSENT_URL}>SMS Policy</a>
         <a href={Sms.SMS_TERMS_URL}>Terms of Service</a>
         <a href={Sms.SMS_PRIVACY_URL}>Privacy Policy</a>
         {props.login ? <a href="/settings-preview">Explore the settings preview ↗</a> : null}
