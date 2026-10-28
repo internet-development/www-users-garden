@@ -97,7 +97,7 @@ Resolve routine decisions from the request, references, and source evidence. Sta
 
 ## [NEXT WORK]
 
-Can we make sure the package.json is updated to the latest versions and make sure it all works correctly.
+No task selected.
 
 ## [POST WORK]
 

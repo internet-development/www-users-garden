@@ -2,13 +2,26 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
-const ts = require('typescript');
+const os = require('node:os');
+const { execFileSync } = require('node:child_process');
+
+const root = path.join(__dirname, '..');
+const output = fs.mkdtempSync(path.join(os.tmpdir(), 'users-garden-pond-'));
+process.once('exit', () => fs.rmSync(output, { recursive: true, force: true }));
+const config = path.join(output, 'tsconfig.json');
+fs.writeFileSync(config, JSON.stringify({
+  extends: path.join(root, 'tsconfig.json'),
+  compilerOptions: { noEmit: false, incremental: false, module: 'Node16', moduleResolution: 'Node16', rootDir: root, outDir: path.join(output, 'compiled') },
+  include: ['pond-life', 'water-koi', 'pond-navigation', 'pond-projection', 'pond-layout', 'water-lilies'].map((name) => path.join(root, 'common', name + '.ts')),
+}));
+const compiler = path.join(path.dirname(require.resolve('typescript/package.json')), 'bin', 'tsc');
+execFileSync(process.execPath, [compiler, '--project', config], { stdio: 'inherit' });
 
 const cache = new Map();
 function load(name) {
   if (cache.has(name)) return cache.get(name).exports;
-  const filename = path.join(__dirname, '..', name.replace('@common/', 'common/') + '.ts');
-  const source = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const filename = path.join(output, 'compiled', name.replace('@common/', 'common/') + '.js');
+  const source = fs.readFileSync(filename, 'utf8');
   const module = { exports: {} };
   cache.set(name, module);
   new Function('require', 'exports', 'module', source)(load, module.exports, module);

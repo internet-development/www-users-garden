@@ -4,7 +4,7 @@ A tool for clients to manage their usage of the [Internet Development](https://i
 
 ## Setup
 
-Requires Node.js >= 18.
+Requires Node.js >= 20.9.0. Use a currently supported Node.js LTS release.
 
 ```sh
 npm install
@@ -22,8 +22,14 @@ Visit `http://localhost:10000/settings-preview` for the public SMS review page, 
 | `npm run dev` | Start dev server on port 10000 |
 | `npm run build` | Production build |
 | `npm start` | Start production server on port 10000 |
-| `npm run lint` | Run linter |
+| `npm run typecheck` | Check TypeScript without emitting files |
 | `npm run test:pond` | Check Conway rules, lily geometry, and koi navigation |
+
+Next.js 16 does not provide `next lint`; this repository has no configured linter. Type checking and the pond tests are separate checks. The pond test loader compiles its TypeScript modules with the installed compiler CLI into a temporary directory and removes it on process exit.
+
+`next.config.js` disables automatic framework edits to the repository’s `AGENTS.md`.
+
+The YAML files directly under `.github/` are inactive workflow templates; GitHub Actions only runs workflows under `.github/workflows/`.
 
 ## Environment Variables
 

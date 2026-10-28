@@ -277,7 +277,8 @@ npm install          # Install dependencies
 npm run dev          # Dev server on port 10000
 npm run build        # Production build
 npm start            # Production server on port 10000
-npm run lint         # Run Next.js linter
+npm run typecheck    # Check TypeScript without emitting files
+npm run test:pond    # Check pond simulation and geometry
 ```
 
 ---
