@@ -11,6 +11,7 @@ const PRIVACY_POLICY = PUBLIC_TERMS.find((term) => term.href.endsWith('intdev-pr
 export function DataDeletion() {
   return (
     <Document
+      slug="data-deletion"
       title="Customer data deleted on departure"
       summary="When customers leave, INTDEV removes their confidential data from the application environment. Customers can delete their own account at any time in Users Garden, and INTDEV deletes the rest within 30 days of a contract ending. The anonymous record of completed deletions is published below."
       controls={['Customer data deleted upon leaving']}
@@ -72,6 +73,7 @@ export function DataDeletion() {
 export function Support() {
   return (
     <Document
+      slug="support"
       title="Customer support"
       summary="How to get help with the INTDEV API, Users Garden, and Terminal Graph, and how to report failures, incidents, concerns, and complaints so they reach the right people."
       controls={['Customer support site or email alias', 'Support system available', 'External support resources available']}
@@ -120,6 +122,7 @@ export function Support() {
 export function Documentation() {
   return (
     <Document
+      slug="documentation"
       title="Product documentation"
       summary="Guidelines and technical references for operating INTDEV products: the INTDEV API, Users Garden, and Terminal Graph."
       controls={['External support resources available', 'Service description communicated', 'Support system available']}
@@ -163,6 +166,7 @@ export function Documentation() {
 export function ServiceDescription() {
   return (
     <Document
+      slug="service-description"
       title="Service description and network diagram"
       summary="What INTDEV provides, how it is built, and how data moves between its components: boundaries, network zones, devices, subnets, data flows, security controls, critical systems, physical locations, redundancy, and where customer data is stored. The same description is shared with staff and customers."
       controls={['Service description communicated']}
@@ -263,6 +267,7 @@ export function ServiceDescription() {
 export function SecurityInformation() {
   return (
     <Document
+      slug="security"
       title="Security at INTDEV"
       summary="The security commitments INTDEV makes to its customers, and how they are met across the INTDEV API, Users Garden, and Terminal Graph."
       controls={['Company commitments externally communicated']}
@@ -308,6 +313,7 @@ export function SecurityInformation() {
 export function MasterServicesAgreement() {
   return (
     <Document
+      slug="master-services-agreement"
       title="Master Services Agreement (template)"
       summary={`The template ${COMPANY.name} uses for enterprise and API customers. Security, confidentiality, and privacy commitments are in sections 4 through 7.`}
       controls={['Company commitments externally communicated', 'Third-party agreements established']}
@@ -349,6 +355,7 @@ export function MasterServicesAgreement() {
 export function ThirdPartyAgreements() {
   return (
     <Document
+      slug="third-party-agreements"
       title="Third-party agreements"
       summary="INTDEV has written agreements with every vendor and third party it relies on, and with its own customers. Each one includes confidentiality and privacy commitments for that party."
       controls={['Third-party agreements established']}
@@ -372,6 +379,7 @@ export function ThirdPartyAgreements() {
 export function RenderServiceAgreement() {
   return (
     <Document
+      slug="render-service-agreement"
       title="Render service agreement"
       summary="INTDEV’s agreement with Render Services, Inc., which hosts and deploys the INTDEV API, Users Garden, and the Terminal Graph site, and runs the managed PostgreSQL database behind them."
       controls={['Third-party agreements established', 'Vendor management program established']}
@@ -421,6 +429,7 @@ export function RenderServiceAgreement() {
 export function VendorManagement() {
   return (
     <Document
+      slug="vendor-management"
       title="Vendor management program"
       summary="How INTDEV picks, contracts with, and reviews the vendors behind its services: an inventory of critical vendors, the security and privacy requirements they must meet, and a review at least once a year."
       controls={['Vendor management program established', 'Third-party agreements established']}

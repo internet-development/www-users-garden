@@ -1,0 +1,77 @@
+import type { EVIDENCE_ENDPOINTS } from '@root/compliance/site/records';
+
+export interface CatalogEntry {
+  slug: string;
+  title: string;
+  description: string;
+  controls: readonly number[];
+  related: readonly string[];
+  evidence?: keyof typeof EVIDENCE_ENDPOINTS;
+}
+
+export const COMPLIANCE_CATALOG = [
+  { slug: 'tabletop-exercise', title: 'Disaster recovery tabletop exercise', description: 'Report of the November 2026 tabletop exercise modeled on the PingCAP breach claims, with findings, action items, and every participant’s acknowledgement.', controls: [1, 30], related: ['incident-response-test', 'backups', 'remediated-vulnerabilities', 'security-awareness-training', 'status'] },
+  { slug: 'ci-cd', title: 'CI/CD production deployments', description: 'Render, the CI/CD system, with dashboard screenshots and live deployment history for api.internet.dev, users.garden, terminalgraph.com, and internet.dev.', controls: [2], related: ['changelog', 'status', 'internal-change-communication', 'infrastructure-maintenance', 'remediated-vulnerabilities'], evidence: 'releases' },
+  { slug: 'system-description', title: 'System description (SOC 2 Section III)', description: 'Services, commitments, components, boundaries, and complementary controls for the INTDEV system.', controls: [3, 38], related: ['service-description', 'network-segmentation', 'roles-and-responsibilities', 'vendor-management', 'documentation'] },
+  { slug: 'whistleblower', title: 'Anonymous whistleblower channel', description: 'How to report fraud, ethics violations, or retaliation anonymously.', controls: [4], related: ['contractor-code-of-conduct', 'support', 'roles-and-responsibilities', 'board-oversight'] },
+  { slug: 'removable-media', title: 'Removable media encryption', description: 'Policy, encryption standard, and enforcement for portable and removable media.', controls: [5], related: ['mobile-device-management', 'anti-malware', 'encryption-in-transit', 'security-awareness-training'] },
+  { slug: 'data-deletion', title: 'Customer data deleted on departure', description: 'Self-service account deletion, the anonymous record of completed deletions, the 30-day commitment, and the Privacy Policy.', controls: [6], related: ['security', 'master-services-agreement', 'backups', 'support', 'access-termination'], evidence: 'dataDeletions' },
+  { slug: 'anti-malware', title: 'Anti-malware', description: 'Malware protection for uploads, the AWS account, email, and laptops.', controls: [7], related: ['intrusion-detection', 'mobile-device-management', 'removable-media', 'infrastructure-maintenance'] },
+  { slug: 'board-oversight', title: 'Board oversight briefings', description: 'Annual cybersecurity and privacy risk briefings to the board, with its feedback and direction.', controls: [8], related: ['board-charter', 'board-meetings', 'board-expertise', 'tabletop-exercise', 'penetration-testing'] },
+  { slug: 'board-charter', title: 'Board of directors charter', description: 'Roles, responsibilities, composition, independence, and the ethical management survey.', controls: [9], related: ['board-meetings', 'board-expertise', 'board-oversight', 'organization-chart'] },
+  { slug: 'board-expertise', title: 'Board expertise and independent advisers', description: 'The board’s security oversight expertise and its use of third-party experts.', controls: [10], related: ['board-charter', 'board-meetings', 'board-oversight'] },
+  { slug: 'board-meetings', title: 'Board meetings and minutes', description: 'Annual meeting requirement, minutes, and director independence.', controls: [11], related: ['board-charter', 'board-oversight', 'board-expertise'] },
+  { slug: 'backups', title: 'Backup and recovery', description: 'Backup requirements, point-in-time recovery, and the restore procedure.', controls: [12], related: ['tabletop-exercise', 'incident-response-test', 'service-description', 'render-service-agreement'] },
+  { slug: 'status', title: 'Application status', description: 'Live service health and how critical changes are communicated to customers.', controls: [13, 18], related: ['changelog', 'ci-cd', 'support', 'documentation'], evidence: 'report' },
+  { slug: 'support', title: 'Customer support', description: 'eng@internet.dev, security reporting, routing, and response targets.', controls: [14, 18, 37], related: ['status', 'security', 'documentation', 'whistleblower', 'changelog'] },
+  { slug: 'changelog', title: 'Changelog and release notes', description: 'Terminal Graph release notes and the INTDEV API and Users Garden release history.', controls: [15, 18, 37], related: ['ci-cd', 'status', 'documentation', 'internal-change-communication'], evidence: 'releases' },
+  { slug: 'organization-chart', title: 'Organization chart', description: 'Structure and reporting lines.', controls: [16], related: ['roles-and-responsibilities', 'board-charter', 'access-control', 'background-checks'] },
+  { slug: 'roles-and-responsibilities', title: 'Roles and responsibilities', description: 'Who owns each information security responsibility, with job descriptions.', controls: [17], related: ['organization-chart', 'access-control', 'security-awareness-training', 'system-description'] },
+  { slug: 'documentation', title: 'Product documentation', description: 'Documentation for the INTDEV API, Users Garden, and Terminal Graph.', controls: [18, 37, 38], related: ['service-description', 'system-description', 'changelog', 'support', 'security'] },
+  { slug: 'internal-change-communication', title: 'Internal communication of system changes', description: 'How system changes are communicated to the team, with screenshots of the Slack channels in use.', controls: [19], related: ['ci-cd', 'changelog', 'status', 'incident-response-test'] },
+  { slug: 'background-checks', title: 'Employee background checks', description: 'Screening requirements and the background check record for the current team.', controls: [20], related: ['employee-confidentiality', 'access-requests', 'organization-chart', 'performance-evaluations'] },
+  { slug: 'contractor-code-of-conduct', title: 'Code of Conduct for contractors', description: 'The Code of Conduct and the clause every contractor agreement includes.', controls: [21], related: ['contractor-confidentiality', 'whistleblower', 'third-party-agreements', 'access-control'] },
+  { slug: 'contractor-confidentiality', title: 'Confidentiality agreements for contractors', description: 'The confidentiality clause in statements of work, contractor agreements, and invoices.', controls: [22], related: ['contractor-code-of-conduct', 'employee-confidentiality', 'third-party-agreements', 'access-termination'] },
+  { slug: 'employee-confidentiality', title: 'Confidentiality agreements for employees', description: 'The confidentiality and IP agreement signed at onboarding.', controls: [23], related: ['contractor-confidentiality', 'background-checks', 'access-termination', 'security-awareness-training'] },
+  { slug: 'performance-evaluations', title: 'Performance evaluations', description: 'The annual review process and the 2026 cycle.', controls: [24], related: ['security-awareness-training', 'organization-chart', 'roles-and-responsibilities'] },
+  { slug: 'access-control', title: 'Access control procedures', description: 'Adding, modifying, and removing access, with the access matrix.', controls: [25], related: ['access-requests', 'access-reviews', 'access-termination', 'roles-and-responsibilities'] },
+  { slug: 'access-reviews', title: 'Access reviews', description: 'Quarterly access reviews, with the Q4 2026 review of AWS, Render, and INTDEV API admin access.', controls: [26], related: ['access-requests', 'access-termination', 'access-control', 'firewall-review'], evidence: 'accessRequests' },
+  { slug: 'access-termination', title: 'Access revoked upon termination', description: 'The termination checklist and the completed, live-verified checklist for each recent departure.', controls: [27], related: ['access-requests', 'access-reviews', 'access-control', 'employee-confidentiality', 'data-deletion'], evidence: 'terminations' },
+  { slug: 'access-requests', title: 'Access requests', description: 'The access request process and every request, approval, and assigned access level by user_id.', controls: [28], related: ['access-control', 'access-reviews', 'access-termination', 'background-checks'], evidence: 'accessRequests' },
+  { slug: 'penetration-testing', title: 'Penetration testing', description: 'The 2026 assessment, remediation evidence, risk treatment plans with management sign-off, and upcoming tests.', controls: [29], related: ['remediated-vulnerabilities', 'vulnerability-scans', 'infrastructure-maintenance', 'encryption-in-transit', 'firewall-review'], evidence: 'vulnerabilities' },
+  { slug: 'incident-response-test', title: 'Incident response plan test', description: 'The 2026 test of the Incident Response Plan.', controls: [30], related: ['tabletop-exercise', 'intrusion-detection', 'support', 'backups'] },
+  { slug: 'mobile-device-management', title: 'Mobile device management', description: 'Required device configuration and central management.', controls: [31], related: ['removable-media', 'anti-malware', 'security-awareness-training', 'access-control'] },
+  { slug: 'intrusion-detection', title: 'Intrusion detection', description: 'GuardDuty in four regions, alerting, flow logs, and S3 malware protection.', controls: [32], related: ['anti-malware', 'network-segmentation', 'firewall-review', 'incident-response-test'] },
+  { slug: 'encryption-in-transit', title: 'Data transmission encryption', description: 'TLS test results and encryption on every hop.', controls: [33], related: ['network-segmentation', 'service-description', 'security', 'vulnerability-scans'] },
+  { slug: 'network-segmentation', title: 'Network segmentation', description: 'How environments and networks are separated, with a topology diagram and Render and AWS configuration exports.', controls: [34], related: ['firewall-review', 'service-description', 'encryption-in-transit', 'intrusion-detection'] },
+  { slug: 'firewall-review', title: 'Network firewall review', description: 'The 2026 ruleset review and tracked changes.', controls: [35], related: ['network-segmentation', 'intrusion-detection', 'vulnerability-scans', 'access-reviews'] },
+  { slug: 'security', title: 'Security at INTDEV', description: 'The security commitments made to customers.', controls: [36], related: ['master-services-agreement', 'encryption-in-transit', 'data-deletion', 'support', 'status'] },
+  { slug: 'master-services-agreement', title: 'Master Services Agreement (template)', description: 'The template agreement with security, confidentiality, and privacy commitments.', controls: [36, 40], related: ['security', 'third-party-agreements', 'data-deletion', 'documentation'] },
+  { slug: 'service-description', title: 'Service description and network diagram', description: 'Products, boundaries, zones, subnets, data flows, controls, locations, redundancy, and a detailed network diagram.', controls: [38], related: ['system-description', 'network-segmentation', 'documentation', 'security', 'backups'] },
+  { slug: 'security-awareness-training', title: 'Security awareness training', description: 'Security awareness and business continuity training, with each team member’s signed completion record.', controls: [39], related: ['tabletop-exercise', 'mobile-device-management', 'removable-media', 'incident-response-test'], evidence: 'training' },
+  { slug: 'third-party-agreements', title: 'Third-party agreements', description: 'INTDEV’s terms and privacy policy, and every vendor’s agreements.', controls: [40], related: ['vendor-management', 'render-service-agreement', 'master-services-agreement', 'contractor-confidentiality', 'employee-confidentiality'] },
+  { slug: 'render-service-agreement', title: 'Render service agreement', description: 'The agreement with Render and the resources it runs for INTDEV.', controls: [40, 41], related: ['vendor-management', 'third-party-agreements', 'ci-cd', 'backups'] },
+  { slug: 'vendor-management', title: 'Vendor management program', description: 'Critical vendor inventory, requirements, and annual review.', controls: [41], related: ['third-party-agreements', 'render-service-agreement', 'system-description'] },
+  { slug: 'infrastructure-maintenance', title: 'Service infrastructure maintenance', description: 'Patching responsibilities and a sample of remediated vulnerabilities.', controls: [42], related: ['remediated-vulnerabilities', 'vulnerability-scans', 'ci-cd', 'penetration-testing'] },
+  { slug: 'remediated-vulnerabilities', title: 'Sample of remediated vulnerabilities', description: 'Proof of the most recent periodic scan, its high-severity findings, and the remediation evidence or approved risk treatment plan for each.', controls: [42, 43], related: ['vulnerability-scans', 'penetration-testing', 'infrastructure-maintenance', 'ci-cd'], evidence: 'vulnerabilities' },
+  { slug: 'vulnerability-scans', title: 'Vulnerability scanning and remediation', description: 'The Q4 2026 scan and the vulnerability register.', controls: [42, 43], related: ['remediated-vulnerabilities', 'penetration-testing', 'infrastructure-maintenance', 'firewall-review'], evidence: 'vulnerabilities' },
+] as const satisfies readonly CatalogEntry[];
+
+export type ComplianceSlug = (typeof COMPLIANCE_CATALOG)[number]['slug'];
+
+const ENTRIES: readonly CatalogEntry[] = COMPLIANCE_CATALOG;
+
+export function findCatalogEntry(slug: string | undefined | null): CatalogEntry | null {
+  return ENTRIES.find((entry) => entry.slug === slug) ?? null;
+}
+
+export function relatedEntries(slug: string, limit = 6): CatalogEntry[] {
+  const entry = findCatalogEntry(slug);
+  if (!entry) return [];
+  const sharedControl = ENTRIES.filter((other) => other.slug !== slug && other.controls.some((control) => entry.controls.includes(control)));
+  const slugs = [...new Set([...entry.related, ...sharedControl.map((other) => other.slug)])].filter((other) => other !== slug);
+  return slugs
+    .map((other) => findCatalogEntry(other))
+    .filter((other): other is CatalogEntry => other !== null)
+    .slice(0, limit);
+}

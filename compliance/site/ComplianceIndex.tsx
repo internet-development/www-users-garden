@@ -1,6 +1,7 @@
 import Document from '@root/compliance/site/Document';
 
-import { Links, List, Section, Table } from '@root/compliance/site/Blocks';
+import { ComplianceReport } from '@root/compliance/site/Evidence';
+import { Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
 import { COMPLIANCE_DOCUMENTS } from '@root/compliance/site/registry';
 import { POLICIES, POLICY_DATES } from '@root/compliance/site/facts';
 
@@ -19,6 +20,12 @@ export default function ComplianceIndex() {
             { label: 'Changelog and release notes', href: '/compliance/changelog' },
           ]}
         />
+      </Section>
+      <Section title="Compliance report">
+        <Group>
+          <p>Every check below is computed by the INTDEV API when you load this page, from the production database, the published registers, the release it is serving, and, where configured, the Render API. A green check means the control holds right now. Each row links to the record behind it.</p>
+          <ComplianceReport />
+        </Group>
       </Section>
       <Section title="Records">
         <Table columns={['Record', 'Controls', 'Summary']} rows={COMPLIANCE_DOCUMENTS.map((entry) => [<a key={entry.slug} href={`/compliance/${entry.slug}`}>{entry.title}</a>, entry.controls.join(', '), entry.description])} />

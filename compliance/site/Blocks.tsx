@@ -94,6 +94,69 @@ export function People(props: { people: Person[]; detail?: (person: Person) => R
   );
 }
 
+export function Checkbox(props: { checked: boolean | null; label?: string }) {
+  const label = props.label ?? (props.checked === null ? 'Pending' : props.checked ? 'Complete' : 'Open');
+  const className = props.checked === null ? `${styles.checkbox} ${styles.checkboxPending}` : props.checked ? `${styles.checkbox} ${styles.checkboxChecked}` : styles.checkbox;
+  return (
+    <span className={className} role="img" aria-label={label}>
+      {props.checked ? (
+        <svg className={styles.checkmark} viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M2.5 6.25 5 8.75 9.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : null}
+    </span>
+  );
+}
+
+export function CheckItem(props: { checked: boolean | null; label?: string; children?: React.ReactNode }) {
+  return (
+    <span className={styles.checkItem}>
+      <Checkbox checked={props.checked} label={props.label} />
+      <span>{props.children}</span>
+    </span>
+  );
+}
+
+export function State(props: { ok: boolean | null; children?: React.ReactNode }) {
+  return <span className={props.ok === null ? styles.muted : props.ok ? undefined : styles.stateOpen}>{props.children}</span>;
+}
+
+export function Signed(props: { at: string; children?: React.ReactNode }) {
+  return <CheckItem checked label="Signed">{props.children ?? `Signed ${props.at}`}</CheckItem>;
+}
+
+export interface CheckRow {
+  checked: boolean | null;
+  cells: React.ReactNode[];
+}
+
+export function CheckTable(props: { columns: string[]; rows: CheckRow[] }) {
+  return (
+    <div className={styles.tableScroll}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            {props.columns.map((column) => (
+              <th key={column} scope="col">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {props.rows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {row.cells.map((cell, cellIndex) => (
+                <td key={cellIndex}>{cellIndex === 0 ? <CheckItem checked={row.checked}>{cell}</CheckItem> : cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function Note(props: { children?: React.ReactNode }) {
   return <div className={styles.note}>{props.children}</div>;
 }

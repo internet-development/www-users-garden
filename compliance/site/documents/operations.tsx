@@ -5,12 +5,14 @@ import internalCommunication1 from '@root/compliance/site/images/internal-commun
 import internalCommunication2 from '@root/compliance/site/images/internal-communication-2.webp';
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
+import { ReleaseChecks } from '@root/compliance/site/Evidence';
 import { Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
 import { CONTACTS, TEAM } from '@root/compliance/site/facts';
 
 export function TabletopExercise() {
   return (
     <Document
+      slug="tabletop-exercise"
       title="Disaster recovery tabletop exercise: total compromise of the universal backend"
       summary="The INTDEV team walked through a total-loss scenario for the INTDEV API, the backend behind Users Garden, Terminal Graph accounts, and every other INTDEV product. The scenario is modeled on a comparable industry event, the claimed 2026 breach of PingCAP’s TiDB Cloud. This report records the exercise, how our plans performed, and the action items it produced."
       controls={['Business continuity and disaster recovery plans tested', 'Incident response plan tested']}
@@ -94,15 +96,6 @@ export function TabletopExercise() {
         <People people={TEAM} note={() => 'Acknowledged the scenario, took part in the exercise, and signed off on the action items on November 4, 2026.'} />
       </Section>
 
-      <Section title="Related">
-        <Links
-          items={[
-            { label: 'Incident response plan test', href: '/compliance/incident-response-test' },
-            { label: 'Backup and recovery', href: '/compliance/backups' },
-            { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' },
-          ]}
-        />
-      </Section>
     </Document>
   );
 }
@@ -110,6 +103,7 @@ export function TabletopExercise() {
 export function ContinuousDeployment() {
   return (
     <Document
+      slug="ci-cd"
       title="CI/CD: production deployments"
       summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A reviewed commit lands on main in GitHub, and Render builds it and releases it to production. Each table below is read from the Render API when you load this page."
       controls={['CI/CD system in use', 'Change management']}
@@ -144,6 +138,12 @@ export function ContinuousDeployment() {
       <Section title="internet.dev">
         <DeployFeed service="www-internet-v3" limit={5} />
       </Section>
+      <Section title="Release scans">
+        <Group>
+          <p>Every production build of the INTDEV API runs a build scan, and every instance that starts the release runs a launch scan: the build stamp, required configuration, encryption, token signing, the database, the compliance registers, revoked access for former team members, and the evidence routes. Each result is written to the Render log and published here.</p>
+          <ReleaseChecks />
+        </Group>
+      </Section>
       <Section title="How to read the tables">
         <Group>
           <p>Release is the first line of the commit message and the short commit ID. INTDEV tags releases by version in the commit message, for example 2.0.6 for the API. Deployment IDs match the Render dashboard. A state of Succeeded, superseded means the deploy went live and a later release replaced it.</p>
@@ -159,12 +159,19 @@ export function ContinuousDeployment() {
 export function StatusPage() {
   return (
     <Document
+      slug="status"
       title="Application status"
       summary="Live health of the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev, plus how we tell customers about incidents and about critical changes that may affect their processing."
       controls={['System changes externally communicated', 'Support system available']}
     >
       <Section title="Current status">
         <StatusBoard />
+      </Section>
+      <Section title="Release scans">
+        <Group>
+          <p>Every production build of the INTDEV API runs a build scan, and every instance that starts the release runs a launch scan: the build stamp, required configuration, encryption, token signing, the database, the compliance registers, revoked access for former team members, and the evidence routes. Each result is written to the Render log and published here.</p>
+          <ReleaseChecks limit={5} />
+        </Group>
       </Section>
       <Section title="How we communicate changes and incidents">
         <List
@@ -181,15 +188,6 @@ export function StatusPage() {
           Email <Mail address={CONTACTS.support} /> for outages or failures, and <Mail address={CONTACTS.security} /> for security concerns.
         </p>
       </Section>
-      <Section title="Related">
-        <Links
-          items={[
-            { label: 'Changelog and release notes', href: '/compliance/changelog' },
-            { label: 'CI/CD production deployments', href: '/compliance/ci-cd' },
-            { label: 'Customer support', href: '/compliance/support' },
-          ]}
-        />
-      </Section>
     </Document>
   );
 }
@@ -197,6 +195,7 @@ export function StatusPage() {
 export function Changelog() {
   return (
     <Document
+      slug="changelog"
       title="Changelog and release notes"
       summary="Where to find what changed in each INTDEV product. Terminal Graph publishes release notes for every build. The INTDEV API and Users Garden publish their release history directly from the deployment pipeline."
       controls={['Public change log or release notes', 'System changes externally communicated', 'External support resources available']}
@@ -209,6 +208,12 @@ export function Changelog() {
       </Section>
       <Section title="INTDEV API releases">
         <DeployFeed service="internet-apis" />
+      </Section>
+      <Section title="Release scans">
+        <Group>
+          <p>Every production build of the INTDEV API runs a build scan, and every instance that starts the release runs a launch scan: the build stamp, required configuration, encryption, token signing, the database, the compliance registers, revoked access for former team members, and the evidence routes. Each result is written to the Render log and published here.</p>
+          <ReleaseChecks />
+        </Group>
       </Section>
       <Section title="Users Garden releases">
         <DeployFeed service="www-users-garden" limit={6} />
@@ -225,6 +230,7 @@ export function Changelog() {
 export function Backups() {
   return (
     <Document
+      slug="backups"
       title="Backup and recovery"
       summary="How INTDEV backs up and recovers customer data for the INTDEV API, Users Garden, and Terminal Graph accounts, under the Information Backup section of the Operations Security Policy and the RTO and RPO targets in the BC/DR plan."
       controls={['Backup processes established']}
@@ -274,6 +280,7 @@ export function Backups() {
 export function InternalChangeCommunication() {
   return (
     <Document
+      slug="internal-change-communication"
       title="Internal communication of system changes"
       summary="How INTDEV tells its own team about system changes before and after they reach production."
       controls={['System changes communicated']}
@@ -308,9 +315,6 @@ export function InternalChangeCommunication() {
           ]}
         />
       </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
-      </Section>
     </Document>
   );
 }
@@ -318,6 +322,7 @@ export function InternalChangeCommunication() {
 export function IncidentResponseTest() {
   return (
     <Document
+      slug="incident-response-test"
       title="Incident response plan test"
       summary="INTDEV tests its Incident Response Plan at least once a year. The 2026 test was the November 4, 2026 tabletop exercise, which ran a full compromise of the INTDEV API through every phase of the plan."
       controls={['Incident response plan tested']}

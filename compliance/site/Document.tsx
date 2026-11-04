@@ -2,13 +2,26 @@ import styles from '@root/compliance/site/Document.module.css';
 
 import * as React from 'react';
 
+import type { ComplianceSlug } from '@root/compliance/site/catalog';
+
 import { geistSerif } from '@root/compliance/site/fonts';
-import { COMPANY, CONTACTS, PUBLISHED } from '@root/compliance/site/facts';
+import { Section, Table } from '@root/compliance/site/Blocks';
+import { findCatalogEntry, relatedEntries } from '@root/compliance/site/catalog';
+import { API_HOST, COMPANY, CONTACTS, PUBLISHED } from '@root/compliance/site/facts';
+import { EVIDENCE_ENDPOINTS } from '@root/compliance/site/records';
 
 const LOGO_PATH =
   'm0 104 17.8841115-25.9808562h59.6300974c6.3930371 0 12.3762642-3.145051 16.0044493-8.4177974l12.1358418-17.6341643h-69.848028l17.8841115-25.9808562h61.7228605c5.081645 0 9.840906-2.5051015 12.725969-6.6948565l6.322003-9.1890186c4.349451-6.32291993 11.534788-10.1024508 19.206432-10.1024508h64.143473l-17.884112 25.9808562h-59.548135c-6.393037 0-12.376264 3.145051-16.004449 8.4177974l-12.108522 17.5958767h69.831636l-17.884111 25.9808563h-61.706469c-5.0816447 0-9.8409057 2.5051015-12.7259686 6.6948564l-6.3438599 9.2218365c-4.3494509 6.3229195-11.5347875 10.1024505-19.206432 10.1024505h-64.2308985z';
 
+export interface RelatedLink {
+  label: string;
+  href: string;
+  detail?: string;
+}
+
 export interface DocumentProps {
+  slug?: ComplianceSlug;
+  related?: RelatedLink[];
   title: string;
   summary: React.ReactNode;
   controls: string[];
@@ -16,6 +29,20 @@ export interface DocumentProps {
   updated?: string;
   appliesTo?: string;
   children?: React.ReactNode;
+}
+
+function Related(props: { slug: ComplianceSlug; extra: RelatedLink[] }) {
+  const entry = findCatalogEntry(props.slug);
+  const pages = relatedEntries(props.slug).map((other) => ({ label: other.title, href: `/compliance/${other.slug}`, detail: other.description }));
+  const evidence = entry?.evidence ? EVIDENCE_ENDPOINTS[entry.evidence] : null;
+  const records = evidence ? [{ label: 'Live record from the INTDEV API (JSON)', href: `${API_HOST}${evidence}`, detail: `${API_HOST.replace('https://', '')}${evidence}` }] : [];
+  const links = [...pages, ...records, ...props.extra];
+  if (!links.length) return null;
+  return (
+    <Section title="Related">
+      <Table columns={['Record', 'What it covers']} rows={links.map((link) => [<a key={link.href} href={link.href}>{link.label}</a>, link.detail ?? link.href.replace('https://', '')])} />
+    </Section>
+  );
 }
 
 export default function Document(props: DocumentProps) {
@@ -48,7 +75,10 @@ export default function Document(props: DocumentProps) {
             <p>Applies to: {props.appliesTo ?? 'INTDEV API (api.internet.dev), Users Garden (users.garden), and Terminal Graph (terminalgraph.com)'}</p>
           </div>
         </header>
-        <div className={styles.body}>{props.children}</div>
+        <div className={styles.body}>
+          {props.children}
+          {props.slug ? <Related slug={props.slug} extra={props.related ?? []} /> : null}
+        </div>
       </main>
       <footer className={styles.footer}>
         <div className={styles.footerContent}>

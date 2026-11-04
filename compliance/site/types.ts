@@ -159,3 +159,56 @@ export interface DeletionEvidence {
   method: string;
   within_last_12_months: 'confirmed' | 'possible';
 }
+
+export type CheckStatus = 'pass' | 'open' | 'unavailable';
+
+export interface ReportCheck {
+  id: string;
+  area: string;
+  title: string;
+  status: CheckStatus;
+  result: string;
+  page: string;
+  endpoint: string | null;
+}
+
+export interface ComplianceReportData {
+  summary: { passed: number; open: number; unavailable: number; total: number };
+  checks: ReportCheck[];
+}
+
+export interface PlatformAdminCensus {
+  total: number;
+  registered: number;
+  system: number;
+  unregistered: number;
+}
+
+export interface ReleaseCheck {
+  id: string;
+  label: string;
+  ok: boolean;
+  detail: string;
+  ms: number | null;
+}
+
+export interface ReleaseScan {
+  version: string | null;
+  commit: string | null;
+  built_at: string | null;
+  scanned_at: string;
+  instance: string;
+  passed: number;
+  total: number;
+  checks: ReleaseCheck[];
+}
+
+export interface ReportInputs {
+  release: string | null;
+  accounts: Record<string, AccountState> | null;
+  intdevOrganizations: Record<string, number> | null;
+  renderMembers: Record<string, boolean> | null;
+  platformAdmins: PlatformAdminCensus | null;
+  deletions: { evidenced: number; logged: number } | null;
+  releaseScan: ReleaseScan | null;
+}

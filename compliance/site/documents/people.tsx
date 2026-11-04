@@ -19,6 +19,7 @@ function staffType(person: Person): string {
 export function Whistleblower() {
   return (
     <Document
+      slug="whistleblower"
       title="Anonymous whistleblower channel"
       summary="How employees, contractors, customers, and anyone else can report fraud, ethics violations, suspected illegal activity, or retaliation, with or without giving their name."
       controls={['Anonymous whistleblower channel']}
@@ -58,6 +59,7 @@ export function Whistleblower() {
 export function BackgroundChecks() {
   return (
     <Document
+      slug="background-checks"
       title="Employee background checks"
       summary="INTDEV background checks every new employee and partner before granting access to production systems or confidential data, as the Screening section of the Human Resource Security Policy requires."
       controls={['Employee background checks performed']}
@@ -93,6 +95,7 @@ const CONDUCT = [
 export function ContractorCodeOfConduct() {
   return (
     <Document
+      slug="contractor-code-of-conduct"
       title="Code of Conduct for contractors"
       summary="Every INTDEV contractor agreement and statement of work includes, or incorporates by reference, the INTDEV Code of Conduct. The contractor acknowledges it at engagement."
       controls={['Code of Conduct acknowledged by contractors']}
@@ -124,6 +127,7 @@ const CONFIDENTIALITY_CLAUSE = 'Confidentiality. Recipient acknowledges that in 
 export function ContractorConfidentiality() {
   return (
     <Document
+      slug="contractor-confidentiality"
       title="Confidentiality agreements for contractors"
       summary="Contractors sign a confidentiality agreement when they are engaged, before they receive any INTDEV or customer information. It lives in the INTDEV statement of work and contractor agreement, and every invoice repeats the notice."
       controls={['Confidentiality agreement acknowledged by contractors']}
@@ -152,6 +156,7 @@ export function ContractorConfidentiality() {
 export function EmployeeConfidentiality() {
   return (
     <Document
+      slug="employee-confidentiality"
       title="Confidentiality agreements for employees"
       summary="Employees and partners sign a confidentiality and intellectual property agreement during onboarding, before they are granted access to any production system."
       controls={['Confidentiality agreement acknowledged by employees']}
@@ -173,6 +178,7 @@ export function EmployeeConfidentiality() {
 export function PerformanceEvaluations() {
   return (
     <Document
+      slug="performance-evaluations"
       title="Performance evaluations"
       summary="Every INTDEV employee and partner has a performance review at least once a year with their manager. The review covers job performance, competence in the role, adherence to company policies and the Code of Conduct, and role-specific objectives, including security responsibilities."
       controls={['Performance evaluations conducted']}
@@ -210,6 +216,7 @@ const TRAINING_MODULES: [string, string[]][] = [
 export function SecurityAwarenessTraining() {
   return (
     <Document
+      slug="security-awareness-training"
       title="Security awareness training"
       summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Every employee and every contractor with privileged access completes both within 30 days of hire and every year after, as the Human Resource Security Policy requires."
       controls={['Security awareness training implemented']}

@@ -4,11 +4,14 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, EvidenceMeta, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, CheckStatus, ComplianceReportData, EvidenceMeta, ReleaseScan, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
 
+import { CheckItem, CheckTable, Signed, State } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DELETION_SNAPSHOT, EVIDENCE_ENDPOINTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, DELETION_SNAPSHOT, EVIDENCE_ENDPOINTS, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
+import { findCatalogEntry } from '@root/compliance/site/catalog';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -74,45 +77,14 @@ function EvidenceSource(props: { path: string; source: Source; meta: EvidenceMet
   );
 }
 
-function Signed(props: { at: string }) {
-  return (
-    <span className={styles.signed}>
-      <span className={styles.signedCheck} aria-hidden="true">
-        &#10003;
-      </span>
-      SIGNED {formatDay(props.at)}
-    </span>
-  );
-}
-
-function Checkbox(props: { checked: boolean | null; label: string }) {
-  const className = props.checked === null ? `${styles.checkbox} ${styles.checkboxPending}` : props.checked ? `${styles.checkbox} ${styles.checkboxChecked}` : styles.checkbox;
-  return (
-    <span className={className} role="img" aria-label={props.label}>
-      {props.checked ? '✓' : ''}
-    </span>
-  );
-}
-
-function CheckItem(props: { checked: boolean | null; label?: string; children?: React.ReactNode }) {
-  const label = props.label ?? (props.checked === null ? 'Pending' : props.checked ? 'Complete' : 'Open');
-  return (
-    <span className={styles.checkItem}>
-      <Checkbox checked={props.checked} label={label} />
-      <span>{props.children}</span>
-    </span>
-  );
-}
-
-function State(props: { ok: boolean | null; children?: React.ReactNode }) {
-  const className = props.ok === null ? styles.muted : props.ok ? styles.stateOk : styles.stateOpen;
-  return <span className={className}>{props.children}</span>;
-}
-
 function levelLine(live: LiveLevel | undefined, recorded: number) {
   if (!live) return `Recorded: ${levelName(recorded)} (${recorded})`;
   if (live.current_level === null) return live.current_level_name ?? 'No account';
   return `${live.current_level_name ?? levelName(live.current_level)} (${live.current_level})`;
+}
+
+function statusChecked(status: CheckStatus): boolean | null {
+  return status === 'pass' ? true : status === 'open' ? false : null;
 }
 
 type LiveGrant = AccessGrant & { live: LiveLevel & { in_effect: boolean | null } };
@@ -179,19 +151,50 @@ export function AccessRequestRecords() {
   );
 }
 
-type LiveTermination = TerminationRecord & { progress: { completed: number; total: number }; live: LiveLevel & { admin_removed: boolean | null; level_in_effect?: boolean | null } };
+interface TerminationLive extends LiveLevel {
+  admin_removed: boolean | null;
+  level_in_effect?: boolean | null;
+  intdev_organizations?: number | null;
+  render_member?: boolean | null;
+  domain_grants_refused?: boolean;
+}
 
-function accountCheck(record: TerminationRecord, current: LiveTermination | undefined): { ok: boolean | null; text: string } {
-  if (!current) return { ok: null, text: `Recorded: ${levelName(record.account_level)} (${record.account_level}); pending live check` };
-  const ok = current.live.admin_removed === true && current.live.level_in_effect !== false;
-  const differs = current.live.level_in_effect === false ? `; the record says ${levelName(record.account_level)} (${record.account_level})` : '';
-  return { ok, text: `${levelLine(current.live, record.account_level)}${current.live.admin_removed ? ', no admin' : ''}${differs}` };
+type LiveTermination = TerminationRecord & { progress: { completed: number; total: number }; live: TerminationLive };
+
+const REVERIFIED = `verified ${formatUtc(TERMINATIONS_REVERIFIED_AT)}`;
+
+function accessChecks(record: TerminationRecord, current: LiveTermination | undefined, renderLive: boolean) {
+  const live = current?.live;
+  const organizations = live?.intdev_organizations ?? null;
+  const render = live?.render_member ?? null;
+  return [
+    {
+      checked: live ? live.admin_removed : null,
+      cells: ['Platform admin removed', live ? <State key="admin" ok={live.admin_removed}>{`${levelLine(live, record.account_level)}${live.admin_removed ? ', no admin' : ''}`}</State> : <State ok={null}>Pending live check</State>, 'Production users table, live'],
+    },
+    {
+      checked: live ? live.level_in_effect ?? null : null,
+      cells: ['Level matches this record', <State key="level" ok={live ? live.level_in_effect ?? null : null}>{`${levelName(record.account_level)} (${record.account_level}) recorded`}</State>, 'Production users table, live'],
+    },
+    {
+      checked: organizations === null ? null : organizations === 0,
+      cells: ['No INTDEV organization membership', <State key="orgs" ok={organizations === null ? null : organizations === 0}>{organizations === null ? 'Pending live check' : organizations === 0 ? 'None' : `${organizations} memberships remain`}</State>, 'Production organizations_membership, live'],
+    },
+    {
+      checked: live ? live.domain_grants_refused ?? null : null,
+      cells: ['Staff grants by INTDEV email address refused', <State key="domain" ok={live ? live.domain_grants_refused ?? null : null}>{live?.domain_grants_refused ? 'Refused by this termination record' : 'Pending live check'}</State>, 'INTDEV API authorization, live'],
+    },
+    renderLive && render !== null
+      ? { checked: !render, cells: ['Not in a Render workspace', <State key="render" ok={!render}>{render ? 'Still a member' : 'Not a member of any INTDEV workspace'}</State>, 'Render API, live'] }
+      : { checked: true, cells: ['Not in a Render workspace', 'Not a member of any INTDEV workspace', `Render API, ${REVERIFIED}`] },
+  ];
 }
 
 export function TerminationRecords() {
   const path = EVIDENCE_ENDPOINTS.terminations;
-  const { data, source } = useEvidence<{ records: LiveTermination[]; evidence: EvidenceMeta; live_check: string }>(path);
+  const { data, source } = useEvidence<{ records: LiveTermination[]; evidence: EvidenceMeta; live_check: string; render_check?: string }>(path);
   const live = new Map((data?.records ?? []).map((record) => [record.id, record]));
+  const renderLive = data?.render_check === 'verified';
   const closed = TERMINATIONS.filter((record) => record.closed_at !== null).length;
   const steps = TERMINATIONS.flatMap((record) => record.steps);
   const stepsCompleted = steps.filter((step) => step.status === 'completed').length;
@@ -203,10 +206,21 @@ export function TerminationRecords() {
           {closed} of {TERMINATIONS.length} termination records closed. {stepsCompleted} of {steps.length} checklist steps complete.
         </CheckItem>
       </p>
+      <CheckTable
+        columns={['Record', 'Closed', 'Checklist', 'Access checks']}
+        rows={TERMINATIONS.map((record) => {
+          const checks = accessChecks(record, live.get(record.id), renderLive);
+          const passing = checks.filter((item) => item.checked === true).length;
+          const failing = checks.some((item) => item.checked === false);
+          const completed = record.steps.filter((step) => step.status === 'completed').length;
+          return {
+            checked: record.closed_at !== null && completed === record.steps.length && !failing,
+            cells: [`${record.id} · ${record.person}`, formatDay(record.closed_at), `${completed} of ${record.steps.length} steps`, <State key="live" ok={failing ? false : passing === checks.length ? true : null}>{failing || passing === checks.length ? `${passing} of ${checks.length} passing` : `${passing} of ${checks.length} passing; the rest load from the INTDEV API`}</State>],
+          };
+        })}
+      />
       {TERMINATIONS.map((record) => {
         const current = live.get(record.id);
-        const completed = record.steps.filter((step) => step.status === 'completed').length;
-        const level = accountCheck(record, current);
         return (
           <div key={record.id} className={styles.group}>
             <h3 className={styles.recordTitle}>
@@ -220,11 +234,9 @@ export function TerminationRecords() {
                   ['Left', record.left],
                   ['INTDEV API user_id', record.user_id],
                   ['Opened', formatDay(record.opened_at)],
-                  ['Closed', <CheckItem key="closed" checked={record.closed_at !== null}>{record.closed_at ? formatDay(record.closed_at) : <State ok={false}>Open</State>}</CheckItem>],
-                  ['Progress', <CheckItem key="progress" checked={completed === record.steps.length}>{`${completed} of ${record.steps.length} steps completed`}</CheckItem>],
-                  ['Confirmed by', <CheckItem key="confirmed" checked>{`${record.confirmation.by}, ${formatDay(record.confirmation.at)}. ${record.confirmation.detail}.`}</CheckItem>],
-                  ['INTDEV API level now', <CheckItem key="level" checked={level.ok}><State ok={level.ok}>{level.text}</State></CheckItem>],
-                ] as [string, React.ReactNode][]
+                  ['Closed', record.closed_at ? formatDay(record.closed_at) : 'Open'],
+                  ['Confirmed by', `${record.confirmation.by}, ${formatDay(record.confirmation.at)}. ${record.confirmation.detail}.`],
+                ] as [string, string][]
               ).map(([label, value]) => (
                 <div key={label} className={styles.field}>
                   <div className={styles.fieldLabel}>{label}</div>
@@ -232,37 +244,17 @@ export function TerminationRecords() {
                 </div>
               ))}
             </div>
-            <div className={styles.tableScroll}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th scope="col">Step</th>
-                    <th scope="col">Method</th>
-                    <th scope="col">Completed</th>
-                    <th scope="col">Evidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {record.steps.map((step, index) => {
-                    const done = step.status === 'completed';
-                    return (
-                      <tr key={step.step}>
-                        <td>
-                          <CheckItem checked={done}>
-                            {index + 1}. {step.step}
-                          </CheckItem>
-                        </td>
-                        <td>
-                          <State ok={done}>{done ? (step.method === 'system' ? 'Verified in system' : 'Attested by the CEO') : 'Open'}</State>
-                        </td>
-                        <td>{step.completed_at ? formatDay(step.completed_at) : done ? `Confirmed ${formatDay(record.confirmation.at)}` : '—'}</td>
-                        <td>{step.evidence}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <CheckTable columns={['Access check', 'Result', 'Source']} rows={accessChecks(record, current, renderLive)} />
+            <CheckTable
+              columns={['Checklist step', 'Method', 'Completed', 'Evidence']}
+              rows={record.steps.map((step, index) => {
+                const done = step.status === 'completed';
+                return {
+                  checked: done,
+                  cells: [`${index + 1}. ${step.step}`, <State key="method" ok={done}>{done ? (step.method === 'system' ? 'Verified in system' : 'Attested by the CEO') : 'Open'}</State>, step.completed_at ? formatDay(step.completed_at) : done ? `Confirmed ${formatDay(record.confirmation.at)}` : '—', step.evidence],
+                };
+              })}
+            />
           </div>
         );
       })}
@@ -286,34 +278,33 @@ export function TrainingRoster() {
           {signed} of {TRAINING_COMPLETIONS.length} team members signed both courses.
         </CheckItem>
       </p>
-      <div className={styles.people}>
-        {TRAINING_COMPLETIONS.map((record) => {
+      <CheckTable
+        columns={['Team member', ...TRAINING_COURSES.map((course) => course.title.replace(/ training$/, '')), 'Signed', 'INTDEV API level']}
+        rows={TRAINING_COMPLETIONS.map((record) => {
           const current = live.get(record.user_id);
-          return (
-            <div key={record.user_id}>
-              <img className={styles.personImage} src={record.avatar} alt={record.person} />
-              <h3 className={styles.personName}>{record.person}</h3>
-              <p className={styles.personDetail}>{record.role}</p>
-              <p className={styles.personDetail}>
-                INTDEV API level: {current ? levelLine(current.live, 0) : <span className={styles.muted}>pending live check</span>}
-              </p>
-              <p className={styles.personDetail}>
-                <Signed at={record.signed_at} />
-              </p>
-              <ul className={styles.checklist}>
-                {TRAINING_COURSES.map((course) => (
-                  <li key={course.id}>
-                    <CheckItem checked={record.courses.includes(course.id)}>{course.title}</CheckItem>
-                  </li>
-                ))}
-              </ul>
-              <p className={styles.personNote}>
-                Confirmed by {record.confirmation.by}, {formatDay(record.confirmation.at)}. user_id {record.user_id}
-              </p>
-            </div>
-          );
+          return {
+            checked: TRAINING_COURSES.every((course) => record.courses.includes(course.id)),
+            cells: [
+              <span key="person">
+                {record.person}
+                <br />
+                <span className={styles.muted}>{record.role}</span>
+              </span>,
+              ...TRAINING_COURSES.map((course) => (
+                <CheckItem key={course.id} checked={record.courses.includes(course.id)}>
+                  {record.courses.includes(course.id) ? 'Completed' : 'Not completed'}
+                </CheckItem>
+              )),
+              <span key="signed">
+                {formatDay(record.signed_at)}
+                <br />
+                <span className={styles.muted}>Confirmed by {record.confirmation.by.split(',')[0]}</span>
+              </span>,
+              current ? levelLine(current.live, 0) : <State key="level" ok={null}>Pending live check</State>,
+            ],
+          };
         })}
-      </div>
+      />
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );
@@ -342,8 +333,8 @@ export function RemediationRecords(props: { ids?: string[] }) {
                 [
                   ['Component', finding.component],
                   ['Found', finding.found],
-                  ['Status', <State key="status" ok={finding.state !== 'open'}>{finding.status}</State>],
-                  ['Live in production', <State key="live" ok={current ? current.live_in_production : null}>{production}</State>],
+                  ['Status', <CheckItem key="status" checked={finding.state !== 'open'}>{finding.status}</CheckItem>],
+                  ['Live in production', finding.fixed_in ? <CheckItem key="live" checked={current ? current.live_in_production : null}>{production}</CheckItem> : <State key="live" ok={null}>{production}</State>],
                   ['Action', finding.action],
                   ...finding.evidence.map((item): [string, React.ReactNode] => [item.label, item.href ? <a key={item.label} href={item.href}>{item.detail}</a> : item.detail]),
                 ] as [string, React.ReactNode][]
@@ -364,7 +355,7 @@ export function RemediationRecords(props: { ids?: string[] }) {
                       ['Compensating controls', <ul key="controls" className={styles.list}>{finding.treatment.compensating_controls.map((control) => <li key={control}>{control}</li>)}</ul>],
                       ['Target', finding.treatment.target],
                       ['Next review', finding.treatment.review],
-                      ['Management sign-off', <Signed key="signed" at={finding.treatment.approved_at} />],
+                      ['Management sign-off', <Signed key="signed" at={formatDay(finding.treatment.approved_at)} />],
                       ['Approved by', finding.treatment.approved_by],
                       ['Ratified', finding.treatment.ratified],
                     ] as [string, React.ReactNode][]
@@ -441,6 +432,95 @@ export function DeletionRecord() {
           </tbody>
         </table>
       </div>
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+const PUBLISHED_REPORT = buildComplianceReport(EMPTY_REPORT_INPUTS);
+
+export function ComplianceReport() {
+  const path = EVIDENCE_ENDPOINTS.report;
+  const { data, source } = useEvidence<ComplianceReportData & { evidence: EvidenceMeta; live_check: string }>(path);
+  const report = data ?? PUBLISHED_REPORT;
+  const { summary } = report;
+  const areas = [...new Set(report.checks.map((item) => item.area))];
+
+  return (
+    <div className={styles.group}>
+      <p>
+        <CheckItem checked={summary.open > 0 ? false : summary.unavailable > 0 ? null : true}>
+          {summary.passed} of {summary.total} checks pass{summary.open ? `, ${summary.open} open` : ''}
+          {summary.unavailable ? `, ${summary.unavailable} awaiting live data` : ''}.
+        </CheckItem>
+      </p>
+      {areas.map((area) => (
+        <div key={area} className={styles.group}>
+          <h3 className={styles.recordTitle}>{area}</h3>
+          <CheckTable
+            columns={['Check', 'Result', 'Record']}
+            rows={report.checks
+              .filter((item) => item.area === area)
+              .map((item) => ({
+                checked: statusChecked(item.status),
+                cells: [
+                  item.title,
+                  <State key="result" ok={statusChecked(item.status)}>
+                    {item.result}
+                  </State>,
+                  <span key="record">
+                    <a href={item.page}>{findCatalogEntry(item.page.replace('/compliance/', ''))?.title ?? item.page}</a>
+                    {item.endpoint ? (
+                      <>
+                        <br />
+                        <a href={`${API_HOST}${item.endpoint}`} className={styles.muted}>
+                          JSON
+                        </a>
+                      </>
+                    ) : null}
+                  </span>,
+                ],
+              }))}
+          />
+        </div>
+      ))}
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+interface LiveReleases {
+  current: ReleaseScan | null;
+  scans: ReleaseScan[];
+  evidence: EvidenceMeta;
+  live_check: string;
+}
+
+function releaseName(scan: ReleaseScan) {
+  return `${scan.version ?? 'Unknown release'}${scan.commit ? ` (${scan.commit})` : ''}`;
+}
+
+export function ReleaseChecks(props: { limit?: number }) {
+  const path = EVIDENCE_ENDPOINTS.releases;
+  const { data, source } = useEvidence<LiveReleases>(path);
+  const latest = data?.current ?? data?.scans[0] ?? null;
+  const history = (data?.scans ?? []).slice(0, props.limit ?? 10);
+
+  return (
+    <div className={styles.group}>
+      {latest ? (
+        <>
+          <p>
+            <CheckItem checked={latest.passed === latest.total}>
+              Release {releaseName(latest)} on instance {latest.instance}: {latest.passed} of {latest.total} launch checks passed, {formatUtc(latest.scanned_at)}.
+            </CheckItem>
+          </p>
+          <CheckTable columns={['Launch check', 'Result', 'Time']} rows={latest.checks.map((item) => ({ checked: item.ok, cells: [item.label, <State key="detail" ok={item.ok}>{item.detail}</State>, item.ms === null ? '—' : `${item.ms} ms`] }))} />
+          <CheckTable columns={['Release', 'Instance', 'Scanned', 'Checks']} rows={history.map((scan) => ({ checked: scan.passed === scan.total, cells: [releaseName(scan), scan.instance, formatUtc(scan.scanned_at), `${scan.passed} of ${scan.total} passed`] }))} />
+        </>
+      ) : (
+        <p className={styles.muted}>{source === 'loading' ? 'Loading release scans from the INTDEV API.' : 'No release scan has been recorded yet. The first one is written when an INTDEV API release from 2.0.9 starts in production.'}</p>
+      )}
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );

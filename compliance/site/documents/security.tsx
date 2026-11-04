@@ -44,6 +44,7 @@ function Register() {
 export function RemovableMedia() {
   return (
     <Document
+      slug="removable-media"
       title="Removable media encryption"
       summary="INTDEV does not allow confidential data on portable or removable media unless there is a documented exception. Any media allowed by exception must be encrypted with an approved standard. Laptops are fully disk-encrypted."
       controls={['Removable media encryption']}
@@ -87,6 +88,7 @@ export function RemovableMedia() {
 export function AntiMalware() {
   return (
     <Document
+      slug="anti-malware"
       title="Anti-malware"
       summary="INTDEV runs anti-malware where malicious files are most likely to arrive: customer uploads, company email, and company laptops. Detections are logged, definitions update automatically, and detections alert engineering."
       controls={['Anti-malware technology utilized']}
@@ -119,6 +121,7 @@ export function AntiMalware() {
 export function PenetrationTesting() {
   return (
     <Document
+      slug="penetration-testing"
       title="Penetration testing"
       summary="INTDEV tests the security of its applications and production network at least once a year, and again after major changes. Every finding gets a remediation plan and is fixed within the vulnerability SLAs."
       controls={['Penetration testing performed']}
@@ -154,6 +157,7 @@ export function PenetrationTesting() {
 export function MobileDeviceManagement() {
   return (
     <Document
+      slug="mobile-device-management"
       title="Mobile device management"
       summary="The configuration INTDEV centrally requires on every laptop and mobile device that supports the service, and how devices are enrolled and kept in compliance."
       controls={['MDM system utilized']}
@@ -192,6 +196,7 @@ export function MobileDeviceManagement() {
 export function IntrusionDetection() {
   return (
     <Document
+      slug="intrusion-detection"
       title="Intrusion detection"
       summary="INTDEV continuously monitors its cloud network for potential security breaches with Amazon GuardDuty, and alerts engineering the moment a finding appears."
       controls={['Intrusion detection system utilized']}
@@ -221,6 +226,7 @@ export function IntrusionDetection() {
 export function EncryptionInTransit() {
   return (
     <Document
+      slug="encryption-in-transit"
       title="Data transmission encryption"
       summary="INTDEV encrypts confidential and sensitive data whenever it crosses a public network, with TLS between every client, edge, service, database, and processor."
       controls={['Data transmission encrypted']}
@@ -252,6 +258,7 @@ export function EncryptionInTransit() {
 export function NetworkSegmentation() {
   return (
     <Document
+      slug="network-segmentation"
       title="Network segmentation"
       summary="INTDEV’s networks and environments are separated so that customer data can be reached only by the production services and administrators that need it. The diagram shows the segments and the only paths between them, and the configuration exports below show how each boundary is enforced."
       controls={['Network segmentation implemented']}
@@ -301,6 +308,7 @@ export function NetworkSegmentation() {
 export function FirewallReview() {
   return (
     <Document
+      slug="firewall-review"
       title="Network firewall review"
       summary="INTDEV reviews its firewall rulesets and network access configuration at least once a year. Required changes are tracked to completion."
       controls={['Network firewalls reviewed']}
@@ -327,6 +335,7 @@ export function FirewallReview() {
 export function InfrastructureMaintenance() {
   return (
     <Document
+      slug="infrastructure-maintenance"
       title="Service infrastructure maintenance"
       summary="Infrastructure that supports the service is patched as routine maintenance and whenever a vulnerability is identified, so that the servers behind it stay hardened."
       controls={['Service infrastructure maintained']}
@@ -353,9 +362,6 @@ export function InfrastructureMaintenance() {
           ]}
         />
       </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' }, { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' }, { label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
-      </Section>
     </Document>
   );
 }
@@ -363,6 +369,7 @@ export function InfrastructureMaintenance() {
 export function VulnerabilityScans() {
   return (
     <Document
+      slug="vulnerability-scans"
       title="Vulnerability scanning and remediation"
       summary="INTDEV scans its external-facing systems at least once a quarter, and tracks every critical and high vulnerability to remediation."
       controls={['Vulnerabilities scanned and remediated', 'Service infrastructure maintained']}
@@ -376,9 +383,6 @@ export function VulnerabilityScans() {
       <Section title="SLAs and schedule">
         <List items={['Critical and high: 30 days. Medium: 60 days. Low: 90 days. Informational: as needed.', 'A finding that can’t meet its SLA needs a risk treatment plan and a new date.', 'Scans run every quarter (Q1 2027 by March 31) and after every major change.']} />
       </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' }, { label: 'Penetration testing', href: '/compliance/penetration-testing' }, { label: 'Vulnerability record (JSON)', href: VULNERABILITY_RECORD }]} />
-      </Section>
     </Document>
   );
 }
@@ -388,6 +392,7 @@ export function RemediatedVulnerabilities() {
   const treated = VULNERABILITIES.filter((finding) => finding.state === 'open' && finding.treatment).map((finding) => finding.id);
   return (
     <Document
+      slug="remediated-vulnerabilities"
       title="Sample of remediated vulnerabilities"
       summary="Proof of INTDEV’s most recent periodic vulnerability scan, every finding it produced, and how each one was remedied, with the high-severity findings first. The same record is served by the INTDEV API, which checks each fix against the release in production."
       controls={['Vulnerabilities scanned and remediated', 'Service infrastructure maintained']}
@@ -409,9 +414,6 @@ export function RemediatedVulnerabilities() {
       </Section>
       <Section title="All findings">
         <Register />
-      </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Vulnerability record (JSON)', href: VULNERABILITY_RECORD }, { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' }, { label: 'Penetration testing', href: '/compliance/penetration-testing' }, { label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
       </Section>
     </Document>
   );

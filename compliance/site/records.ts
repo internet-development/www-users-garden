@@ -11,7 +11,22 @@ export const EVIDENCE_ENDPOINTS = {
   training: '/api/compliance/training',
   vulnerabilities: '/api/compliance/vulnerabilities',
   dataDeletions: '/api/compliance/data-deletions',
+  report: '/api/compliance/report',
+  releases: '/api/compliance/releases',
 } as const;
+
+export const INTDEV_ORGANIZATION_DOMAINS = ['internet.dev', 'users.garden', 'terminalgraph.com', 'txt.dev'];
+
+export function isIntdevOrganizationDomain(domain: string | null | undefined): boolean {
+  const value = (domain ?? '').trim().toLowerCase();
+  return INTDEV_ORGANIZATION_DOMAINS.some((root) => value === root || value.endsWith(`.${root}`));
+}
+
+export const PLATFORM_ADMIN_FOLLOW_UP = 'December 4, 2026';
+
+export const DOMAIN_GRANT_BLOCK_RELEASE = '2.0.9';
+
+export const SYSTEM_ACCOUNTS = [{ username: 'treasury', purpose: 'Platform credit treasury. The credit system requires this account at level 100 for double-entry bookkeeping.' }];
 
 export const LEVEL_NAMES: Record<number, string> = {
   0: 'Unverified',
@@ -85,25 +100,40 @@ const GRANTS: AccessGrant[] = TEAM.map((person, index) => {
 const CONFIRMED_AT = '2026-11-04';
 const RENDER_REMOVAL_VERIFIED_AT = '2026-11-04T03:37:22.000Z';
 const LEVEL_RESTORED_AT = '2026-11-04T03:37:51.799Z';
+const ORGANIZATIONS_REMOVED_AT = '2026-11-04T03:58:41.614Z';
+const SHARED_ORGANIZATIONS_REMOVED_AT = '2026-11-04T04:29:10.752Z';
+export const TERMINATIONS_REVERIFIED_AT = '2026-11-04T04:29:55.178Z';
 
 interface Offboarding {
   account: { previous: number; level: number; at: string; detail: string };
   render: { completed_at: string; evidence: string };
+  organizations: { completed_at: string; evidence: string };
 }
 
-const NOT_A_RENDER_MEMBER = { completed_at: CONFIRMED_AT, evidence: 'Render API read of workspace members on November 4, 2026: not a member' };
+const REVERIFIED = 'Re-verified at 04:29 UTC on November 4, 2026, when this record was last updated';
+
+const NOT_A_RENDER_MEMBER = { completed_at: CONFIRMED_AT, evidence: `Render API read of the members of every Render workspace INTDEV administers on November 4, 2026: not a member. ${REVERIFIED}.` };
 
 const LOWERED_FROM_ADMIN = { previous: 100, level: 20, at: RECORDED_AT, detail: 'Lowered from platform admin (100) to level 20 in the production users table on November 4, 2026' };
 
 const OFFBOARDING: Record<string, Offboarding> = {
   'Anastasiya Uraleva': {
     account: LOWERED_FROM_ADMIN,
-    render: { completed_at: RENDER_REMOVAL_VERIFIED_AT, evidence: 'Removed from the Render workspace by Jimmy Lee (CEO) on November 4, 2026. A Render API read of workspace members at 03:37 UTC that day no longer lists this person.' },
+    render: { completed_at: RENDER_REMOVAL_VERIFIED_AT, evidence: `Removed from the Render workspace by Jimmy Lee (CEO) on November 4, 2026. A Render API read of workspace members at 03:37 UTC that day no longer lists this person. ${REVERIFIED}.` },
+    organizations: {
+      completed_at: SHARED_ORGANIZATIONS_REMOVED_AT,
+      evidence: 'Found as organization admin of internet.dev and events.internet.dev when termination was re-checked; both memberships were removed from the production organizations_membership table at 03:58 UTC on November 4, 2026. Her memberships in three organizations that current team members also belong to (admin of elcap.xyz and item.market, member of diagram.page) were removed at 04:29 UTC the same day on the CEO’s instruction, and a read at 04:29 UTC found none',
+    },
   },
-  'Chenyu Huang': { account: LOWERED_FROM_ADMIN, render: NOT_A_RENDER_MEMBER },
+  'Chenyu Huang': {
+    account: LOWERED_FROM_ADMIN,
+    render: NOT_A_RENDER_MEMBER,
+    organizations: { completed_at: SHARED_ORGANIZATIONS_REMOVED_AT, evidence: 'Held no membership in an INTDEV organization. On the CEO’s instruction, his organization admin membership of talkingheads.vision, an organization outside INTDEV, was also removed from the production organizations_membership table at 04:29 UTC on November 4, 2026, and a read at 04:29 UTC found no INTDEV organization membership' },
+  },
   'Louanne Murphy': {
     account: { previous: 20, level: 10, at: LEVEL_RESTORED_AT, detail: 'Never held platform admin. The 03:05 UTC update on November 4, 2026 raised this account from 10 to 20; it was restored to 10, its earlier level, at 03:37 UTC, before any credit payout' },
     render: NOT_A_RENDER_MEMBER,
+    organizations: { completed_at: ORGANIZATIONS_REMOVED_AT, evidence: 'Found as a member of internet.dev when termination was re-checked. The membership was removed from the production organizations_membership table at 03:58 UTC on November 4, 2026, and a read one second later found none' },
   },
 };
 
@@ -139,6 +169,7 @@ const STEP = {
   aws: 'Remove or deactivate AWS IAM access',
   tools: 'Remove Stripe, Vanta, Slack, and Telegram channel access',
   account: 'Remove administrative rights from the INTDEV API account; platform admin is lowered to a standard tier',
+  organizations: 'Remove membership in INTDEV’s organizations on the INTDEV API: INTDEV’s own domains (internet.dev and its subdomains, users.garden, terminalgraph.com, txt.dev) and every organization a current team member belongs to',
   equipment: 'Collect company equipment, or confirm company data is deleted from personal devices',
   confidentiality: 'Remind them of the confidentiality obligations that survive termination',
   close: 'Close the record with the time of each removal',
@@ -157,12 +188,13 @@ function steps(plan: Offboarding): ChecklistStep[] {
     { step: STEP.github, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.render, status: 'completed', method: 'system', completed_at: plan.render.completed_at, evidence: plan.render.evidence },
     { step: STEP.secrets, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
-    { step: STEP.aws, status: 'completed', method: 'system', completed_at: CONFIRMED_AT, evidence: 'AWS IAM list-users on November 4, 2026: no IAM user exists for this person' },
+    { step: STEP.aws, status: 'completed', method: 'system', completed_at: CONFIRMED_AT, evidence: `AWS IAM list-users on November 4, 2026: no IAM user exists for this person. ${REVERIFIED}` },
     { step: STEP.tools, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.account, status: 'completed', method: 'system', completed_at: plan.account.at, evidence: `${plan.account.detail}. The current level is read live on every request.` },
+    { step: STEP.organizations, status: 'completed', method: 'system', completed_at: plan.organizations.completed_at, evidence: `${plan.organizations.evidence}. Memberships are read live on every request, and from INTDEV API 2.0.9 the API refuses staff grants based on an INTDEV email address to any account in this register.` },
     { step: STEP.equipment, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.confidentiality, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
-    { step: STEP.close, status: 'completed', method: 'system', completed_at: CONFIRMED_AT, evidence: 'Closed November 4, 2026, once every step above was complete' },
+    { step: STEP.close, status: 'completed', method: 'system', completed_at: TERMINATIONS_REVERIFIED_AT, evidence: 'Closed November 4, 2026, once every step above was complete, and re-verified against the users table, every INTDEV organization, the Render API, and AWS IAM at 04:29 UTC that day' },
   ];
 }
 
@@ -183,6 +215,12 @@ export const TERMINATIONS: TerminationRecord[] = FORMER_TEAM.map((person, index)
     steps: checklist,
   };
 });
+
+const TERMINATED_USER_IDS = new Set(TERMINATIONS.map((record) => record.user_id));
+
+export function isTerminatedAccount(user: { id?: string | null } | null | undefined): boolean {
+  return typeof user?.id === 'string' && TERMINATED_USER_IDS.has(user.id);
+}
 
 export const TRAINING_COURSES: TrainingCourse[] = [
   { id: 'security-awareness-2026', title: 'Security awareness training', version: 'November 4, 2026', covers: 'Credentials and secrets, phishing, data handling, devices (FileVault, screen lock, updates), secure development, and incident reporting' },

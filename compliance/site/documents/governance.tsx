@@ -22,6 +22,7 @@ const DIRECTORS = (
 export function SystemDescription() {
   return (
     <Document
+      slug="system-description"
       title="System description (SOC 2 Section III)"
       summary={`${COMPANY.name}’s description of the system that provides the INTDEV API, Users Garden, and Terminal Graph, written for Section III of the SOC 2 report.`}
       controls={['SOC 2 system description', 'Service description communicated']}
@@ -129,6 +130,7 @@ const BRIEFINGS = [
 export function BoardOversight() {
   return (
     <Document
+      slug="board-oversight"
       title="Board oversight briefings"
       summary="Senior management briefs INTDEV’s board of directors at least once a year on the state of the company’s cybersecurity and privacy risk. The board gives feedback and direction, and both are recorded here."
       controls={['Board oversight briefings conducted']}
@@ -198,6 +200,7 @@ const BOARD_MINUTES = (
 export function BoardCharter() {
   return (
     <Document
+      slug="board-charter"
       title="Board of directors charter"
       summary={`The charter of the board of directors of ${COMPANY.name}. It sets out the board’s roles, responsibilities, composition, independence, meetings, and oversight of information security and privacy risk.`}
       controls={['Board of directors charter', 'Board expertise and independence', 'Board meetings and minutes']}
@@ -253,6 +256,7 @@ export function BoardCharter() {
 export function OrganizationChart() {
   return (
     <Document
+      slug="organization-chart"
       title="Organization chart"
       summary="INTDEV’s organizational structure and reporting lines, taken from the team published at internet.dev."
       controls={['Organization structure documented']}
@@ -287,6 +291,7 @@ export function OrganizationChart() {
 export function RolesAndResponsibilities() {
   return (
     <Document
+      slug="roles-and-responsibilities"
       title="Information security roles and responsibilities"
       summary="Who is responsible for designing, developing, implementing, operating, maintaining, and monitoring INTDEV’s information security controls, as the Information Security Roles and Responsibilities Policy assigns."
       controls={['Roles and responsibilities specified']}
@@ -336,6 +341,7 @@ export function RolesAndResponsibilities() {
 export function BoardExpertise() {
   return (
     <Document
+      slug="board-expertise"
       title="Board expertise and independent advisers"
       summary="INTDEV’s board has the expertise to oversee how management designs, implements, and operates information security controls, and it engages third-party security experts and consultants when it needs to."
       controls={['Board expertise and use of third-party experts']}
@@ -347,9 +353,6 @@ export function BoardExpertise() {
       <Section title="Third parties engaged">
         <List items={['Vanta, for continuous compliance monitoring and the risk register', 'An independent penetration tester, before the SOC 2 observation window closes', 'The SOC 2 auditor', 'Legal counsel, for breach determinations and customer agreements']} />
       </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Board of directors charter', href: '/compliance/board-charter' }, { label: 'Board meetings and minutes', href: '/compliance/board-meetings' }]} />
-      </Section>
     </Document>
   );
 }
@@ -357,6 +360,7 @@ export function BoardExpertise() {
 export function BoardMeetings() {
   return (
     <Document
+      slug="board-meetings"
       title="Board meetings and minutes"
       summary="INTDEV’s board of directors meets at least once a year and keeps formal minutes. The charter sets out how directors independent of the company are seated."
       controls={['Board meets annually and maintains minutes; independent directors']}

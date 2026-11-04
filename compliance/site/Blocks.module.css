@@ -138,26 +138,6 @@
   text-underline-offset: 4px;
 }
 
-.signed {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px;
-  border: 1px solid currentColor;
-  color: #00803a;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-}
-
-.signedCheck {
-  font-weight: 700;
-}
-
-.stateOk {
-  color: #00803a;
-}
-
 .checkItem {
   display: flex;
   align-items: flex-start;
@@ -169,15 +149,12 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  margin-top: 3px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
   border: 1px solid currentColor;
   color: #b42318;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
 }
 
 .checkboxChecked {
@@ -188,6 +165,12 @@
 
 .checkboxPending {
   color: var(--compliance-color-muted);
+}
+
+.checkmark {
+  display: block;
+  width: 12px;
+  height: 12px;
 }
 
 .checklist {

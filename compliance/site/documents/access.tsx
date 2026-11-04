@@ -3,7 +3,7 @@ import Document from '@root/compliance/site/Document';
 import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
 import { AccessRequestRecords, TerminationRecords } from '@root/compliance/site/Evidence';
 import { EVIDENCE_ENDPOINTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
-import { Fields, Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Group, List, Section, Table } from '@root/compliance/site/Blocks';
 
 function endpointLink(path: string) {
   return <a href={`${API_HOST}${path}`}>{`${API_HOST.replace('https://', '')}${path}`}</a>;
@@ -31,6 +31,7 @@ const AWS_IDENTITIES = [
 export function AccessControlProcedures() {
   return (
     <Document
+      slug="access-control"
       title="Access control procedures"
       summary="How INTDEV adds users, changes their access, and removes it, for its own staff and for customers of the INTDEV API, under the Access Control Policy."
       controls={['Access control procedures established']}
@@ -66,7 +67,12 @@ export function AccessControlProcedures() {
       <Section title="Removing a user">
         <List
           ordered
-          items={['Access is removed within 24 business hours of termination or the end of a contract. See the termination checklist.', 'User IDs are never reused.', 'If a password is compromised, it is escalated to the CTO or CEO right away and changed.']}
+          items={[
+            'Access is removed within 24 business hours of termination or the end of a contract. See the termination checklist.',
+            'The termination record is added to the termination register by pull request. Once it is deployed, the INTDEV API refuses that account every staff grant based on an INTDEV email address, and checks its level and organization memberships against production on every read.',
+            'User IDs are never reused.',
+            'If a password is compromised, it is escalated to the CTO or CEO right away and changed.',
+          ]}
         />
       </Section>
       <Section title="Access matrix">
@@ -89,6 +95,7 @@ export function AccessControlProcedures() {
 export function AccessReviews() {
   return (
     <Document
+      slug="access-reviews"
       title="Access reviews"
       summary="INTDEV reviews access to every in-scope system at least once a quarter, so that access stays limited to what each job requires. Any change a review requires is tracked to completion."
       controls={['Access reviews conducted']}
@@ -115,16 +122,15 @@ export function AccessReviews() {
             'Follow-up 1: check when each service key was last used. Rotate the keys that are in use and delete the ones that are not, starting with readingsupply and nicole. Owner: Jimmy Lee. Due: December 4, 2026.',
             'Follow-up 2: record GitHub, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
             'INTDEV API: two former team members still held platform admin. Both were lowered to level 20 on November 4, 2026. A third never held admin and stays at level 10, the level the account had before the review. All three are verified live in the access register and the termination records.',
+            'INTDEV API organizations: re-checking termination found one former team member still an organization admin of internet.dev and events.internet.dev, and another still a member of internet.dev. Those three memberships were removed at 03:58 UTC on November 4, 2026. On the CEO’s instruction, four more memberships of former team members in organizations outside INTDEV’s domains (three shared with current team members, one not) were removed at 04:29 UTC. The termination checklist now includes this step, and the live termination record checks it on every load.',
+            'INTDEV API email-domain grants: an @internet.dev address on a former team member’s account still qualified it for staff grants (Vmax Public access management and organization waitlists). From INTDEV API 2.0.9 the API refuses those grants to every account in the termination register.',
             'Render: a former team member was still listed as a workspace Developer. The CEO removed the membership on November 4, 2026, a Render API read of workspace members confirmed it the same day, and termination record TR-2026-001 is closed. MFA is not yet enforced for every workspace member; enforcement is due November 18, 2026. Owner: Jimmy Lee.',
-            'INTDEV API: platform admin accounts that are not tied to a current team member, such as shared mailboxes and service accounts, must each get a named owner or be lowered. Owner: Jimmy Lee. Due: December 4, 2026.',
+            'INTDEV API: platform admin accounts that are not tied to a current team member, such as shared mailboxes and service accounts, must each get a named owner or be lowered. The compliance report counts them live against the access register. Owner: Jimmy Lee. Due: December 4, 2026.',
           ]}
         />
       </Section>
       <Section title="Cadence">
         <Table columns={['Quarter', 'Due', 'Status']} rows={[['Q4 2026', 'December 31, 2026', 'In progress: AWS, Render, and INTDEV API reviewed November 4, 2026'], ['Q1 2027', 'March 31, 2027', 'Scheduled'], ['Q2 2027', 'June 30, 2027', 'Scheduled'], ['Q3 2027', 'September 30, 2027', 'Scheduled']]} />
-      </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Access requests', href: '/compliance/access-requests' }, { label: 'Access revoked upon termination', href: '/compliance/access-termination' }, { label: 'Access register (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.accessRequests}` }]} />
       </Section>
     </Document>
   );
@@ -133,6 +139,7 @@ export function AccessReviews() {
 export function AccessTermination() {
   return (
     <Document
+      slug="access-termination"
       title="Access revoked upon termination"
       summary="When an employee, partner, or contractor leaves, a termination checklist revokes all of their access within 24 business hours, the SLA in the Access Control Policy. The completed checklists for recent departures are published by the INTDEV API, with each step’s status, completion time, and evidence."
       controls={['Access revoked upon termination']}
@@ -145,7 +152,8 @@ export function AccessTermination() {
       </Section>
       <Section title="Termination records">
         <Group>
-          <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself on November 4, 2026: the production users table, the Render API, and AWS IAM. The INTDEV API level is re-read from production every time the record is loaded. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review and are recorded with the date they were actually completed.</p>
+          <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself: the production users table, INTDEV’s organizations on the INTDEV API, the Render API, and AWS IAM. Every one of those was re-checked at 04:29 UTC on November 4, 2026, when this page was last updated. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review or in that re-check, and are recorded with the time they were actually completed.</p>
+          <p>The access checks are not a copy of the checklist. The INTDEV API runs them against production every time the record loads: the account’s level, its memberships in INTDEV organizations (INTDEV’s own domains and every organization a current team member belongs to), whether the API refuses it staff grants based on an INTDEV email address, and, when the API holds a Render key, its Render workspace membership. Naming a person in this register is itself a revocation: from INTDEV API 2.0.9, an account in the register is refused every grant that comes from an @internet.dev address, even though the account keeps that address.</p>
           <TerminationRecords />
         </Group>
       </Section>
@@ -159,6 +167,7 @@ export function AccessTermination() {
 export function AccessRequests() {
   return (
     <Document
+      slug="access-requests"
       title="Access requests"
       summary="Access to in-scope systems comes from a person’s role, or from a documented access request approved by a manager or system owner before anything is provisioned."
       controls={['Access requests required']}
@@ -191,9 +200,6 @@ export function AccessRequests() {
             'INTDEV API. Platform admin (tier 100) is granted only by an existing admin, and organization roles are granted by organization admins.',
           ]}
         />
-      </Section>
-      <Section title="Related">
-        <Links items={[{ label: 'Access control procedures', href: '/compliance/access-control' }, { label: 'Access reviews', href: '/compliance/access-reviews' }, { label: 'Access revoked upon termination', href: '/compliance/access-termination' }, { label: 'Access register (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.accessRequests}` }]} />
       </Section>
     </Document>
   );
