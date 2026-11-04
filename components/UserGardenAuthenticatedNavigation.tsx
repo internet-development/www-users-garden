@@ -1,7 +1,6 @@
 import styles from '@components/UserGardenAuthenticatedNavigation.module.css';
 
 import * as Constants from '@common/constants';
-import * as DeviceCheck from '@common/device-check';
 import * as React from 'react';
 
 import { Title } from '@system/typography';
@@ -29,7 +28,6 @@ const Item = (props) => {
 
 export default function UserGardenAuthenticatedNavigation(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
-  const isTeamMember = DeviceCheck.isCurrentTeamMember(props.viewer);
 
   return (
     <div className={styles.root}>
@@ -37,6 +35,9 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Title>ACCOUNT</Title>
         <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`┌`}>
           Access
+        </Item>
+        <Item active={'USER_DEVICE_CHECK' === props.active} onClick={() => props.onNavigate({ active: 'USER_DEVICE_CHECK', nextOrganization: null })} mark={`├`}>
+          Device check
         </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
           Guide
@@ -56,15 +57,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`└`}>
           Wallet
         </Item>
-
-        {isTeamMember ? (
-          <>
-            <Title style={{ marginTop: 24 }}>TEAM</Title>
-            <Item active={'TEAM_DEVICE_CHECK' === props.active} onClick={() => props.onNavigate({ active: 'TEAM_DEVICE_CHECK', nextOrganization: null })} mark={`─`}>
-              Device check
-            </Item>
-          </>
-        ) : null}
 
         {isAdmin ? (
           <>

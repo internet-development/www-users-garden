@@ -5,6 +5,8 @@ import { DEVICE_CHECK_SCRIPT, isTerminatedAccount } from '@root/compliance/site/
 
 export const DEVICE_CHECK_COMMAND = `curl -fsSL ${DEVICE_CHECK_SCRIPT} | bash -s -- --copy`;
 
+export const DEVICE_CHECK_RECORD_URL = '/compliance/removable-media';
+
 export type DeviceCheckInput = {
   tool_version: string;
   device_ref: string;
@@ -22,9 +24,9 @@ export type DeviceCheckInResult = { success: true; data: { device: DeviceReport;
 export type DeviceFleetResult = { success: true; freshDays: number; member: DeviceMember | null } | { success: false; message: string };
 
 // NOTE(jimmylee)
-// Mirrors the API's own check, so it is the API, not this page, that decides
-// whether a laptop is encrypted. A team member who is not on the roster never
-// sees the device check, and the API refuses them anyway.
+// Mirrors the roster the API's fleet report reads. Anyone can send a device
+// check, but only these accounts appear on the compliance record, so the page
+// shows the fleet entry and the Guide prompt to them alone.
 export function isCurrentTeamMember(viewer: { id?: string | null } | null | undefined): boolean {
   return typeof viewer?.id === 'string' && TEAM.some((person) => person.userId === viewer.id) && !isTerminatedAccount(viewer);
 }

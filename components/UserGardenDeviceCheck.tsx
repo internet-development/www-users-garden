@@ -11,7 +11,7 @@ import StandardLayoutSection from '@components/StandardLayoutSection';
 import TextArea from '@system/TextArea';
 
 import { P } from '@system/typography';
-import { DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_SCRIPT } from '@root/compliance/site/records';
+import { DEVICE_CHECK_FRESH_DAYS } from '@root/compliance/site/records';
 
 import type { DeviceMember } from '@root/compliance/site/types';
 
@@ -39,6 +39,7 @@ function Rows(props: { rows: [string, React.ReactNode][] }) {
 }
 
 export default function UserGardenDeviceCheck(props) {
+  const isTeamMember = DeviceCheck.isCurrentTeamMember(props.viewer);
   const [text, setText] = React.useState<string>('');
   const [sending, setSending] = React.useState<boolean>(false);
   const [copied, setCopied] = React.useState<boolean>(false);
@@ -51,6 +52,7 @@ export default function UserGardenDeviceCheck(props) {
   const device = parsed && 'device' in parsed ? parsed.device : null;
 
   const loadFleet = React.useCallback(async () => {
+    if (!isTeamMember) return;
     const response = await props.onGetDeviceFleet({ id: props.viewer.id });
     if (response.success) {
       setMember(response.member);
@@ -59,7 +61,7 @@ export default function UserGardenDeviceCheck(props) {
     } else {
       setFleetError(response.message);
     }
-  }, [props.onGetDeviceFleet, props.viewer.id]);
+  }, [isTeamMember, props.onGetDeviceFleet, props.viewer.id]);
 
   React.useEffect(() => {
     loadFleet();
@@ -89,24 +91,19 @@ export default function UserGardenDeviceCheck(props) {
   return (
     <StandardLayout>
       <StandardHeader title="Device check">
-        Every Mac you use for INTDEV work reports its disk encryption and removable media to the INTDEV API at least every {freshDays} days, and whenever you set up a new one. The fleet record on the compliance pages is built only from these reports.
+        Report a Mac’s disk encryption and removable media to the INTDEV API. Anyone signed in can run the check. INTDEV team members report every Mac they use for INTDEV work at least every {freshDays} days and whenever they set up a new one, and the fleet record on the compliance pages is built only from their reports.
       </StandardHeader>
 
       <StandardLayoutSection title="1. Run the check on your Mac">
         <P style={{ marginTop: 6 }}>Open Terminal on the laptop you are reporting and run this command. It reads FileVault, the data volume, the chip, MDM enrollment, and any mounted external drives from macOS, then copies the report to your clipboard. It changes nothing, needs no administrator password, and never asks for your API key.</P>
         <pre className={styles.command}>{DeviceCheck.DEVICE_CHECK_COMMAND}</pre>
         <div className={styles.actions}>
-          <Button onClick={onCopyCommand} style={{ marginRight: 16, marginBottom: 16 }}>
-            {copied ? 'Copied' : 'Copy command'}
-          </Button>
-          <Button href={DEVICE_CHECK_SCRIPT} target="_blank" style={{ marginBottom: 16 }}>
-            Read the script
-          </Button>
+          <Button onClick={onCopyCommand}>{copied ? 'Copied' : 'Copy command'}</Button>
         </div>
       </StandardLayoutSection>
 
       <StandardLayoutSection title="2. Paste the report and send it">
-        <P style={{ marginTop: 6 }}>Paste the report here. It is sent with your signed-in account, {props.viewer.email}, and recorded as your laptop. Send only a report made on your own laptop: the API refuses a laptop another team member has already reported.</P>
+        <P style={{ marginTop: 6 }}>Paste the report here. It is sent with your signed-in account, {props.viewer.email}, and recorded as your laptop. Send only a report made on your own laptop: the API refuses a laptop an INTDEV team member has already reported.</P>
         <TextArea
           aria-label="Device check report"
           autoComplete="off"
@@ -145,14 +142,22 @@ export default function UserGardenDeviceCheck(props) {
         ) : null}
         {result && result.success ? (
           <div className={styles.status} role="status">
-            Recorded {formatDate(result.data.checked_at)}. {result.data.assessment.disk_encrypted ? `Disk encrypted: ${result.data.assessment.cipher}.` : 'This laptop does not pass: FileVault must be on and finished encrypting.'} {result.data.assessment.removable_media_clear ? 'No unencrypted writable external drive is mounted.' : 'An unencrypted writable external drive is mounted; eject it or encrypt it.'} Next check due by {dueDate(result.data.checked_at, freshDays)}.
+            Recorded {formatDate(result.data.checked_at)}. {result.data.assessment.disk_encrypted ? `Disk encrypted: ${result.data.assessment.cipher}.` : 'This laptop does not pass: FileVault must be on and finished encrypting.'} {result.data.assessment.removable_media_clear ? 'No unencrypted writable external drive is mounted.' : 'An unencrypted writable external drive is mounted; eject it or encrypt it.'} {isTeamMember ? (
+              <>
+                Next check due by {dueDate(result.data.checked_at, freshDays)}.{' '}
+                <a href={DeviceCheck.DEVICE_CHECK_RECORD_URL} target="_blank">
+                  See your record on the compliance page.
+                </a>
+              </>
+            ) : null}
           </div>
         ) : null}
       </StandardLayoutSection>
 
       <StandardLayoutSection title="Your laptops">
-        {fleetError ? <P style={{ marginTop: 6 }}>{fleetError}</P> : null}
-        {!fleetError && (!member || !member.devices.length) ? <P style={{ marginTop: 6 }}>No laptop is reported under your account yet.</P> : null}
+        {!isTeamMember ? <P style={{ marginTop: 6 }}>The compliance record lists current INTDEV team members only. Laptops you report are kept under your account and appear here and on the record once you join the team.</P> : null}
+        {isTeamMember && fleetError ? <P style={{ marginTop: 6 }}>{fleetError}</P> : null}
+        {isTeamMember && !fleetError && (!member || !member.devices.length) ? <P style={{ marginTop: 6 }}>No laptop is reported under your account yet.</P> : null}
         {member && member.devices.length
           ? member.devices.map((each) => (
               <Rows
@@ -168,7 +173,12 @@ export default function UserGardenDeviceCheck(props) {
               />
             ))
           : null}
-        <P style={{ marginTop: 16 }}>The public record can take up to a minute to show a new report.</P>
+        {isTeamMember ? <P style={{ marginTop: 16 }}>The compliance page validates every team member’s laptops from these reports. It can take up to a minute to show a new one.</P> : null}
+        <div className={styles.actions}>
+          <Button href={DeviceCheck.DEVICE_CHECK_RECORD_URL} target="_blank">
+            View compliance page
+          </Button>
+        </div>
       </StandardLayoutSection>
     </StandardLayout>
   );

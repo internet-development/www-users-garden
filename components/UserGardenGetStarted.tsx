@@ -44,7 +44,7 @@ export default function UserDanger(props) {
         <StandardLayoutSection title="Report your laptop">
           <P style={{ marginTop: 6 }}>As an INTDEV team member, report every Mac you use for INTDEV work at least every {DEVICE_CHECK_FRESH_DAYS} days. Device check gives you one Terminal command to run, then you paste its report and send it with your signed-in account.</P>
           <div className={styles.actions}>
-            <ButtonPrimary onClick={() => props.onNavigate({ active: 'TEAM_DEVICE_CHECK', nextOrganization: null })}>Device check</ButtonPrimary>
+            <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_DEVICE_CHECK', nextOrganization: null })}>Device check</ButtonPrimary>
           </div>
         </StandardLayoutSection>
       ) : null}

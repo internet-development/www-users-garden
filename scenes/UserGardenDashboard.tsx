@@ -36,7 +36,7 @@ export default function UserGardenDashboard(props) {
   const CHILD_ELEMENT_MAP = {
     ADMIN_TENANTS: <AdminTenants viewer={props.viewer} onGetAllTenants={props.onGetAllTenants} onTenantUpdate={props.onTenantUpdate} onTenantRemove={props.onTenantRemove} />,
     USER_GET_STARTED: <UserGardenGetStarted onNavigate={props.onNavigate} viewer={props.viewer} />,
-    TEAM_DEVICE_CHECK: <UserGardenDeviceCheck onDeviceCheckIn={props.onDeviceCheckIn} onGetDeviceFleet={props.onGetDeviceFleet} viewer={props.viewer} />,
+    USER_DEVICE_CHECK: <UserGardenDeviceCheck onDeviceCheckIn={props.onDeviceCheckIn} onGetDeviceFleet={props.onGetDeviceFleet} viewer={props.viewer} />,
     USER_PROFILE: (
       <UserGardenDashboardProfile
         viewer={props.viewer}
