@@ -42,6 +42,7 @@ system/             → Design system and reusable components
   └── detectors/    → Detection utilities
 common/             → Shared utilities (constants, queries, server, utilities)
 modules/            → Custom modules (cookies, cors, encryption)
+compliance/site/    → Generated copy of the shared compliance kit (edit in ../apis, see Compliance Pages)
 ```
 
 ---
@@ -239,6 +240,10 @@ Defined in `common/constants.ts`:
 | 100 | ADMIN |
 
 ---
+
+## Compliance Pages
+
+`/compliance` and `/compliance/[slug]` (`pages/compliance/index.tsx`, `pages/compliance/[slug].tsx`) render INTDEV's public compliance records, using `getStaticPaths` with `fallback: false` over `COMPLIANCE_SLUGS`. The page bodies come from `compliance/site/`, a generated, byte-identical copy of `../apis/compliance/site/` that `../www-internet-v3` also renders, so both sites show the same page. Never edit `compliance/site/` here. Change it in `../apis` and run `node .claude/skills/compliance-pages/scripts/sync.mjs` there, following `../apis/.claude/skills/compliance-pages/SKILL.md`. The kit is a deliberate exception to the house typography: it uses Geist Serif through `next/font/local` (OFL, `compliance/site/GeistSerif-OFL.txt`) and the mana-www layout, and it sets its own colors regardless of the body theme class. The live deploy and status tables read `https://api.internet.dev/api/status/deploys` and `/api/status` from the browser.
 
 ## Modal System
 

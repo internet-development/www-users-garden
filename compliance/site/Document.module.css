@@ -1,0 +1,139 @@
+.root {
+  --compliance-color-background: #ffffff;
+  --compliance-color-background-secondary: rgba(0, 0, 0, 0.1);
+  --compliance-color-border: rgba(0, 0, 0, 0.1);
+  --compliance-color-text: #000000;
+  --compliance-color-muted: rgba(0, 0, 0, 0.56);
+  --compliance-color-primary: #0047ff;
+  --compliance-page-width: 816px;
+  --compliance-page-gutter: 24px;
+  --compliance-font-size: 16px;
+  --compliance-line-height: 24px;
+  --compliance-space-list: 8px;
+  --compliance-space-paragraph: 24px;
+  --compliance-space-section: 48px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--compliance-color-background);
+  color: var(--compliance-color-text);
+  font-family: var(--compliance-font-serif), Georgia, 'Times New Roman', serif;
+  font-size: var(--compliance-font-size);
+  font-weight: 400;
+  line-height: var(--compliance-line-height);
+  font-synthesis: none;
+  font-variant-numeric: normal;
+  text-align: left;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.root::-webkit-scrollbar {
+  display: none;
+}
+
+.root h1,
+.root h2,
+.root h3,
+.root strong {
+  font: inherit;
+  margin: 0;
+}
+
+.root p {
+  margin: 0;
+}
+
+.root a,
+.root a:visited {
+  color: inherit;
+}
+
+.root a:hover {
+  color: var(--compliance-color-primary);
+}
+
+.container {
+  display: block;
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: var(--compliance-page-width);
+  width: 100%;
+  padding: 24px var(--compliance-page-gutter) 88px var(--compliance-page-gutter);
+  overflow-wrap: break-word;
+}
+
+.container > * + * {
+  margin-top: var(--compliance-space-section);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 88px;
+}
+
+.logo {
+  display: flex;
+}
+
+.logoMark {
+  display: block;
+  height: 32px;
+  width: auto;
+}
+
+.navLinks {
+  display: flex;
+  gap: var(--compliance-space-paragraph);
+}
+
+.heading > * + * {
+  margin-top: var(--compliance-space-paragraph);
+}
+
+.meta {
+  color: var(--compliance-color-muted);
+}
+
+.meta > * + * {
+  margin-top: var(--compliance-space-list);
+}
+
+.body > * + * {
+  margin-top: var(--compliance-space-section);
+}
+
+.footer {
+  background: var(--compliance-color-background-secondary);
+  margin-top: 160px;
+}
+
+.footerContent {
+  box-sizing: border-box;
+  max-width: var(--compliance-page-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 128px var(--compliance-page-gutter) 88px var(--compliance-page-gutter);
+}
+
+.footerCopy {
+  font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
+  opacity: 0.4;
+}
+
+.footerParagraph {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+}
+
+.footerParagraph + .footerParagraph {
+  margin-top: 12px;
+}

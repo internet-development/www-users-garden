@@ -1,0 +1,133 @@
+.section > * + * {
+  margin-top: var(--compliance-space-paragraph);
+}
+
+.sectionTitle {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.group > * + * {
+  margin-top: var(--compliance-space-paragraph);
+}
+
+.list {
+  margin: 0;
+  padding: 0 0 0 1.25em;
+  list-style: disc;
+}
+
+.orderedList {
+  margin: 0;
+  padding: 0 0 0 1.5em;
+  list-style: decimal;
+}
+
+.list > li + li,
+.orderedList > li + li {
+  margin-top: var(--compliance-space-list);
+}
+
+.links > * + * {
+  margin-top: var(--compliance-space-list);
+}
+
+.link {
+  display: block;
+  width: fit-content;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: inherit;
+}
+
+.table th,
+.table td {
+  padding: 8px 16px 8px 0;
+  border-top: 1px solid var(--compliance-color-border);
+  text-align: left;
+  vertical-align: top;
+  font-weight: 400;
+}
+
+.table th {
+  color: var(--compliance-color-muted);
+  white-space: nowrap;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 0;
+}
+
+.fields > * + * {
+  margin-top: var(--compliance-space-list);
+}
+
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  column-gap: var(--compliance-space-paragraph);
+}
+
+.fieldLabel {
+  color: var(--compliance-color-muted);
+}
+
+.people {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--compliance-space-section) var(--compliance-space-paragraph);
+}
+
+.personLink {
+  display: block;
+  width: 80px;
+}
+
+.personImage {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  background: var(--compliance-color-background-secondary);
+}
+
+.personName {
+  margin-top: var(--compliance-space-list);
+}
+
+.personDetail {
+  margin-top: var(--compliance-space-list);
+}
+
+.personNote {
+  margin-top: var(--compliance-space-list);
+  color: var(--compliance-color-muted);
+}
+
+.note {
+  padding: 16px 24px;
+  background: var(--compliance-color-background-secondary);
+}
+
+.muted {
+  color: var(--compliance-color-muted);
+}
+
+@media (max-width: 560px) {
+  .people {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

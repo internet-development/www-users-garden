@@ -10,6 +10,10 @@ The scene's wave solver and procedural noise are implemented for Users Garden. T
 
 The application also includes vendored utilities and package dependencies. Their copyright and license notices remain in their source files and distributed license files and must be preserved when that code is reused. These are dependency license notices, separate from the company's scene and artwork credits.
 
+## Geist Serif
+
+The compliance pages use the Geist Serif variable font (`compliance/site/GeistSerifVF.woff2`), licensed under the SIL Open Font License 1.1. The full license is in `compliance/site/GeistSerif-OFL.txt`.
+
 ## Artwork
 
 The artwork in `public/artwork/` is supplied by Internet Development Studio Company under the [MIT License](public/artwork/LICENSE.txt), with the company copyright and full license notice retained when reused. This covers `garden-frame.jpg`, both koi atlases, the lily pad and petal textures, the tree-line texture, and accompanying prompt files.

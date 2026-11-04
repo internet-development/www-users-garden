@@ -15,6 +15,8 @@ Visit `http://localhost:10000`.
 
 Visit `http://localhost:10000/settings-preview` for the public SMS review page, also linked as **SMS Policy** directly below **Acceptable Use Policy** at the bottom of the sign-in page. It includes the framed interactive pond, the same phone settings component used by signed-in accounts, the exact consent prompt once, and three columns of message conversations. Its introduction uses the INTDEV SVG, with a SIGN IN link in the top bar. Preview interactions stay in memory and never call the API or send a text.
 
+Visit `http://localhost:10000/compliance` for the public compliance records. They are generated from `../apis/compliance/site/`; see **Compliance Pages** in `AGENTS.md`.
+
 ## Scripts
 
 | Command | Description |
