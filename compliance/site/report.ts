@@ -3,7 +3,7 @@ import type { AccountState, CheckStatus, ComplianceReportData, ReportCheck, Repo
 import { VULNERABILITIES } from '@root/compliance/site/facts';
 import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
 
-export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembers: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null };
+export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null };
 
 export function compareVersions(a: string, b: string): number {
   const left = a.split('.').map((part) => Number.parseInt(part, 10) || 0);
@@ -26,6 +26,15 @@ function state(accounts: Record<string, AccountState> | null, userId: string): A
 
 function check(id: string, area: string, title: string, page: string, endpoint: string | null, status: CheckStatus, result: string): ReportCheck {
   return { id, area, title, status, result, page, endpoint };
+}
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function utcMoment(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC on ${MONTHS[date.getUTCMonth()] ?? ''} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
 }
 
 function counted(ok: number, total: number): CheckStatus {
@@ -109,11 +118,23 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
   const blocked = releaseIncludes(inputs.release, DOMAIN_GRANT_BLOCK_RELEASE);
   checks.push(check('former-domain-grants', 'Termination', 'Staff grants based on an INTDEV email address are refused to every former team member', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, blocked === null ? 'unavailable' : blocked ? 'pass' : 'open', blocked === null ? pending : blocked ? `Enforced by the termination register in release ${inputs.release}` : `Enforced from release ${DOMAIN_GRANT_BLOCK_RELEASE}; production serves ${inputs.release}`));
 
-  if (inputs.renderMembers) {
-    const absent = TERMINATIONS.filter((record) => inputs.renderMembers?.[record.user_id] === false).length;
-    checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, counted(absent, former), `${absent} of ${former} former team members are absent from every Render workspace INTDEV administers`));
+  const render = inputs.renderMembership;
+  if (render) {
+    const absent = TERMINATIONS.filter((record) => render.members[record.user_id] === false).length;
+    const unread = TERMINATIONS.filter((record) => typeof render.members[record.user_id] !== 'boolean').length;
+    checks.push(
+      check(
+        'former-render',
+        'Termination',
+        'No former team member is in a Render workspace',
+        '/compliance/access-termination',
+        EVIDENCE_ENDPOINTS.terminations,
+        counted(absent, former),
+        `${absent} of ${former} former team members were absent from every Render workspace INTDEV administers when the Render API was read at ${utcMoment(render.checked_at)}, before this release was built${unread ? `. ${unread} not covered by that read` : ''}`
+      )
+    );
   } else {
-    checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, 'unavailable', `All ${former} verified absent through the Render API at ${ALL_TERMINATIONS_VERIFIED_AT.slice(11, 16)} UTC on November 4, 2026. A live Render check runs when the API holds a Render key`));
+    checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, 'unavailable', `All ${former} verified absent through the Render API at ${utcMoment(ALL_TERMINATIONS_VERIFIED_AT)}. Each release carries the Render read made on a maintainer machine when it was built; this release has none`));
   }
 
   const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;

@@ -2,6 +2,10 @@ import type { DeployStatus } from '@root/compliance/site/types';
 
 export const DEPLOY_SNAPSHOT_CAPTURED_AT = '2026-11-04T03:26:14Z';
 
+export const RENDER_MEMBERSHIP_CHECKED_AT: string | null = null;
+
+export const RENDER_MEMBERSHIP_SNAPSHOT: Record<string, boolean | null> = {};
+
 export const DEPLOY_SNAPSHOT: Record<string, DeployStatus> = {
   'internet-apis': {
     service: { name: 'internet-apis', label: 'INTDEV API', url: 'https://api.internet.dev', provider: 'render', type: 'web_service', region: 'oregon', branch: 'main', auto_deploy: true, auto_deploy_trigger: 'commit', suspended: false },

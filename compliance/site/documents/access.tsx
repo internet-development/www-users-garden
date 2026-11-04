@@ -3,7 +3,7 @@ import Document from '@root/compliance/site/Document';
 import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
 import { AccessRequestRecords, SystemAccountRecords, TerminationRecords } from '@root/compliance/site/Evidence';
 import { EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
-import { Fields, Group, List, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Group, List, Member, Members, Section, Table } from '@root/compliance/site/Blocks';
 
 function endpointLink(path: string) {
   return <a href={`${API_HOST}${path}`}>{`${API_HOST.replace('https://', '')}${path}`}</a>;
@@ -114,7 +114,7 @@ export function AccessReviews() {
         <Fields
           items={[
             ['Date', 'November 4, 2026'],
-            ['Reviewer', 'Jimmy Lee, CEO'],
+            ['Reviewer', <Member key="reviewer" name="Jimmy Lee, CEO" />],
             ['AWS method', `Read-only listing of IAM users, MFA devices, access keys, and roles in the account monitored by Vanta (${AWS_REGIONS.join(', ')} for regional controls)`],
             ['Render method', 'Read-only Render API listing of workspace members, their roles, and MFA status'],
             ['INTDEV API method', 'Read-only query of platform admin (level 100) accounts in the production users table'],
@@ -166,12 +166,14 @@ export function AccessTermination() {
       <Section title="Termination records">
         <Group>
           <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself: the production users table, INTDEV’s organizations on the INTDEV API, the Render API, and AWS IAM. Every one of those was re-checked for every record at 09:49 UTC on November 4, 2026, when this page was last updated. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review or in that re-check, and are recorded with the time they were actually completed.</p>
-          <p>The access checks are not a copy of the checklist. The INTDEV API runs them against production every time the record loads: the account’s level, its memberships in INTDEV organizations (INTDEV’s own domains and every organization a current team member belongs to), whether the API refuses it staff grants based on an INTDEV email address, and, when the API holds a Render key, its Render workspace membership. Naming a person in this register is itself a revocation: from INTDEV API 2.0.9, an account in the register is refused every grant that comes from an @internet.dev address, even though the account keeps that address.</p>
+          <p>The access checks are not a copy of the checklist. The INTDEV API runs them against production every time the record loads: the account’s level, its memberships in INTDEV organizations (INTDEV’s own domains and every organization a current team member belongs to), and whether the API refuses it staff grants based on an INTDEV email address. Render workspace membership comes from the Render API read made on a maintainer machine before the serving release was built and compiled into it; the running API holds no Render key. Naming a person in this register is itself a revocation: from INTDEV API 2.0.9, an account in the register is refused every grant that comes from an @internet.dev address, even though the account keeps that address.</p>
           <TerminationRecords />
         </Group>
       </Section>
       <Section title="Current roster">
-        <p>{TEAM.map((person) => person.name).join(', ')}.</p>
+        <p>
+          <Members names={TEAM.map((person) => person.name)} />.
+        </p>
       </Section>
     </Document>
   );

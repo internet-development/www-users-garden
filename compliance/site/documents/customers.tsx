@@ -1,11 +1,11 @@
 import Document from '@root/compliance/site/Document';
 
-import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
 import { SecurityJobDescriptions, SecurityTeamStatement } from '@root/compliance/site/documents/governance';
-import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 
 const PRIVACY_POLICY = PUBLIC_TERMS.find((term) => term.href.endsWith('intdev-privacy-policy')) ?? { label: 'Privacy Policy', href: 'https://txt.dev/wwwjim/intdev-privacy-policy' };
 
@@ -403,7 +403,7 @@ export function RenderServiceAgreement() {
             ['Security and compliance', <a key="security" href="https://render.com/security">render.com/security</a>],
             ['Platform status', <a key="status" href="https://status.render.com">status.render.com</a>],
             ['Accepted by', 'INTDEV’s Render workspace, under the terms above'],
-            ['Relationship owner', 'Jimmy Lee'],
+            ['Relationship owner', <Member key="owner" name="Jimmy Lee" />],
           ]}
         />
       </Section>
@@ -444,7 +444,7 @@ export function VendorManagement() {
       controls={['Vendor management program established', 'Third-party agreements established']}
     >
       <Section title="Vendor inventory">
-        <Table columns={['Vendor', 'Service', 'Criticality', 'Data', 'Owner']} rows={VENDORS.map((vendor) => [vendor.name, vendor.service, vendor.criticality, vendor.data, vendor.owner])} />
+        <Table columns={['Vendor', 'Service', 'Criticality', 'Data', 'Owner']} rows={VENDORS.map((vendor) => [vendor.name, vendor.service, vendor.criticality, vendor.data, <Member key="owner" name={vendor.owner} />])} />
       </Section>
       <Section title="Security and privacy requirements">
         <List
@@ -460,9 +460,9 @@ export function VendorManagement() {
       <Section title="Annual review">
         <Table
           columns={['Vendor', 'Last review', 'Outcome', 'Next review']}
-          rows={VENDORS.filter((vendor) => vendor.criticality === 'Critical').map((vendor) => [vendor.name, 'November 4, 2026', 'Approved. Agreement, security documentation, and service performance reviewed.', 'November 2027'])}
+          rows={VENDORS.filter((vendor) => vendor.criticality === 'Critical').map((vendor) => [vendor.name, VENDOR_REVIEW.critical.last, VENDOR_REVIEW.critical.outcome, VENDOR_REVIEW.critical.next])}
         />
-        <p>High and Moderate vendors are reviewed when their contract renews, or at least every two years, and sooner after any material change or incident.</p>
+        <p>{VENDOR_REVIEW.others}</p>
       </Section>
     </Document>
   );

@@ -113,6 +113,21 @@
   color: var(--compliance-color-muted);
 }
 
+.member {
+  white-space: nowrap;
+}
+
+.avatar {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -3px;
+  object-fit: cover;
+  background: var(--compliance-color-background-secondary);
+}
+
 .note {
   padding: 16px 24px;
   background: var(--compliance-color-background-secondary);

@@ -44,6 +44,7 @@ export interface Person {
 export interface SecurityRole {
   title: string;
   holders: string;
+  members: string[];
   reportsTo: string;
   policyRoles: string;
   purpose: string;
@@ -67,6 +68,7 @@ export interface EvidenceMeta {
   published_at: string;
   release: string | null;
   commit: string | null;
+  registers: string | null;
   checked_at: string;
 }
 
@@ -300,11 +302,16 @@ export interface EncryptionFinding {
   target: string | null;
 }
 
+export interface RenderMembership {
+  checked_at: string;
+  members: Record<string, boolean | null>;
+}
+
 export interface ReportInputs {
   release: string | null;
   accounts: Record<string, AccountState> | null;
   intdevOrganizations: Record<string, number> | null;
-  renderMembers: Record<string, boolean> | null;
+  renderMembership: RenderMembership | null;
   platformAdmins: PlatformAdminCensus | null;
   deletions: { evidenced: number; logged: number } | null;
   releaseScan: ReleaseScan | null;

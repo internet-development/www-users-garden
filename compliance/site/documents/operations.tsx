@@ -6,9 +6,11 @@ import internalCommunication2 from '@root/compliance/site/images/internal-commun
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
 import { ReleaseChecks } from '@root/compliance/site/Evidence';
-import { CheckTable, Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
+import { CheckTable, Fields, Figure, Group, Links, List, Mail, Member, People, Section, Table } from '@root/compliance/site/Blocks';
 import { CONTACTS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
 import { ALL_TERMINATIONS_VERIFIED_AT, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMINS_SETTLED_AT, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
+
+const OWNER = <Member name="Jimmy Lee" />;
 
 export function TabletopExercise() {
   return (
@@ -24,7 +26,7 @@ export function TabletopExercise() {
           items={[
             ['Exercise date', 'November 4, 2026'],
             ['Format', 'Facilitated tabletop discussion with timed injects. No production systems were touched.'],
-            ['Facilitator', 'Jimmy Lee (CEO, Incident Manager)'],
+            ['Facilitator', <Member key="facilitator" name="Jimmy Lee (CEO, Incident Manager)" />],
             ['Plans exercised', 'Business Continuity and Disaster Recovery Plan v1.0; Incident Response Plan v1.0, including Appendix D (AWS root account compromise)'],
             ['Systems in scope', 'INTDEV API (Render internet-apis, Oregon), its Render PostgreSQL database, Amazon S3 (us-west-2), Users Garden, the Terminal Graph site and account flows, GitHub, Cloudflare'],
             ['Participants', `${TEAM.length} of ${TEAM.length} team members; every participant acknowledged the scenario, worked through it, and signed off on the action items below`],
@@ -82,13 +84,13 @@ export function TabletopExercise() {
         <Table
           columns={['Action', 'Owner', 'Due']}
           rows={[
-            ['Harden credential storage and cross-origin encryption (INTDEV-2026-CRYPTO-01), coordinated with consuming sites', 'Jimmy Lee', 'December 4, 2026'],
-            ['Narrow the database network allow list (INTDEV-2026-NET-01)', 'Jimmy Lee', 'January 3, 2027'],
-            ['Turn on secret scanning and push protection for every repository in the internet-development GitHub organization', 'Jimmy Lee', 'December 4, 2026'],
-            ['Add alerts for unusual database connections and exports, and review Render audit logs monthly', 'Jimmy Lee', 'January 3, 2027'],
-            ['Run a real backup restore of the production database into an isolated instance, time it against the RTO, and record the result', 'Jimmy Lee', 'December 18, 2026'],
-            ['Write a credential-rotation runbook covering Render, AWS, Stripe, Mailgun, Twilio, OAuth clients, and the shared AES keys', 'Jimmy Lee', 'December 18, 2026'],
-            ['Remind everyone never to paste customer credentials into GitHub Issues or Slack, and cover it in security awareness training', 'Jimmy Lee', 'November 18, 2026'],
+            ['Harden credential storage and cross-origin encryption (INTDEV-2026-CRYPTO-01), coordinated with consuming sites', OWNER, 'December 4, 2026'],
+            ['Narrow the database network allow list (INTDEV-2026-NET-01)', OWNER, 'January 3, 2027'],
+            ['Turn on secret scanning and push protection for every repository in the internet-development GitHub organization', OWNER, 'December 4, 2026'],
+            ['Add alerts for unusual database connections and exports, and review Render audit logs monthly', OWNER, 'January 3, 2027'],
+            ['Run a real backup restore of the production database into an isolated instance, time it against the RTO, and record the result', OWNER, 'December 18, 2026'],
+            ['Write a credential-rotation runbook covering Render, AWS, Stripe, Mailgun, Twilio, OAuth clients, and the shared AES keys', OWNER, 'December 18, 2026'],
+            ['Remind everyone never to paste customer credentials into GitHub Issues or Slack, and cover it in security awareness training', OWNER, 'November 18, 2026'],
           ]}
         />
       </Section>
@@ -106,7 +108,7 @@ export function ContinuousDeployment() {
     <Document
       slug="ci-cd"
       title="CI/CD: production deployments"
-      summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A reviewed commit lands on main in GitHub, and Render builds it and releases it to production. Each table below is read from the Render API when you load this page."
+      summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A reviewed commit lands on main in GitHub, and Render builds it and releases it to production. Each table below is the Render API read made on a maintainer machine before the serving INTDEV API release was built; a deploy after that read, including the release’s own, appears with the next release."
       controls={['CI/CD system in use', 'Change management']}
     >
       <Section title="The CI/CD system">
@@ -150,7 +152,7 @@ export function ContinuousDeployment() {
         <Group>
           <p>Release is the first line of the commit message and the short commit ID. INTDEV tags releases by version in the commit message, for example 2.0.6 for the API. Deployment IDs match the Render dashboard. A state of Succeeded, superseded means the deploy went live and a later release replaced it.</p>
           <p>
-            The data comes from the public, read-only endpoint <a href="https://api.internet.dev/api/status/deploys">api.internet.dev/api/status/deploys</a>, which accepts a service name. It returns only these fields and is cached for 60 seconds.
+            The data comes from the public, read-only endpoint <a href="https://api.internet.dev/api/status/deploys">api.internet.dev/api/status/deploys</a>, which accepts a service name. It returns only these fields, from the Render API read made on a maintainer machine before the serving INTDEV API release was built and compiled into it. The running API holds no Render key and never calls Render, so a deploy made after that read appears with the next release.
           </p>
         </Group>
       </Section>
@@ -347,7 +349,7 @@ export function IncidentReport() {
             ['Severity', 'P1 (High) under the Incident Response Plan: a weakness with a direct risk of exploitation, because platform admin and Render workspace access were held by people no longer at INTDEV. No exploitation was found.'],
             ['Detected', 'November 4, 2026, by Jimmy Lee (CEO) in the Q4 2026 access review'],
             ['Detection method', 'Read-only query of platform admin (level 100) accounts in the production users table, and a read-only Render API listing of workspace members'],
-            ['Incident Manager', 'Jimmy Lee, Chief Executive Officer'],
+            ['Incident Manager', <Member key="manager" name="Jimmy Lee, Chief Executive Officer" />],
             ['Contained', `November 4, 2026, ${utc(ALL_TERMINATIONS_VERIFIED_AT)}, when every former account, including the fourth found by the platform admin follow-up, was verified with no access remaining`],
             ['Breach determination', 'Not a reportable breach. The CEO found no evidence that the retained access was used after departure. No customer, partner, or regulator notice was required.'],
             ['Status', 'Closed November 4, 2026. Corrective actions are in place; two follow-up actions are open and tracked below.'],
@@ -430,15 +432,15 @@ export function IncidentReport() {
         <CheckTable
           columns={['Action', 'Prevents', 'Owner', 'Done or due']}
           rows={[
-            { checked: true, cells: [`A termination register: every departure is a record with a ${TERMINATION_CHECKLIST.length}-step checklist, published by the INTDEV API at ${EVIDENCE_ENDPOINTS.terminations}`, 'Departures with no checklist', 'Jimmy Lee', 'November 4, 2026'] },
-            { checked: true, cells: ['The checklist includes INTDEV organization memberships: INTDEV’s own domains and every organization a current team member belongs to', 'Access missed outside the account level', 'Jimmy Lee', 'November 4, 2026'] },
-            { checked: true, cells: ['Naming a person in the termination register makes the API refuse every grant based on an INTDEV email address, even though the account keeps that address', 'Email-domain grants after departure', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
-            { checked: true, cells: ['Live checks: the termination records and the compliance report re-check every former account’s level, organization memberships, domain grants, and, with a Render key, Render membership each time they load', 'Undetected retained access', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
-            { checked: true, cells: ['The launch scan checks revoked access for every former team member each time a production instance starts', 'A release that undoes a revocation', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
-            { checked: true, cells: ['A revocation records the account’s previous level and may only lower it. The register validation and the API test suite fail on a revocation that raises an account or leaves platform admin in place', 'A containment change that raises access', 'Jimmy Lee', 'November 4, 2026'] },
-            { checked: true, cells: ['Give every platform admin account outside the access register a named owner, or lower it. The compliance report counts platform admin accounts against the access register and the system account register on every load', 'Admin access no one is accountable for', 'Jimmy Lee', 'November 4, 2026'] },
-            { checked: false, cells: ['Reconcile GitHub, Google Workspace, Stripe, and Vanta memberships with the current roster', 'Retained access in the remaining systems', 'Jimmy Lee', 'December 4, 2026'] },
-            { checked: false, cells: ['Enforce MFA for every Render workspace member', 'Misuse of a Render membership', 'Jimmy Lee', 'November 18, 2026'] },
+            { checked: true, cells: [`A termination register: every departure is a record with a ${TERMINATION_CHECKLIST.length}-step checklist, published by the INTDEV API at ${EVIDENCE_ENDPOINTS.terminations}`, 'Departures with no checklist', OWNER, 'November 4, 2026'] },
+            { checked: true, cells: ['The checklist includes INTDEV organization memberships: INTDEV’s own domains and every organization a current team member belongs to', 'Access missed outside the account level', OWNER, 'November 4, 2026'] },
+            { checked: true, cells: ['Naming a person in the termination register makes the API refuse every grant based on an INTDEV email address, even though the account keeps that address', 'Email-domain grants after departure', OWNER, `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['Live checks: the termination records and the compliance report re-check every former account’s level, organization memberships, and domain grants each time they load, and every release carries a Render membership read made before it was built', 'Undetected retained access', OWNER, `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['The launch scan checks revoked access for every former team member each time a production instance starts', 'A release that undoes a revocation', OWNER, `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['A revocation records the account’s previous level and may only lower it. The register validation and the API test suite fail on a revocation that raises an account or leaves platform admin in place', 'A containment change that raises access', OWNER, 'November 4, 2026'] },
+            { checked: true, cells: ['Give every platform admin account outside the access register a named owner, or lower it. The compliance report counts platform admin accounts against the access register and the system account register on every load', 'Admin access no one is accountable for', OWNER, 'November 4, 2026'] },
+            { checked: false, cells: ['Reconcile GitHub, Google Workspace, Stripe, and Vanta memberships with the current roster', 'Retained access in the remaining systems', OWNER, 'December 4, 2026'] },
+            { checked: false, cells: ['Enforce MFA for every Render workspace member', 'Misuse of a Render membership', OWNER, 'November 18, 2026'] },
           ]}
         />
       </Section>
@@ -447,7 +449,7 @@ export function IncidentReport() {
         <List
           items={[
             `Immediate: the re-verification at ${utc(TERMINATIONS_REVERIFIED_AT)} on November 4, 2026, and the verification of all four records at ${utc(ALL_TERMINATIONS_VERIFIED_AT)}, found every checklist step complete and no access remaining for any former team member.`,
-            'Continuous: the compliance report runs the termination checks against production every time it loads: no former team member at platform admin, every former account at its recorded level, no INTDEV organization memberships, email-domain grants refused, and no Render workspace membership. A check that production contradicts shows as open.',
+            'Continuous: the compliance report runs the termination checks against production every time it loads: no former team member at platform admin, every former account at its recorded level, no INTDEV organization memberships, email-domain grants refused, and no Render workspace membership in the Render read compiled into the serving release. A check that production contradicts shows as open.',
             'Scheduled: the Q1 2027 access review, due March 31, 2027, confirms that every departure since this incident was closed within 24 business hours. A missed departure is recorded as a new nonconformity under the Incident Response Plan.',
           ]}
         />
@@ -483,8 +485,8 @@ export function IncidentReport() {
       <Section title="Review and sign-off">
         <Fields
           items={[
-            ['Root cause analysis reviewed by', 'Jimmy Lee, Chief Executive Officer and acting Chief Technology Officer, the reviewer the Incident Response Plan names, November 4, 2026'],
-            ['Breach determination by', 'Jimmy Lee, Chief Executive Officer, November 4, 2026'],
+            ['Root cause analysis reviewed by', <Member key="reviewer" name="Jimmy Lee, Chief Executive Officer and acting Chief Technology Officer, the reviewer the Incident Response Plan names, November 4, 2026" />],
+            ['Breach determination by', <Member key="determination" name="Jimmy Lee, Chief Executive Officer, November 4, 2026" />],
             ['Next review', 'With the Q1 2027 access review, due March 31, 2027'],
           ]}
         />

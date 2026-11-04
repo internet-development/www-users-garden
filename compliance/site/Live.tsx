@@ -7,7 +7,7 @@ import * as React from 'react';
 import type { DeployStatus, PublicDeploy } from '@root/compliance/site/types';
 
 import { API_HOST } from '@root/compliance/site/facts';
-import { DEPLOY_SNAPSHOT, DEPLOY_SNAPSHOT_CAPTURED_AT } from '@root/compliance/site/deploy-snapshot';
+import { DEPLOY_SNAPSHOT, DEPLOY_SNAPSHOT_CAPTURED_AT } from '@root/compliance/site/render-snapshot';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -94,9 +94,9 @@ function useDeployStatus(service: string) {
 }
 
 function sourceLine(source: 'snapshot' | 'live' | 'loading', status: DeployStatus | null) {
-  if (source === 'live' && status) return `Live from the Render API through ${API_HOST}/api/status/deploys, read ${formatUtc(status.fetched_at)}.`;
-  if (source === 'loading') return `Loading live data from ${API_HOST}/api/status/deploys. Showing the snapshot captured ${formatUtc(DEPLOY_SNAPSHOT_CAPTURED_AT)}.`;
-  return `Live data is unavailable right now. Showing the Render API snapshot captured ${formatUtc(DEPLOY_SNAPSHOT_CAPTURED_AT)}.`;
+  if (source === 'live' && status) return `Read from the Render API ${formatUtc(status.fetched_at)} and compiled into the INTDEV API release serving ${API_HOST}/api/status/deploys.`;
+  if (source === 'loading') return `Loading the deploy record from ${API_HOST}/api/status/deploys. Showing the Render API read of ${formatUtc(DEPLOY_SNAPSHOT_CAPTURED_AT)} compiled into this page.`;
+  return `The INTDEV API deploy record is unavailable right now. Showing the Render API read of ${formatUtc(DEPLOY_SNAPSHOT_CAPTURED_AT)} compiled into this page.`;
 }
 
 function release(deploy: PublicDeploy) {

@@ -67,23 +67,60 @@ export const FORMER_TEAM = [
   { name: 'Xiangan He', type: 'Team member', joined: 'January 4, 2024 (account created)', left: 'April 2025, having quit; exact day not recorded', userId: '729f61e8-085e-4954-b5e6-06047a8cb029' },
 ];
 
+const TEAM_BY_NAME = new Map(TEAM.map((person) => [person.name, person]));
+
+export function teamMember(text: string): Person | null {
+  const exact = TEAM_BY_NAME.get(text);
+  if (exact) return exact;
+  return TEAM.find((person) => text.startsWith(`${person.name},`) || text.startsWith(`${person.name} (`) || text.startsWith(`${person.name} `)) ?? null;
+}
+
 export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
 
 export const EXECUTIVE = 'Jimmy Lee';
 
 const TECHNICAL_STAFF = TEAM.filter((person) => person.name !== EXECUTIVE).map((person) => person.name);
 
-const EVERY_MEMBER = `Every Member of Technical Staff: ${TECHNICAL_STAFF.join(', ')}`;
+export const EVERY_MEMBER_LABEL = 'Every Member of Technical Staff';
+
+export const EVERY_MEMBER = `${EVERY_MEMBER_LABEL}: ${TECHNICAL_STAFF.join(', ')}`;
+
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+
+export function countWord(count: number): string {
+  return NUMBER_WORDS[count] ?? String(count);
+}
+
+export const POLICIES = [
+  { name: 'Information Security Policy (including Acceptable Use)', owner: 'CEO' },
+  { name: 'Access Control Policy', owner: 'CEO' },
+  { name: 'Asset Management Policy', owner: 'Chief Technology Officer' },
+  { name: 'Business Continuity and Disaster Recovery Plan', owner: 'Chief Technology Officer' },
+  { name: 'Code of Conduct', owner: 'CEO' },
+  { name: 'Cryptography Policy', owner: 'CEO' },
+  { name: 'Data Management Policy', owner: 'CEO' },
+  { name: 'Human Resource Security Policy', owner: 'Chief Executive Officer' },
+  { name: 'Incident Response Plan', owner: 'CEO' },
+  { name: 'Information Security Roles and Responsibilities Policy', owner: 'CEO' },
+  { name: 'Operations Security Policy', owner: 'CEO' },
+  { name: 'Physical Security Policy', owner: 'CEO' },
+  { name: 'Risk Management Policy', owner: 'Chief Executive Officer' },
+  { name: 'Secure Development Policy', owner: 'CEO' },
+  { name: 'Third-Party Management Policy', owner: 'CEO' },
+];
+
+export const POLICY_COUNT = countWord(POLICIES.length);
 
 export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'Chief Information Security Officer (CISO)',
     holders: `${EXECUTIVE}, who is also Chief Executive Officer`,
+    members: [EXECUTIVE],
     reportsTo: 'Board of Directors',
     policyRoles: 'Executive Leadership, CTO, and Security and Compliance Manager',
     purpose: 'Owns INTDEV’s information security program and is accountable for the confidentiality, integrity, and availability of every INTDEV system and all customer data.',
     responsibilities: [
-      'Writes and approves the thirteen information security policies, reviews them every year, and makes sure every team member acknowledges them.',
+      `Writes and approves the ${POLICY_COUNT} information security policies, reviews them every year, and makes sure every team member acknowledges them.`,
       'Runs the risk management program: the annual risk assessment, the Vanta risk register, risk treatment plans and their sign-off, and the annual cybersecurity and privacy briefing to the board.',
       'Sets the security architecture and control requirements for the INTDEV API, Users Garden, Terminal Graph, AWS, Render, and Cloudflare, and monitors them through GuardDuty alerts, VPC Flow Logs, release scans, the device check, and Vanta.',
       'Approves privileged access, runs the quarterly access review, and closes every termination checklist.',
@@ -100,6 +137,7 @@ export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'Security Engineer',
     holders: EVERY_MEMBER,
+    members: TECHNICAL_STAFF,
     reportsTo: 'Chief Information Security Officer',
     policyRoles: 'Engineering Lead and Systems Owners',
     purpose: 'Builds security into everything INTDEV ships, and finds and fixes weaknesses before they reach customers.',
@@ -120,6 +158,7 @@ export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'DevOps (production operations)',
     holders: `${EVERY_MEMBER}. Platform admin access is held only as approved in the access register.`,
+    members: TECHNICAL_STAFF,
     reportsTo: 'Chief Information Security Officer',
     policyRoles: 'Engineering Lead and Systems Owners, and the operation and monitoring of IT security controls',
     purpose: 'Keeps production available, patched, and monitored, and changes it only through reviewed and audited paths.',
@@ -140,6 +179,7 @@ export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'Privacy Management Lead (Data Protection Officer)',
     holders: `${EXECUTIVE}, who is also CISO`,
+    members: [EXECUTIVE],
     reportsTo: 'Board of Directors',
     policyRoles: 'Security and Compliance Manager (privacy law) and Customer Support Lead (retention and deletion)',
     purpose: 'Accountable for how INTDEV collects, uses, keeps, and deletes personal data, and for compliance with privacy law and customer contracts.',
@@ -159,6 +199,7 @@ export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'Privacy Team member',
     holders: EVERY_MEMBER,
+    members: TECHNICAL_STAFF,
     reportsTo: 'Privacy Management Lead',
     policyRoles: 'Customer Support Lead (on rotation) and the duties of all employees and contractors',
     purpose: 'Protects personal data in everything they build and in every request they handle.',
@@ -173,23 +214,10 @@ export const SECURITY_ROLES: SecurityRole[] = [
   },
 ];
 
-export const POLICIES = [
-  { name: 'Information Security Policy (including Acceptable Use)', owner: 'CEO' },
-  { name: 'Access Control Policy', owner: 'CEO' },
-  { name: 'Business Continuity and Disaster Recovery Plan', owner: 'Chief Technology Officer' },
-  { name: 'Code of Conduct', owner: 'CEO' },
-  { name: 'Cryptography Policy', owner: 'CEO' },
-  { name: 'Data Management Policy', owner: 'CEO' },
-  { name: 'Human Resource Security Policy', owner: 'Chief Executive Officer' },
-  { name: 'Incident Response Plan', owner: 'CEO' },
-  { name: 'Information Security Roles and Responsibilities Policy', owner: 'CEO' },
-  { name: 'Operations Security Policy', owner: 'CEO' },
-  { name: 'Risk Management Policy', owner: 'Chief Executive Officer' },
-  { name: 'Secure Development Policy', owner: 'CEO' },
-  { name: 'Third-Party Management Policy', owner: 'CEO' },
-];
 
-export const POLICY_DATES = 'Version 1.0, approved by Jimmy Lee (CEO) on September 8, 2026, effective September 26, 2026';
+export const POLICY_APPROVAL = { version: '1.0', approved_by: 'Jimmy Lee, Chief Executive Officer', approved_at: '2026-09-08', effective_at: '2026-09-26', classification: 'Restricted', access: 'Available to customers and auditors under NDA from eng@internet.dev' };
+
+export const POLICY_DATES = `Version ${POLICY_APPROVAL.version}, approved by Jimmy Lee (CEO) on September 8, 2026, effective September 26, 2026`;
 
 export const VENDORS: Vendor[] = [
   { name: 'Render', service: 'Application hosting, CI/CD, and managed PostgreSQL for the INTDEV API, Users Garden, and the Terminal Graph site', criticality: 'Critical', data: 'All customer data at rest in PostgreSQL; application logs', owner: 'Jimmy Lee', terms: 'https://render.com/terms', privacy: 'https://render.com/privacy', security: 'https://render.com/security' },
@@ -205,6 +233,11 @@ export const VENDORS: Vendor[] = [
   { name: 'Slack', service: 'Internal communication and incident war room', criticality: 'Moderate', data: 'Restricted internal communication', owner: 'Jimmy Lee', terms: 'https://slack.com/terms-of-service', privacy: 'https://slack.com/trust/privacy/privacy-policy', security: 'https://slack.com/trust' },
   { name: 'Vanta', service: 'Compliance automation, policy management, risk register, and read-only AWS monitoring', criticality: 'Moderate', data: 'Configuration metadata; policy documents', owner: 'Jimmy Lee', terms: 'https://www.vanta.com/legal', privacy: 'https://www.vanta.com/legal/privacy', security: 'https://www.vanta.com/security' },
 ];
+
+export const VENDOR_REVIEW = {
+  critical: { last: 'November 4, 2026', outcome: 'Approved. Agreement, security documentation, and service performance reviewed.', next: 'November 2027' },
+  others: 'High and Moderate vendors are reviewed when their contract renews, or at least every two years, and sooner after any material change or incident.',
+};
 
 export const PUBLIC_TERMS = [
   { label: 'Terms of Service — all INTDEV products, services, and open source', href: 'https://txt.dev/wwwjim/intdev-terms-of-service' },

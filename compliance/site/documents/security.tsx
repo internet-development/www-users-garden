@@ -3,7 +3,7 @@ import fileVaultEncryption from '@root/compliance/site/images/filevault-encrypti
 
 import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
 import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES } from '@root/compliance/site/records';
-import { Fields, Figure, Group, Links, List, Mail, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Figure, Group, Links, List, Mail, Member, Section, Table } from '@root/compliance/site/Blocks';
 import { DeviceEncryptionReport, FileVaultStandardReport, RemediationRecords, SoftwareInventoryRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
@@ -287,7 +287,7 @@ export function PenetrationTestReport() {
             ['Test lead', PENETRATION_TEST.lead],
             ['Test type', 'Manual adversarial testing: people actively trying to break the API, not an automated scan'],
             ['Result', PENETRATION_TEST.result],
-            ['Attested by', `${PENETRATION_TEST.attestedBy}, ${PENETRATION_TEST.attestedAt}`],
+            ['Attested by', <Member key="attested" name={`${PENETRATION_TEST.attestedBy}, ${PENETRATION_TEST.attestedAt}`} />],
           ]}
         />
       </Section>
@@ -623,7 +623,7 @@ export function FirewallReview() {
       controls={['Network firewalls reviewed']}
     >
       <Section title="2026 review">
-        <Fields items={[['Date', 'November 4, 2026'], ['Reviewer', 'Jimmy Lee'], ['Scope', 'Cloudflare edge, Render service and database network access, and AWS EC2 security groups and VPCs']]} />
+        <Fields items={[['Date', 'November 4, 2026'], ['Reviewer', <Member key="reviewer" name="Jimmy Lee" />], ['Scope', 'Cloudflare edge, Render service and database network access, and AWS EC2 security groups and VPCs']]} />
         <Table
           columns={['Ruleset', 'Result', 'Tracked change']}
           rows={[

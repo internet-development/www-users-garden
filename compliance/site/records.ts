@@ -15,7 +15,22 @@ export const EVIDENCE_ENDPOINTS = {
   releases: '/api/compliance/releases',
   devices: '/api/compliance/devices',
   encryption: '/api/compliance/encryption',
+  pages: '/api/compliance/pages',
+  team: '/api/compliance/team',
+  policies: '/api/compliance/policies',
+  vendors: '/api/compliance/vendors',
+  network: '/api/compliance/network',
+  penetrationTest: '/api/compliance/penetration-test',
+  bugBounty: '/api/compliance/bug-bounty',
 } as const;
+
+export type EvidenceKey = keyof typeof EVIDENCE_ENDPOINTS;
+
+export const COMPILED_EVIDENCE: readonly EvidenceKey[] = ['pages', 'team', 'policies', 'vendors', 'network', 'penetrationTest', 'bugBounty'];
+
+export function isCompiledEvidence(key: EvidenceKey): boolean {
+  return COMPILED_EVIDENCE.includes(key);
+}
 
 export const DEVICE_CHECK_IN = '/api/compliance/devices/check-in';
 
@@ -424,6 +439,8 @@ export const VULNERABILITY_SCAN = {
     { severity: 'Low', before: '1 (HSTS)', after: '1, scheduled' },
   ],
 };
+
+export const NETWORK_EXPORTED_AT = '2026-11-04';
 
 export const SECURITY_GROUP_EXPORT = [
   { region: 'us-east-1', group: 'default', inbound: 'All traffic from members of the same group only', outbound: 'All', attached: 'Nothing (no network interfaces)' },

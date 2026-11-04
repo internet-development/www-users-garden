@@ -4,14 +4,15 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, TrainingCourse, Vulnerability } from '@root/compliance/site/types';
 
-import { CheckItem, CheckTable, Signed, State, Table } from '@root/compliance/site/Blocks';
+import { CheckItem, CheckTable, Member, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
 import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
+import { KIT_REGISTERS } from '@root/compliance/site/kit';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -64,7 +65,8 @@ function EvidenceSource(props: { path: string; source: Source; meta: EvidenceMet
   let line: React.ReactNode;
   if (props.source === 'live' && props.meta) {
     const release = props.meta.release ? `release ${props.meta.release}${props.meta.commit ? `, commit ${props.meta.commit}` : ''}` : 'release unknown';
-    line = `Live from the INTDEV API (${release}, published ${formatUtc(props.meta.published_at)}), checked ${formatUtc(props.meta.checked_at)}.${props.liveCheck === 'unavailable' ? ' The production database could not be read for this response, so live checks are blank.' : ''}`;
+    const drift = props.meta.registers && props.meta.registers !== KIT_REGISTERS ? ` That release serves registers ${props.meta.registers} and this page was built with ${KIT_REGISTERS}, so the records above come from the API.` : '';
+    line = `Live from the INTDEV API (${release}, published ${formatUtc(props.meta.published_at)}), checked ${formatUtc(props.meta.checked_at)}.${props.liveCheck === 'unavailable' ? ' The production database could not be read for this response, so live checks are blank.' : ''}${drift}`;
   } else if (props.source === 'loading') {
     line = 'Loading the live record from the INTDEV API. Showing the published register.';
   } else {
@@ -75,6 +77,10 @@ function EvidenceSource(props: { path: string; source: Source; meta: EvidenceMet
       {line} Record: <a href={url}>{url.replace('https://', '')}</a>
     </p>
   );
+}
+
+function served<T>(meta: EvidenceMeta | undefined, live: T | undefined, compiled: T): T {
+  return meta?.registers && live ? live : compiled;
 }
 
 function levelLine(live: LiveLevel | undefined, recorded: number) {
@@ -93,6 +99,7 @@ export function AccessRequestRecords() {
   const path = EVIDENCE_ENDPOINTS.accessRequests;
   const { data, source } = useEvidence<{ records: LiveGrant[]; evidence: EvidenceMeta; live_check: string }>(path);
   const live = new Map((data?.records ?? []).map((record) => [record.id, record]));
+  const grants: AccessGrant[] = served(data?.evidence, data?.records, ACCESS_GRANTS);
 
   return (
     <div className={styles.group}>
@@ -108,7 +115,7 @@ export function AccessRequestRecords() {
             </tr>
           </thead>
           <tbody>
-            {ACCESS_GRANTS.map((grant) => {
+            {grants.map((grant) => {
               const current = live.get(grant.id);
               return (
                 <tr key={grant.id}>
@@ -118,12 +125,12 @@ export function AccessRequestRecords() {
                     {grant.kind === 'grant' ? 'Grant' : 'Revocation'}
                   </td>
                   <td>
-                    {grant.request.by}, {formatDay(grant.request.at)}
+                    <Member name={grant.request.by} />, {formatDay(grant.request.at)}
                     <br />
                     <span className={styles.muted}>{grant.request.detail}</span>
                   </td>
                   <td>
-                    {grant.approval.decision} by {grant.approval.by}, {formatDay(grant.approval.at)}
+                    {grant.approval.decision} by <Member name={grant.approval.by} />, {formatDay(grant.approval.at)}
                     <br />
                     <span className={styles.muted}>{grant.approval.detail}</span>
                   </td>
@@ -162,7 +169,7 @@ export function SystemAccountRecords() {
     <div className={styles.group}>
       <CheckTable
         columns={['Account', 'Purpose', 'Documented level', 'Live check']}
-        rows={SYSTEM_ACCOUNTS.map((record) => {
+        rows={served<SystemAccount[]>(data?.evidence, data?.system_accounts, SYSTEM_ACCOUNTS).map((record) => {
           const current = live.get(record.id);
           const inEffect = current ? current.live.in_effect : null;
           return {
@@ -177,7 +184,7 @@ export function SystemAccountRecords() {
                 {record.purpose}
                 <br />
                 <span className={styles.muted}>
-                  Owner: {record.owner}, approved {formatDay(record.approved_at)}
+                  Owner: <Member name={record.owner} />, approved {formatDay(record.approved_at)}
                 </span>
               </span>,
               `${record.level_name} (${record.level})`,
@@ -205,7 +212,7 @@ type LiveTermination = TerminationRecord & { progress: { completed: number; tota
 
 const REVERIFIED = `verified ${formatUtc(ALL_TERMINATIONS_VERIFIED_AT)}`;
 
-function accessChecks(record: TerminationRecord, current: LiveTermination | undefined, renderLive: boolean) {
+function accessChecks(record: TerminationRecord, current: LiveTermination | undefined, renderReadAt: string | null) {
   const live = current?.live;
   const organizations = live?.intdev_organizations ?? null;
   const render = live?.render_member ?? null;
@@ -226,32 +233,33 @@ function accessChecks(record: TerminationRecord, current: LiveTermination | unde
       checked: live ? live.domain_grants_refused ?? null : null,
       cells: ['Staff grants by INTDEV email address refused', <State key="domain" ok={live ? live.domain_grants_refused ?? null : null}>{live?.domain_grants_refused ? 'Refused by this termination record' : 'Pending live check'}</State>, 'INTDEV API authorization, live'],
     },
-    renderLive && render !== null
-      ? { checked: !render, cells: ['Not in a Render workspace', <State key="render" ok={!render}>{render ? 'Still a member' : 'Not a member of any INTDEV workspace'}</State>, 'Render API, live'] }
+    renderReadAt && render !== null
+      ? { checked: !render, cells: ['Not in a Render workspace', <State key="render" ok={!render}>{render ? 'Still a member' : 'Not a member of any INTDEV workspace'}</State>, `Render API, read ${formatUtc(renderReadAt)} for the serving release`] }
       : { checked: true, cells: ['Not in a Render workspace', 'Not a member of any INTDEV workspace', `Render API, ${REVERIFIED}`] },
   ];
 }
 
 export function TerminationRecords() {
   const path = EVIDENCE_ENDPOINTS.terminations;
-  const { data, source } = useEvidence<{ records: LiveTermination[]; evidence: EvidenceMeta; live_check: string; render_check?: string }>(path);
+  const { data, source } = useEvidence<{ records: LiveTermination[]; evidence: EvidenceMeta; live_check: string; render_check?: string; render_checked_at?: string | null }>(path);
   const live = new Map((data?.records ?? []).map((record) => [record.id, record]));
-  const renderLive = data?.render_check === 'verified';
-  const closed = TERMINATIONS.filter((record) => record.closed_at !== null).length;
-  const steps = TERMINATIONS.flatMap((record) => record.steps);
+  const records: TerminationRecord[] = served(data?.evidence, data?.records, TERMINATIONS);
+  const renderReadAt = data?.render_check === 'snapshot' ? data.render_checked_at ?? null : null;
+  const closed = records.filter((record) => record.closed_at !== null).length;
+  const steps = records.flatMap((record) => record.steps);
   const stepsCompleted = steps.filter((step) => step.status === 'completed').length;
 
   return (
     <div className={styles.group}>
       <p>
-        <CheckItem checked={closed === TERMINATIONS.length && stepsCompleted === steps.length}>
-          {closed} of {TERMINATIONS.length} termination records closed. {stepsCompleted} of {steps.length} checklist steps complete.
+        <CheckItem checked={closed === records.length && stepsCompleted === steps.length}>
+          {closed} of {records.length} termination records closed. {stepsCompleted} of {steps.length} checklist steps complete.
         </CheckItem>
       </p>
       <CheckTable
         columns={['Record', 'Closed', 'Checklist', 'Access checks']}
-        rows={TERMINATIONS.map((record) => {
-          const checks = accessChecks(record, live.get(record.id), renderLive);
+        rows={records.map((record) => {
+          const checks = accessChecks(record, live.get(record.id), renderReadAt);
           const passing = checks.filter((item) => item.checked === true).length;
           const failing = checks.some((item) => item.checked === false);
           const completed = record.steps.filter((step) => step.status === 'completed').length;
@@ -261,7 +269,7 @@ export function TerminationRecords() {
           };
         })}
       />
-      {TERMINATIONS.map((record) => {
+      {records.map((record) => {
         const current = live.get(record.id);
         return (
           <div key={record.id} className={styles.group}>
@@ -286,7 +294,7 @@ export function TerminationRecords() {
                 </div>
               ))}
             </div>
-            <CheckTable columns={['Access check', 'Result', 'Source']} rows={accessChecks(record, current, renderLive)} />
+            <CheckTable columns={['Access check', 'Result', 'Source']} rows={accessChecks(record, current, renderReadAt)} />
             <CheckTable
               columns={['Checklist step', 'Method', 'Completed', 'Evidence']}
               rows={record.steps.map((step, index) => {
@@ -309,30 +317,33 @@ type LiveTraining = TrainingCompletion & { signed: boolean; live: LiveLevel };
 
 export function TrainingRoster() {
   const path = EVIDENCE_ENDPOINTS.training;
-  const { data, source } = useEvidence<{ records: LiveTraining[]; evidence: EvidenceMeta; live_check: string }>(path);
+  const { data, source } = useEvidence<{ courses?: TrainingCourse[]; records: LiveTraining[]; evidence: EvidenceMeta; live_check: string }>(path);
   const live = new Map((data?.records ?? []).map((record) => [record.user_id, record]));
-  const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;
+  const courses = served(data?.evidence, data?.courses, TRAINING_COURSES);
+  const completions: TrainingCompletion[] = served(data?.evidence, data?.records, TRAINING_COMPLETIONS);
+  const complete = (record: TrainingCompletion) => courses.every((course) => record.courses.includes(course.id));
+  const signed = completions.filter(complete).length;
 
   return (
     <div className={styles.group}>
       <p>
-        <CheckItem checked={signed === TRAINING_COMPLETIONS.length}>
-          {signed} of {TRAINING_COMPLETIONS.length} team members signed both courses.
+        <CheckItem checked={signed === completions.length}>
+          {signed} of {completions.length} team members signed {courses.length === 2 ? 'both courses' : `all ${courses.length} courses`}.
         </CheckItem>
       </p>
       <CheckTable
-        columns={['Team member', ...TRAINING_COURSES.map((course) => course.title.replace(/ training$/, '')), 'Signed', 'INTDEV API level']}
-        rows={TRAINING_COMPLETIONS.map((record) => {
+        columns={['Team member', ...courses.map((course) => course.title.replace(/ training$/, '')), 'Signed', 'INTDEV API level']}
+        rows={completions.map((record) => {
           const current = live.get(record.user_id);
           return {
-            checked: TRAINING_COURSES.every((course) => record.courses.includes(course.id)),
+            checked: complete(record),
             cells: [
               <span key="person">
-                {record.person}
+                <Member name={record.person} />
                 <br />
                 <span className={styles.muted}>{record.role}</span>
               </span>,
-              ...TRAINING_COURSES.map((course) => (
+              ...courses.map((course) => (
                 <CheckItem key={course.id} checked={record.courses.includes(course.id)}>
                   {record.courses.includes(course.id) ? 'Completed' : 'Not completed'}
                 </CheckItem>
@@ -340,7 +351,9 @@ export function TrainingRoster() {
               <span key="signed">
                 {formatDay(record.signed_at)}
                 <br />
-                <span className={styles.muted}>Confirmed by {record.confirmation.by.split(',')[0]}</span>
+                <span className={styles.muted}>
+                  Confirmed by <Member name={record.confirmation.by.split(',')[0] ?? record.confirmation.by} />
+                </span>
               </span>,
               current ? levelLine(current.live, 0) : <State key="level" ok={null}>Pending live check</State>,
             ],
@@ -358,7 +371,8 @@ export function RemediationRecords(props: { ids?: string[] }) {
   const path = EVIDENCE_ENDPOINTS.vulnerabilities;
   const { data, source } = useEvidence<{ findings: LiveVulnerability[]; evidence: EvidenceMeta }>(path);
   const live = new Map((data?.findings ?? []).map((finding) => [finding.id, finding]));
-  const findings = props.ids ? VULNERABILITIES.filter((finding) => props.ids?.includes(finding.id)) : VULNERABILITIES;
+  const register: Vulnerability[] = served(data?.evidence, data?.findings, VULNERABILITIES);
+  const findings = props.ids ? register.filter((finding) => props.ids?.includes(finding.id)) : register;
 
   return (
     <div className={styles.group}>
@@ -398,7 +412,7 @@ export function RemediationRecords(props: { ids?: string[] }) {
                       ['Target', finding.treatment.target],
                       ['Next review', finding.treatment.review],
                       ['Management sign-off', <Signed key="signed" at={formatDay(finding.treatment.approved_at)} />],
-                      ['Approved by', finding.treatment.approved_by],
+                      ['Approved by', <Member key="approved" name={finding.treatment.approved_by} />],
                       ['Ratified', finding.treatment.ratified],
                     ] as [string, React.ReactNode][]
                   ).map(([label, value]) => (
@@ -430,6 +444,7 @@ export function SoftwareInventoryRecord() {
   const software = data?.software ?? null;
   const live = new Map((software?.packages ?? []).map((item) => [item.name, item]));
   const pending = source === 'loading';
+  const packages: (typeof API_SOFTWARE)[number][] = served(data?.evidence, software?.packages, API_SOFTWARE);
   const row = (item: (typeof API_SOFTWARE)[number]) => {
     const current = live.get(item.name);
     return [item.name, item.purpose, current ? (current.declared ?? 'Not declared') : '—', installedLine(current, pending)];
@@ -440,8 +455,8 @@ export function SoftwareInventoryRecord() {
       <p>
         Runtime: Node.js {software ? <>{software.node.running} on api.internet.dev; {API_MANIFEST} declares {software.node.declared ?? 'no engine range'}</> : <State ok={null}>{pending ? 'pending live check' : 'unavailable'}</State>}.
       </p>
-      <Table columns={['Production package', 'Used for', 'package.json', 'Installed in production']} rows={API_SOFTWARE.filter((item) => item.scope === 'production').map(row)} />
-      <Table columns={['Development package', 'Used for', 'package.json', 'Installed in production']} rows={API_SOFTWARE.filter((item) => item.scope === 'development').map(row)} />
+      <Table columns={['Production package', 'Used for', 'package.json', 'Installed in production']} rows={packages.filter((item) => item.scope === 'production').map(row)} />
+      <Table columns={['Development package', 'Used for', 'package.json', 'Installed in production']} rows={packages.filter((item) => item.scope === 'development').map(row)} />
       {software && software.undocumented.length ? (
         <p>
           <State ok={false}>Declared in package.json but not yet described here: {software.undocumented.join(', ')}.</State>
@@ -615,7 +630,7 @@ function encryptionLine(device: DeviceRecord): string {
   return device.filevault.on ? 'FileVault on, but the data volume does not report encryption' : 'FileVault off';
 }
 
-function deviceRow(person: string, device: DeviceRecord) {
+function deviceRow(person: React.ReactNode, device: DeviceRecord) {
   const current = device.current;
   const removable = device.removable_media;
   return {
@@ -652,19 +667,20 @@ function deviceRow(person: string, device: DeviceRecord) {
 export function DeviceEncryptionReport() {
   const path = EVIDENCE_ENDPOINTS.devices;
   const { data, source } = useEvidence<LiveDevices>(path);
-  const members = new Map((data?.members ?? []).map((member) => [member.user_id, member]));
   const summary = data?.summary ?? null;
+  const members = new Map((data?.members ?? []).map((member) => [member.user_id, member]));
+  const compiledRoster = TEAM.map((person) => members.get(person.userId) ?? { person: person.name, user_id: person.userId, reporting: false, devices: [] });
+  const roster: Pick<DeviceMember, 'person' | 'user_id' | 'reporting' | 'devices'>[] = served(data?.evidence, data?.members, compiledRoster);
 
-  const rows = TEAM.flatMap((person) => {
-    const member = members.get(person.userId);
-    const devices = member?.devices ?? [];
-    if (member?.reporting) return devices.map((device) => deviceRow(person.name, device));
+  const rows = roster.flatMap((member) => {
+    const name = <Member key="person" name={member.person} />;
+    if (member.reporting) return member.devices.map((device) => deviceRow(name, device));
     const pending = !data;
     const missing = {
       checked: pending ? null : false,
-      cells: [person.name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—', '—', '—'],
+      cells: [name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—', '—', '—'],
     };
-    return [missing, ...devices.map((device) => deviceRow(person.name, device))];
+    return [missing, ...member.devices.map((device) => deviceRow(name, device))];
   });
 
   return (
@@ -673,7 +689,7 @@ export function DeviceEncryptionReport() {
         <CheckItem checked={summary ? summary.members > 0 && summary.members_encrypted === summary.members : null}>
           {summary
             ? `${summary.members_encrypted} of ${summary.members} team members have every current laptop encrypted with FileVault, and ${summary.members_reporting} reported in the last ${DEVICE_CHECK_FRESH_DAYS} days. ${summary.devices_encrypted} of ${summary.devices} current laptops are encrypted, ${summary.devices_aes_256} of them with AES-256.`
-            : `${TEAM.length} team members. Each laptop’s encryption loads from the INTDEV API.`}
+            : `${roster.length} team members. Each laptop’s encryption loads from the INTDEV API.`}
         </CheckItem>
       </p>
       {summary ? (

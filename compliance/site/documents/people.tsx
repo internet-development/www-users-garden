@@ -2,9 +2,9 @@ import Document from '@root/compliance/site/Document';
 
 import type { Person } from '@root/compliance/site/types';
 
-import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, TEAM } from '@root/compliance/site/facts';
+import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, EXECUTIVE, TEAM } from '@root/compliance/site/facts';
 import { EVIDENCE_ENDPOINTS, TRAINING_COURSES } from '@root/compliance/site/records';
-import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 import { TrainingRoster } from '@root/compliance/site/Evidence';
 
 const LEADERSHIP_TYPES: Record<string, string> = {
@@ -75,7 +75,7 @@ export function BackgroundChecks() {
         />
       </Section>
       <Section title="Record">
-        <Table columns={['Team member', 'Position', 'Background check']} rows={TEAM.map((person) => [person.name, staffType(person), 'Completed before access was granted'])} />
+        <Table columns={['Team member', 'Position', 'Background check']} rows={TEAM.map((person) => [<Member key="name" name={person.name} />, staffType(person), 'Completed before access was granted'])} />
         <p>Background check reports are Confidential personnel records, kept for seven years, and available to auditors on request.</p>
       </Section>
     </Document>
@@ -167,7 +167,7 @@ export function EmployeeConfidentiality() {
         </Note>
       </Section>
       <Section title="Onboarding record">
-        <Table columns={['Team member', 'Type', 'Confidentiality and IP agreement', 'Policies acknowledged']} rows={TEAM.map((person) => [person.name, person.type, 'Signed at onboarding', 'Information Security Policy, Code of Conduct'])} />
+        <Table columns={['Team member', 'Type', 'Confidentiality and IP agreement', 'Policies acknowledged']} rows={TEAM.map((person) => [<Member key="name" name={person.name} />, person.type, 'Signed at onboarding', 'Information Security Policy, Code of Conduct'])} />
         <p>The Human Resource Security Policy requires these agreements, and the Access Control Policy grants no production access until they are signed. Termination does not end the obligation, and departing team members are reminded of it at exit.</p>
         <Links items={[AGREEMENT_TEMPLATES[2] ?? { label: 'Employment agreement template', href: 'https://wireframes.internet.dev/examples/features/employment' }]} />
       </Section>
@@ -196,7 +196,7 @@ export function PerformanceEvaluations() {
         />
       </Section>
       <Section title="2026 cycle">
-        <Table columns={['Team member', 'Manager', 'Review due']} rows={TEAM.filter((person) => person.name !== 'Jimmy Lee').map((person) => [person.name, 'Jimmy Lee', 'December 31, 2026'])} />
+        <Table columns={['Team member', 'Manager', 'Review due']} rows={TEAM.filter((person) => person.name !== EXECUTIVE).map((person) => [<Member key="name" name={person.name} />, <Member key="manager" name={EXECUTIVE} />, 'December 31, 2026'])} />
         <p>The CEO’s own review is done by the board as part of its annual meeting.</p>
       </Section>
     </Document>

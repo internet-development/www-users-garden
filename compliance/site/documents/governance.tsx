@@ -1,10 +1,24 @@
 import Document from '@root/compliance/site/Document';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 
-import { Fields, Group, Links, List, People, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, COMPANY, CONTACTS, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, VENDORS } from '@root/compliance/site/facts';
+import type { SecurityRole } from '@root/compliance/site/types';
 
-const STAFF = TEAM.filter((person) => person.name !== 'Jimmy Lee');
+import { Fields, Group, Links, List, Member, Members, People, Section, Table } from '@root/compliance/site/Blocks';
+import { AWS_REGIONS, COMPANY, CONTACTS, EVERY_MEMBER, EVERY_MEMBER_LABEL, EXECUTIVE, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_COUNT, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, VENDORS } from '@root/compliance/site/facts';
+
+const STAFF = TEAM.filter((person) => person.name !== EXECUTIVE);
+
+const STAFF_NAMES = STAFF.map((person) => person.name);
+
+function Holders(props: { role: SecurityRole }) {
+  if (!props.role.holders.startsWith(EVERY_MEMBER)) return <Member name={props.role.holders} />;
+  return (
+    <>
+      {EVERY_MEMBER_LABEL}: <Members names={props.role.members} />
+      {props.role.holders.slice(EVERY_MEMBER.length)}
+    </>
+  );
+}
 
 function joinNames(names: string[]): string {
   if (names.length < 3) return names.join(' and ');
@@ -13,9 +27,11 @@ function joinNames(names: string[]): string {
 
 const CV_LINK = <a href={JIMMY_LEE_CV}>CV (LinkedIn)</a>;
 
+const DIRECTOR = <Member name={EXECUTIVE} />;
+
 const DIRECTORS = (
   <Section title="Directors">
-    <Table columns={['Director', 'Position', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', CV_LINK]]} />
+    <Table columns={['Director', 'Position', 'CV']} rows={[[DIRECTOR, 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', CV_LINK]]} />
   </Section>
 );
 
@@ -41,7 +57,7 @@ export function SystemDescription() {
             'Availability. Production runs on managed infrastructure with recovery objectives of four hours (RTO) and one hour (RPO) for the INTDEV API and its authentication, as defined in the BC/DR plan.',
             'Confidentiality. Customer data is classified Confidential. It is never used in non-production environments, and it is deleted when the customer deletes their account or within 30 days after a contract ends.',
             'Commitments are made to customers in the Terms of Service, the Privacy Policy, the Master Services Agreement, and the public API contract at api.internet.dev/SKILL.md.',
-            'System requirements come from INTDEV’s thirteen information security policies, regulatory obligations including CCPA, and contracts with customers and vendors.',
+            `System requirements come from INTDEV’s ${POLICY_COUNT} information security policies, regulatory obligations including CCPA, and contracts with customers and vendors.`,
           ]}
         />
       </Section>
@@ -109,7 +125,11 @@ export function SystemDescription() {
 const BRIEFINGS = [
   {
     date: 'November 4, 2026',
-    attendees: `Jimmy Lee (Director and CEO, presenting) and the entire INTDEV team: ${STAFF.map((person) => person.name).join(', ')}`,
+    attendees: (
+      <>
+        <Member name="Jimmy Lee (Director and CEO, presenting)" /> and the entire INTDEV team: <Members names={STAFF_NAMES} />
+      </>
+    ),
     topics: [
       'Adoption of the thirteen information security policies, version 1.0, effective September 26, 2026',
       'The state of the AWS account: GuardDuty with email alerts and VPC Flow Logs in all four US regions',
@@ -138,7 +158,7 @@ export function BoardOversight() {
       {BRIEFINGS.map((briefing) => (
         <Section key={briefing.date} title={`Briefing of ${briefing.date}`}>
           <Group>
-            <Fields items={[['Date', briefing.date], ['Attendees', briefing.attendees], ['Presented by', 'Jimmy Lee, Chief Executive Officer']]} />
+            <Fields items={[['Date', briefing.date], ['Attendees', briefing.attendees], ['Presented by', <Member key="presenter" name="Jimmy Lee, Chief Executive Officer" />]]} />
             <p>Topics briefed</p>
             <List items={briefing.topics} />
             <p>Board feedback and direction</p>
@@ -186,10 +206,15 @@ const BOARD_MINUTES = (
       <Fields
         items={[
           ['Meeting', 'Annual meeting of the board, November 4, 2026'],
-          ['Present', `Jimmy Lee (Director). Management and staff in attendance: ${STAFF.map((person) => person.name).join(', ')}`],
+          [
+            'Present',
+            <span key="present">
+              <Member name="Jimmy Lee (Director)" />. Management and staff in attendance: <Members names={STAFF_NAMES} />
+            </span>,
+          ],
           ['Agenda', 'Cybersecurity and privacy risk briefing; approval of security policies v1.0; tabletop exercise action items; vendor review'],
           ['Resolutions', 'Ratified the thirteen information security policies. Approved the tabletop action items and the vulnerability remediation plan. Directed that a further briefing follow any P0 or P1 incident.'],
-          ['Recorded by', 'Jimmy Lee'],
+          ['Recorded by', DIRECTOR],
         ]}
       />
       <Links items={[{ label: 'Board oversight briefings', href: '/compliance/board-oversight' }]} />
@@ -216,7 +241,7 @@ export function BoardCharter() {
             'Every director discloses conflicts of interest and abstains from any decision where they have one.',
           ]}
         />
-        <Table columns={['Director', 'Position', 'Independent of management', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', 'No', CV_LINK]]} />
+        <Table columns={['Director', 'Position', 'Independent of management', 'CV']} rows={[[DIRECTOR, 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', 'No', CV_LINK]]} />
       </Section>
       <Section title="3. Responsibilities">
         <List
@@ -265,9 +290,9 @@ export function OrganizationChart() {
         <Table
           columns={['Level', 'Role', 'Person', 'Reports to']}
           rows={[
-            ['Governance', 'Board of Directors', 'Jimmy Lee (Chair)', 'Stockholders'],
-            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', 'Jimmy Lee', 'Board of Directors'],
-            ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, person.name, 'Jimmy Lee']),
+            ['Governance', 'Board of Directors', <Member key="chair" name="Jimmy Lee (Chair)" />, 'Stockholders'],
+            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', DIRECTOR, 'Board of Directors'],
+            ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, <Member key="person" name={person.name} />, DIRECTOR]),
           ]}
         />
       </Section>
@@ -295,7 +320,7 @@ export function SecurityTeamStatement() {
       <p>
         Security and privacy at INTDEV are not a separate department. INTDEV is a small, flat studio, and every Member of Technical Staff is a founder in training who owns the security and privacy of what they build and run. Each one holds the Security Engineer, DevOps, and Privacy Team roles as part of the job. Jimmy Lee, the Chief Executive Officer, is also the Chief Information Security Officer and the Privacy Management Lead (Data Protection Officer), and reports on both to the board every year.
       </p>
-      <Table columns={['Role', 'Held by', 'Reports to', 'Policy roles it covers']} rows={SECURITY_ROLES.map((role) => [role.title, role.holders, role.reportsTo, role.policyRoles])} />
+      <Table columns={['Role', 'Held by', 'Reports to', 'Policy roles it covers']} rows={SECURITY_ROLES.map((role) => [role.title, <Holders key="holders" role={role} />, role.reportsTo, role.policyRoles])} />
       <p>The policy roles are those of the Information Security Roles and Responsibilities Policy. Every person in these roles signs the confidentiality agreement, is background checked, and completes security awareness training within 30 days of hire and every year after.</p>
     </Group>
   );
@@ -308,7 +333,7 @@ export function SecurityJobDescriptions() {
         <Section key={role.title} title={`Job description: ${role.title}`}>
           <Fields
             items={[
-              ['Held by', role.holders],
+              ['Held by', <Holders key="holders" role={role} />],
               ['Reports to', role.reportsTo],
               ['Purpose', role.purpose],
               ['Responsibilities', <List key="responsibilities" items={role.responsibilities} />],
@@ -333,18 +358,20 @@ export function RolesAndResponsibilities() {
         <Table
           columns={['Role', 'Responsibilities', 'Holder']}
           rows={[
-            ['Board of Directors', 'Oversight of cyber risk and internal control for security, privacy, and compliance; approves security spending', 'Jimmy Lee'],
-            ['Executive Leadership', 'Oversees the risk management program; aligns security posture with mission and risk appetite; the communication path to the board', 'Jimmy Lee'],
-            ['Chief Information Security Officer (CISO)', 'Owns the information security program; holds the CTO and Security and Compliance Manager duties below', 'Jimmy Lee'],
-            ['Privacy Management Lead (Data Protection Officer)', 'Privacy law, the Privacy Policy, personal data inventory, data subject requests, and privacy incident notice', 'Jimmy Lee'],
+            ['Board of Directors', 'Oversight of cyber risk and internal control for security, privacy, and compliance; approves security spending', <Member key="holder" name="Jimmy Lee" />],
+            ['Executive Leadership', 'Oversees the risk management program; aligns security posture with mission and risk appetite; the communication path to the board', <Member key="holder" name="Jimmy Lee" />],
+            ['Chief Information Security Officer (CISO)', 'Owns the information security program; holds the CTO and Security and Compliance Manager duties below', <Member key="holder" name="Jimmy Lee" />],
+            ['Privacy Management Lead (Data Protection Officer)', 'Privacy law, the Privacy Policy, personal data inventory, data subject requests, and privacy incident notice', <Member key="holder" name="Jimmy Lee" />],
             ['Security Engineers, DevOps, and Privacy Team', 'Security in design, code, and review; production operations; protection of personal data. Job descriptions below', 'Every Member of Technical Staff'],
-            ['Chief Technology Officer', 'Designs, implements, operates, maintains, and monitors IT security controls; runs IT risk assessments and the risk register; reports risk to leadership every year; owns identity and access management', 'Jimmy Lee (acting)'],
-            ['Engineering Lead', 'Security in the software development process; security controls for development and cloud hosting; reviews and approves production changes', 'Jimmy Lee for the INTDEV API and Users Garden; Caidan Williams for Terminal Graph'],
-            ['Security and Compliance Manager', 'Contractual commitments, privacy law (CCPA, GDPR), SOC 2 and ISO 27001 adherence, and security tooling in production', 'Jimmy Lee (acting)'],
+            ['Chief Technology Officer', 'Designs, implements, operates, maintains, and monitors IT security controls; runs IT risk assessments and the risk register; reports risk to leadership every year; owns identity and access management', <Member key="holder" name="Jimmy Lee (acting)" />],
+            ['Engineering Lead', 'Security in the software development process; security controls for development and cloud hosting; reviews and approves production changes', <span key="holder">
+                <Member name="Jimmy Lee for the INTDEV API and Users Garden" />; <Member name="Caidan Williams for Terminal Graph" />
+              </span>],
+            ['Security and Compliance Manager', 'Contractual commitments, privacy law (CCPA, GDPR), SOC 2 and ISO 27001 adherence, and security tooling in production', <Member key="holder" name="Jimmy Lee (acting)" />],
             ['Customer Support Lead', 'Customer data retention and deletion; customer support at eng@internet.dev', 'Members of Technical Staff on rotation'],
             ['Systems Owners', 'Confidentiality, integrity, and availability of the systems they own; approve non-standard access and change requests', 'The product owners above'],
-            ['CEO', 'Qualified and competent staff; background checks; policy and Code of Conduct acknowledgement; performance and security training', 'Jimmy Lee'],
-            ['COO', 'Third-party risk management and review of vendor contracts', 'Jimmy Lee (acting)'],
+            ['CEO', 'Qualified and competent staff; background checks; policy and Code of Conduct acknowledgement; performance and security training', <Member key="holder" name="Jimmy Lee" />],
+            ['COO', 'Third-party risk management and review of vendor contracts', <Member key="holder" name="Jimmy Lee (acting)" />],
             ['Employees and contractors', 'Follow policies and the Code of Conduct; report incidents and weaknesses; minimize contractual and regulatory exposure', 'Everyone'],
           ]}
         />
@@ -388,7 +415,7 @@ export function BoardExpertise() {
     >
       {CHARTER_EXPERTISE}
       <Section title="Composition">
-        <Table columns={['Director', 'Position', 'Security oversight expertise', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; CEO', 'Author and approver of all thirteen security policies; administers the AWS account and its GuardDuty, alerting, and flow-log controls; leads incident response', CV_LINK]]} />
+        <Table columns={['Director', 'Position', 'Security oversight expertise', 'CV']} rows={[[DIRECTOR, 'Director and Chair; CEO', `Author and approver of all ${POLICY_COUNT} security policies; administers the AWS account and its GuardDuty, alerting, and flow-log controls; leads incident response`, CV_LINK]]} />
       </Section>
       <Section title="Third parties engaged">
         <List items={['Vanta, for continuous compliance monitoring and the risk register', 'An independent penetration tester, before the SOC 2 observation window closes', 'The SOC 2 auditor', 'Legal counsel, for breach determinations and customer agreements']} />

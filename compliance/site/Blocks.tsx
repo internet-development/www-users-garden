@@ -4,6 +4,8 @@ import * as React from 'react';
 
 import type { Person } from '@root/compliance/site/types';
 
+import { teamMember } from '@root/compliance/site/facts';
+
 export function Section(props: { title: string; children?: React.ReactNode }) {
   return (
     <section className={styles.section}>
@@ -91,6 +93,38 @@ export function People(props: { people: Person[]; detail?: (person: Person) => R
         </div>
       ))}
     </div>
+  );
+}
+
+export function Avatar(props: { person: Pick<Person, 'avatar'> }) {
+  return <img className={styles.avatar} src={props.person.avatar} alt="" width={16} height={16} loading="lazy" decoding="async" />;
+}
+
+export function Member(props: { name: string }) {
+  const person = teamMember(props.name);
+  if (!person) return <>{props.name}</>;
+  return (
+    <>
+      <span className={styles.member}>
+        <Avatar person={person} />
+        {person.name}
+      </span>
+      {props.name.slice(person.name.length)}
+    </>
+  );
+}
+
+export function Members(props: { names: string[] }) {
+  const last = props.names.length - 1;
+  return (
+    <>
+      {props.names.map((name, index) => (
+        <React.Fragment key={name}>
+          {index === 0 ? null : index === last ? (last === 1 ? ' and ' : ', and ') : ', '}
+          <Member name={name} />
+        </React.Fragment>
+      ))}
+    </>
   );
 }
 
