@@ -1,16 +1,27 @@
 import Document from '@root/compliance/site/Document';
-import NetworkDiagram from '@root/compliance/site/NetworkDiagram';
 
+import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS } from '@root/compliance/site/facts';
+import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
+import { DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
+import { DeletionRecord } from '@root/compliance/site/Evidence';
 import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
-import { COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS } from '@root/compliance/site/facts';
+
+const PRIVACY_POLICY = PUBLIC_TERMS.find((term) => term.href.endsWith('intdev-privacy-policy')) ?? { label: 'Privacy Policy', href: 'https://txt.dev/wwwjim/intdev-privacy-policy' };
 
 export function DataDeletion() {
   return (
     <Document
       title="Customer data deleted on departure"
-      summary="When customers leave, INTDEV removes their confidential data from the application environment. Customers can delete their own account at any time in Users Garden, and INTDEV deletes the rest within 30 days of a contract ending."
+      summary="When customers leave, INTDEV removes their confidential data from the application environment. Customers can delete their own account at any time in Users Garden, and INTDEV deletes the rest within 30 days of a contract ending. The anonymous record of completed deletions is published below."
       controls={['Customer data deleted upon leaving']}
     >
+      <Section title="Deletion record">
+        <Group>
+          <p>{DELETION_STATEMENT}</p>
+          <p>Each row is one deleted customer account, identified only by a one-way reference. Account created and deleted after come from the retained ledger; deleted by is the latest time the deletion could have happened, which is when the absence of the account was last checked. Deletions confirmed within the last 12 months are those of accounts created within that period.</p>
+          <DeletionRecord />
+        </Group>
+      </Section>
       <Section title="Self-service deletion in Users Garden">
         <List
           ordered
@@ -19,7 +30,7 @@ export function DataDeletion() {
             'Cancel any active subscription first. Users Garden won’t delete an account that still has a live subscription, so nothing keeps billing after the account is gone.',
             'Choose Delete my account and type DELETE-THIS-ACCOUNT-NOW to confirm.',
             'Users Garden calls the INTDEV API’s POST /api/users/delete with the user’s own API key. The API accepts the request only from the account owner or a platform admin.',
-            'The API permanently deletes the user’s row from the production database. This is a hard delete, not a soft delete. Records that depend on the account are cascaded or detached by the database’s foreign keys. If a dependent record would block the delete, the request fails without deleting anything partially, and support finishes the deletion by hand.',
+            'The API permanently deletes the user’s row from the production database in one transaction, together with the user’s organization memberships and an anonymous entry in the deletion log. This is a hard delete, not a soft delete. Other records that depend on the account are cascaded or detached by the database’s foreign keys. If a dependent record would block the delete, the request fails without deleting anything partially, and support finishes the deletion by hand.',
           ]}
         />
       </Section>
@@ -28,12 +39,14 @@ export function DataDeletion() {
           columns={['Data', 'On account deletion', 'Retention ceiling']}
           rows={[
             ['Account, email, password hash, API key, profile data, SMS contact', 'Deleted immediately', '—'],
-            ['Organization memberships and analytics project memberships', 'Deleted with the account (cascade)', '—'],
+            ['Organization memberships', 'Deleted with the account in the same transaction (from INTDEV API 2.0.9)', '—'],
+            ['Analytics project memberships', 'Deleted with the account (cascade)', '—'],
             ['Slide decks and assets the user created', 'Detached from the user by the database, then tombstoned by the slide cleanup worker', 'Per the slide retention rules'],
             ['Uploaded files in S3', 'Removed by support on request, or within 30 days of contract termination', '30 days'],
             ['Database backups (point-in-time recovery)', 'Age out of Render’s rolling recovery window', 'About 7 days'],
             ['API and security logs', 'Not deleted on request; kept for security', '90 days'],
-            ['Financial records (invoices, transactions)', 'Kept to meet legal obligations', '7 years'],
+            ['Financial records (invoices, credit ledger)', 'Kept to meet legal obligations, without a link to the deleted user', '7 years'],
+            ['Deletion log entry', 'Written at deletion: a one-way reference, the time, and how the deletion was requested. No personal data.', 'Kept as the deletion record'],
             ['SMS opt-out records', 'Kept, so a deleted number is never texted again', 'As long as needed to honor the opt-out'],
           ]}
         />
@@ -45,6 +58,12 @@ export function DataDeletion() {
         <p>
           Email <Mail address={CONTACTS.support} /> from the address on the account if you can’t sign in.
         </p>
+      </Section>
+      <Section title="Data privacy policy">
+        <Group>
+          <p>The full INTDEV Privacy Policy, which covers every INTDEV product and service, explains what personal data is collected, how it is used, and how to have it deleted. Retention and deletion inside INTDEV are governed by the Data Management Policy (Appendix A), which is Restricted and available to auditors under NDA.</p>
+          <Links items={[{ label: PRIVACY_POLICY.label, href: PRIVACY_POLICY.href }, { label: 'Terminal Graph Privacy Policy', href: 'https://terminalgraph.com/privacy' }, { label: 'Deletion record (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.dataDeletions}` }]} />
+        </Group>
       </Section>
     </Document>
   );
@@ -145,17 +164,97 @@ export function ServiceDescription() {
   return (
     <Document
       title="Service description and network diagram"
-      summary="What INTDEV provides, how it is built, and how data moves between its components. The same description is shared with staff and customers."
+      summary="What INTDEV provides, how it is built, and how data moves between its components: boundaries, network zones, devices, subnets, data flows, security controls, critical systems, physical locations, redundancy, and where customer data is stored. The same description is shared with staff and customers."
       controls={['Service description communicated']}
     >
       <Section title="Products and services">
         <Table columns={['Product', 'What it does', 'Where it runs']} rows={PRODUCTS.map((product) => [<a key={product.url} href={product.url}>{product.name}</a>, product.description, product.hosting])} />
       </Section>
       <Section title="Network diagram">
-        <NetworkDiagram />
+        <ArchitectureDiagram />
+      </Section>
+      <Section title="Boundaries">
+        <Table
+          columns={['Boundary', 'Between', 'Enforced by']}
+          rows={[
+            ['1. Internet to edge', 'Customers and the Cloudflare edge', 'Cloudflare accepts only HTTPS for INTDEV hostnames, terminates TLS 1.3, and redirects HTTP to HTTPS; DDoS protection'],
+            ['2. Edge to origins', 'Cloudflare and the Render web services', 'HTTPS to Render origins; each service exposes only its HTTP port; no SSH or other ports'],
+            ['3. Application to data', 'The INTDEV API and its data stores', 'Database connections require TLS and the database credential, held only in the API environment and by administrators; S3 objects are reached through short-lived presigned URLs'],
+            ['4. Customer to customer', 'Tenants of the INTDEV API', 'Every request is authorized by the caller’s API key; organization data requires membership, and admin actions require the organization admin role'],
+            ['System boundary', 'In scope versus out of scope', 'In scope: the INTDEV API and its data stores, Users Garden, the Terminal Graph accounts, payments, and site, internet.dev, and the GitHub and Render configuration that builds them. Out of scope: client engagements on client-owned infrastructure.'],
+          ]}
+        />
+      </Section>
+      <Section title="Network zones, devices, and subnets">
+        <Table
+          columns={['Zone', 'Physical location', 'Devices and resources', 'Addressing']}
+          rows={[
+            ['Edge', 'Cloudflare global anycast network', 'Cloudflare proxy, DNS, and certificates for all four hostnames', 'Cloudflare anycast addresses'],
+            ['Production, US West', 'Render Oregon region', 'internet-apis (2 instances), terminalgraph (1 instance), INTDEV DATA PostgreSQL 15', 'Render private network within the region; the API’s private address is internet-apis:10001'],
+            ['Production, US East', 'Render Ohio region', 'www-users-garden and www-internet-v3 (1 instance each)', 'Render private network within the region'],
+            ['Object storage', 'AWS us-west-2 (Oregon)', 'Amazon S3 buckets for uploads, private attachments, and public assets', 'AWS regional endpoints over HTTPS'],
+            ['AWS account network', `AWS ${AWS_REGIONS.join(', ')}`, 'One default VPC per region; four stopped legacy t2.micro instances in us-west-2; no production workload', 'VPC 172.31.0.0/16 in each region, one /20 subnet per availability zone (six in us-east-1, three in us-east-2, two in us-west-1, four in us-west-2)'],
+            ['Development', 'Engineers’ Macs', 'Company laptops with FileVault, screen lock, automatic updates, XProtect, and the firewall on', 'Not routable to production data; no customer data permitted'],
+          ]}
+        />
+      </Section>
+      <Section title="Data flows">
+        <Table
+          columns={['Flow', 'Path', 'Protection']}
+          rows={[
+            ['Sign in and API use', 'Browser, Terminal Graph, or API client → Cloudflare → internet-apis', 'HTTPS (TLS 1.3); API key in the x-api-key header; per-category rate limits; passwords stored only as bcrypt hashes'],
+            ['Customer portal', 'Browser → Cloudflare → www-users-garden → Cloudflare → internet-apis', 'HTTPS on every hop; Users Garden stores no customer data at rest'],
+            ['Application data', 'internet-apis → INTDEV DATA (PostgreSQL)', 'TLS; database credential; encrypted at rest by Render'],
+            ['Uploads and downloads', 'Client → presigned URL → Amazon S3 (or Google Cloud Storage)', 'HTTPS; short-lived signed URLs; SSE AES-256 at rest in S3; malware scanning on upload buckets'],
+            ['Payments', 'Client → Stripe; internet-apis → Stripe API; Stripe → webhook', 'Card data goes only to Stripe; webhook signatures verified'],
+            ['Email, SMS, and sign-in', 'internet-apis → Mailgun, Twilio, Google, Apple, Bluesky', 'HTTPS to each provider’s API; Twilio callbacks signature-verified'],
+            ['Cross-origin payloads', 'internet-apis ↔ INTDEV sites', 'HTTPS, with the payload also AES-256 encrypted'],
+            ['Change', 'Engineer → GitHub pull request → main → Render build → release', 'Review before merge; only main deploys; every deploy recorded with its commit'],
+            ['Monitoring', 'AWS GuardDuty findings → EventBridge → SNS → eng@internet.dev; VPC Flow Logs → CloudWatch', 'All severities alert; flow logs kept 365 days'],
+          ]}
+        />
+      </Section>
+      <Section title="Security controls">
+        <List
+          items={[
+            'Encryption in transit everywhere: TLS 1.3 at the edge, HTTPS to origins and processors, and TLS to the database.',
+            'Encryption at rest: Render-managed PostgreSQL encryption, SSE AES-256 on every S3 bucket, and FileVault on every laptop.',
+            'Authentication and authorization: per-customer API keys, tiered permissions, organization roles checked on every request, and rate limits per category.',
+            'Monitoring: GuardDuty with email alerts and VPC Flow Logs in four US regions, GuardDuty Malware Protection on upload buckets, and Render deploy and service logs.',
+            'Change management: reviewed pull requests, deploys only from main, and a public deploy record.',
+            'Vulnerability management: quarterly scans, an annual penetration test, and SLAs of 30, 60, and 90 days.',
+          ]}
+        />
+      </Section>
+      <Section title="Critical systems">
+        <Table columns={['System', 'Vendor', 'Holds customer data']} rows={[['INTDEV API (internet-apis)', 'Render', 'Processes it'], ['INTDEV DATA (PostgreSQL)', 'Render', 'Yes, at rest'], ['Object storage', 'Amazon Web Services', 'Yes, at rest (uploads)'], ['Edge, DNS, TLS', 'Cloudflare', 'In transit only'], ['Source control and deploy trigger', 'GitHub', 'No'], ['Payments', 'Stripe', 'Payment card data, held by Stripe']]} />
+      </Section>
+      <Section title="Where customer data is stored">
+        <Table
+          columns={['Data', 'Store', 'Partition and location']}
+          rows={[
+            ['Accounts, API keys, organizations, credits, orders, licenses, posts, documents, analytics, slide decks', 'Render PostgreSQL, INTDEV DATA', 'Render Oregon region (US West); one managed instance; point-in-time recovery copies managed by Render'],
+            ['Uploads and private attachments', 'Amazon S3', 'AWS us-west-2 (Oregon), stored across three or more availability zones'],
+            ['Some public uploads', 'Google Cloud Storage', 'The public upload bucket configured for presigned uploads'],
+            ['Payment card data', 'Stripe', 'Held by Stripe under PCI DSS Level 1; never stored by INTDEV'],
+            ['Terminal Graph workspaces', 'The user’s Mac', 'Stays on the device; not held by INTDEV'],
+          ]}
+        />
+        <p>Users Garden, internet.dev, and the Terminal Graph site keep no customer data at rest. Their Render services in Ohio and Oregon are stateless.</p>
+      </Section>
+      <Section title="Redundancy">
+        <Table columns={['Resource', 'Region', 'Redundancy']} rows={RENDER_NETWORK_EXPORT.map((row) => [row.resource, row.region, row.redundancy])} />
+        <List
+          items={[
+            'Amazon S3 stores each object across at least three availability zones.',
+            'Cloudflare serves every hostname from its global anycast network.',
+            'Source code is distributed: every maintainer holds a full clone, and Render can redeploy any recorded commit.',
+            'The database has no standby replica. Recovery is a point-in-time restore into a new instance, within the four-hour RTO and one-hour RPO in the BC/DR plan.',
+          ]}
+        />
       </Section>
       <Section title="Further reading">
-        <Links items={[{ label: 'System description (SOC 2 Section III)', href: '/compliance/system-description' }, { label: 'Product documentation', href: '/compliance/documentation' }, { label: 'Security', href: '/compliance/security' }]} />
+        <Links items={[{ label: 'System description (SOC 2 Section III)', href: '/compliance/system-description' }, { label: 'Network segmentation', href: '/compliance/network-segmentation' }, { label: 'Product documentation', href: '/compliance/documentation' }, { label: 'Security', href: '/compliance/security' }]} />
       </Section>
     </Document>
   );

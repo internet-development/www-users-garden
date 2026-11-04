@@ -1,7 +1,13 @@
 import Document from '@root/compliance/site/Document';
 
-import { Fields, Links, List, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
+import { AccessRequestRecords, TerminationRecords } from '@root/compliance/site/Evidence';
+import { EVIDENCE_ENDPOINTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
+import { Fields, Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
+
+function endpointLink(path: string) {
+  return <a href={`${API_HOST}${path}`}>{`${API_HOST.replace('https://', '')}${path}`}</a>;
+}
 
 const MATRIX_COLUMNS = ['Role', 'Email', 'Google Workspace', 'AWS', 'GitHub', 'INTDEV API admin', 'Render', 'Stripe', 'Vanta'];
 
@@ -45,16 +51,16 @@ export function AccessControlProcedures() {
           ordered
           items={[
             'The hire finishes onboarding: signed agreement, confidentiality and IP agreement, policy acknowledgement, and background check.',
-            'Onboarding generates an access request ticket for the standard access in the person’s role.',
-            'The system owner or the CEO approves the request. Access starts no earlier than the official start date.',
-            'An administrator creates a unique account, enforces MFA, and records the grantor, the approver, and the date on the ticket.',
+            'Onboarding opens an access request for the standard access in the person’s role: a record in the access register, proposed as a pull request.',
+            'The system owner or the CEO approves the request by reviewing and merging it. Access starts no earlier than the official start date.',
+            'An administrator creates a unique account, enforces MFA, and assigns the approved level. The INTDEV API publishes the record with the request, the approval, the assigned level, and the user_id, and checks the level against production on every read.',
           ]}
         />
       </Section>
       <Section title="Modifying a user">
         <List
           ordered
-          items={['Any access beyond the role’s standard access needs a ticket or email request and the system owner’s approval.', 'A change of role triggers an access review. Access the new role does not need is removed.', 'Changes are recorded on the ticket.']}
+          items={['Any access beyond the role’s standard access needs a request in the access register and the system owner’s approval.', 'A change of role triggers an access review. Access the new role does not need is removed.', 'Changes are recorded in the access register and published by the INTDEV API.']}
         />
       </Section>
       <Section title="Removing a user">
@@ -89,20 +95,36 @@ export function AccessReviews() {
     >
       <Section title="Scope of every review">
         <List items={['AWS IAM users, access keys, and roles', 'Render workspace members and service access', 'GitHub organization members, teams, and repository admins', 'Google Workspace accounts', 'Stripe dashboard users', 'Vanta users', 'Platform admin (tier 100) accounts on the INTDEV API']} />
+        <p>Every access request, approval, and assigned access level the review relies on is published by the INTDEV API at {endpointLink(EVIDENCE_ENDPOINTS.accessRequests)}, with each user_id and its live level.</p>
       </Section>
       <Section title="Q4 2026 review">
-        <Fields items={[['Date', 'November 4, 2026'], ['Reviewer', 'Jimmy Lee, CEO'], ['AWS method', `Read-only listing of IAM users, MFA devices, access keys, and roles in the account monitored by Vanta (${AWS_REGIONS.join(', ')} for regional controls)`]]} />
+        <Fields
+          items={[
+            ['Date', 'November 4, 2026'],
+            ['Reviewer', 'Jimmy Lee, CEO'],
+            ['AWS method', `Read-only listing of IAM users, MFA devices, access keys, and roles in the account monitored by Vanta (${AWS_REGIONS.join(', ')} for regional controls)`],
+            ['Render method', 'Read-only Render API listing of workspace members, their roles, and MFA status'],
+            ['INTDEV API method', 'Read-only query of platform admin (level 100) accounts in the production users table'],
+            ['Access register', endpointLink(EVIDENCE_ENDPOINTS.accessRequests)],
+          ]}
+        />
         <Table columns={['AWS identity', 'Purpose', 'MFA', 'Review outcome']} rows={AWS_IDENTITIES} />
         <List
           items={[
             'Result: one human administrator account, with MFA, and five programmatic service users that have never signed in to the console. The root account has MFA. The IAM password policy requires at least 14 characters including symbols.',
             'Follow-up 1: check when each service key was last used. Rotate the keys that are in use and delete the ones that are not, starting with readingsupply and nicole. Owner: Jimmy Lee. Due: December 4, 2026.',
-            'Follow-up 2: record GitHub, Render, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
+            'Follow-up 2: record GitHub, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
+            'INTDEV API: two former team members still held platform admin. Both were lowered to level 20 on November 4, 2026. A third never held admin and stays at level 10, the level the account had before the review. All three are verified live in the access register and the termination records.',
+            'Render: a former team member was still listed as a workspace Developer. The CEO removed the membership on November 4, 2026, a Render API read of workspace members confirmed it the same day, and termination record TR-2026-001 is closed. MFA is not yet enforced for every workspace member; enforcement is due November 18, 2026. Owner: Jimmy Lee.',
+            'INTDEV API: platform admin accounts that are not tied to a current team member, such as shared mailboxes and service accounts, must each get a named owner or be lowered. Owner: Jimmy Lee. Due: December 4, 2026.',
           ]}
         />
       </Section>
       <Section title="Cadence">
-        <Table columns={['Quarter', 'Due', 'Status']} rows={[['Q4 2026', 'December 31, 2026', 'In progress, AWS complete'], ['Q1 2027', 'March 31, 2027', 'Scheduled'], ['Q2 2027', 'June 30, 2027', 'Scheduled'], ['Q3 2027', 'September 30, 2027', 'Scheduled']]} />
+        <Table columns={['Quarter', 'Due', 'Status']} rows={[['Q4 2026', 'December 31, 2026', 'In progress: AWS, Render, and INTDEV API reviewed November 4, 2026'], ['Q1 2027', 'March 31, 2027', 'Scheduled'], ['Q2 2027', 'June 30, 2027', 'Scheduled'], ['Q3 2027', 'September 30, 2027', 'Scheduled']]} />
+      </Section>
+      <Section title="Related">
+        <Links items={[{ label: 'Access requests', href: '/compliance/access-requests' }, { label: 'Access revoked upon termination', href: '/compliance/access-termination' }, { label: 'Access register (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.accessRequests}` }]} />
       </Section>
     </Document>
   );
@@ -112,27 +134,20 @@ export function AccessTermination() {
   return (
     <Document
       title="Access revoked upon termination"
-      summary="When an employee, partner, or contractor leaves, a termination checklist revokes all of their access within 24 business hours, the SLA in the Access Control Policy."
+      summary="When an employee, partner, or contractor leaves, a termination checklist revokes all of their access within 24 business hours, the SLA in the Access Control Policy. The completed checklists for recent departures are published by the INTDEV API, with each step’s status, completion time, and evidence."
       controls={['Access revoked upon termination']}
     >
       <Section title="Termination checklist">
-        <List
-          ordered
-          items={[
-            'Record the last day and open a termination ticket.',
-            'Suspend Google Workspace and transfer the person’s email and files.',
-            'Remove them from the GitHub organization, and revoke their personal access tokens and deploy keys.',
-            'Remove them from the Render workspace, and rotate any environment secret they could read.',
-            'Remove or deactivate any AWS IAM access, Stripe, Vanta, Slack, and Telegram channel membership.',
-            'Lower their INTDEV API account from platform admin to a standard tier.',
-            'Collect company equipment, or confirm company data is deleted from personal devices.',
-            'Remind them of the confidentiality obligations that survive termination.',
-            'Close the ticket with the time of each removal, within 24 business hours.',
-          ]}
-        />
+        <Group>
+          <List ordered items={TERMINATION_CHECKLIST.map((step) => `${step}.`)} />
+          <p>Every step must be complete within 24 business hours of the last day.</p>
+        </Group>
       </Section>
-      <Section title="Departures">
-        <Table columns={['Former team member', 'Type', 'Joined', 'Left', 'Access']} rows={FORMER_TEAM.map((person) => [person.name, person.type, person.joined, person.left, 'Revoked under the checklist; removed from the internet.dev roster'])} />
+      <Section title="Termination records">
+        <Group>
+          <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself on November 4, 2026: the production users table, the Render API, and AWS IAM. The INTDEV API level is re-read from production every time the record is loaded. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review and are recorded with the date they were actually completed.</p>
+          <TerminationRecords />
+        </Group>
       </Section>
       <Section title="Current roster">
         <p>{TEAM.map((person) => person.name).join(', ')}.</p>
@@ -159,7 +174,13 @@ export function AccessRequests() {
             ['Expiry', 'The review date, or the date temporary access ends'],
           ]}
         />
-        <p>Requests are made as a GitHub issue or an email to the approver, and the approval is kept with the request.</p>
+        <p>Requests are made as a pull request that adds a record to the access register, so the request, the approver’s review, and the merge are kept together in GitHub. Render deploys the register, and the INTDEV API serves it at {endpointLink(EVIDENCE_ENDPOINTS.accessRequests)}.</p>
+      </Section>
+      <Section title="Access request records">
+        <Group>
+          <p>Every current grant of access to the INTDEV API, and every recent revocation, with the request, the approval, the assigned access level, and the user_id it was granted to. The live check re-reads the user_id’s level from the production users table each time the record loads, so a record that no longer matches production shows it.</p>
+          <AccessRequestRecords />
+        </Group>
       </Section>
       <Section title="Role-based access in practice">
         <List
@@ -172,7 +193,7 @@ export function AccessRequests() {
         />
       </Section>
       <Section title="Related">
-        <Links items={[{ label: 'Access control procedures', href: '/compliance/access-control' }, { label: 'Access reviews', href: '/compliance/access-reviews' }, { label: 'Access revoked upon termination', href: '/compliance/access-termination' }]} />
+        <Links items={[{ label: 'Access control procedures', href: '/compliance/access-control' }, { label: 'Access reviews', href: '/compliance/access-reviews' }, { label: 'Access revoked upon termination', href: '/compliance/access-termination' }, { label: 'Access register (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.accessRequests}` }]} />
       </Section>
     </Document>
   );

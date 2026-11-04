@@ -105,3 +105,14 @@ export function Muted(props: { children?: React.ReactNode }) {
 export function Mail(props: { address: string }) {
   return <a href={`mailto:${props.address}`}>{props.address}</a>;
 }
+
+export function Figure(props: { image: { src: string; width: number; height: number }; alt: string; caption?: React.ReactNode }) {
+  return (
+    <figure className={styles.figure}>
+      <a href={props.image.src} target="_blank" rel="noreferrer">
+        <img className={styles.figureImage} src={props.image.src} width={props.image.width} height={props.image.height} alt={props.alt} loading="lazy" />
+      </a>
+      {props.caption ? <figcaption className={styles.muted}>{props.caption}</figcaption> : null}
+    </figure>
+  );
+}

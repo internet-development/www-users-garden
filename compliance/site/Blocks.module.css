@@ -122,6 +122,88 @@
   color: var(--compliance-color-muted);
 }
 
+.figure > * + * {
+  margin-top: var(--compliance-space-list);
+}
+
+.figureImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--compliance-color-border);
+}
+
+.recordTitle {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.signed {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 1px solid currentColor;
+  color: #00803a;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.signedCheck {
+  font-weight: 700;
+}
+
+.stateOk {
+  color: #00803a;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkbox {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  border: 1px solid currentColor;
+  color: #b42318;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.checkboxChecked {
+  border-color: #00803a;
+  background: #00803a;
+  color: #ffffff;
+}
+
+.checkboxPending {
+  color: var(--compliance-color-muted);
+}
+
+.checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist > * + * {
+  margin-top: var(--compliance-space-list);
+}
+
+.stateOpen {
+  color: #b42318;
+}
+
 @media (max-width: 560px) {
   .people {
     grid-template-columns: minmax(0, 1fr);

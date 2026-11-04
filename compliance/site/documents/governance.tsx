@@ -1,10 +1,23 @@
 import Document from '@root/compliance/site/Document';
-import NetworkDiagram from '@root/compliance/site/NetworkDiagram';
+import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 
 import { Fields, Group, Links, List, People, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, COMPANY, CONTACTS, FORMER_TEAM, POLICIES, POLICY_DATES, PRODUCTS, TEAM, VENDORS } from '@root/compliance/site/facts';
+import { AWS_REGIONS, COMPANY, CONTACTS, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_DATES, PRODUCTS, TEAM, VENDORS } from '@root/compliance/site/facts';
 
 const STAFF = TEAM.filter((person) => person.name !== 'Jimmy Lee');
+
+function joinNames(names: string[]): string {
+  if (names.length < 3) return names.join(' and ');
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+}
+
+const CV_LINK = <a href={JIMMY_LEE_CV}>CV (LinkedIn)</a>;
+
+const DIRECTORS = (
+  <Section title="Directors">
+    <Table columns={['Director', 'Position', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer', CV_LINK]]} />
+  </Section>
+);
 
 export function SystemDescription() {
   return (
@@ -43,7 +56,7 @@ export function SystemDescription() {
               ['Procedures', 'Change management through GitHub pull requests and Render deploys. Access provisioning, quarterly reviews, and deprovisioning within 24 business hours. Incident response, vulnerability management, vendor management, and annual policy review.'],
             ]}
           />
-          <NetworkDiagram />
+          <ArchitectureDiagram />
         </Group>
       </Section>
 
@@ -131,6 +144,7 @@ export function BoardOversight() {
           </Group>
         </Section>
       ))}
+      {DIRECTORS}
       <Section title="Attendance">
         <People people={TEAM} note={() => 'Attended the November 4, 2026 briefing.'} />
       </Section>
@@ -144,7 +158,9 @@ export function BoardOversight() {
 const CHARTER_EXPERTISE = (
   <Section title="4. Expertise and outside advisers">
     <Group>
-      <p>Directors must have enough expertise to oversee management’s design, implementation, and operation of information security controls. Jimmy Lee has been early technical and design staff at nine venture-backed startups, leads design at Vmax, is a partner at Mana Management, LLC, and founded INTDEV, where he wrote and approved the company’s security policies and administers its production systems.</p>
+      <p>
+        Directors must have enough expertise to oversee management’s design, implementation, and operation of information security controls. Jimmy Lee has been early technical and design staff at nine venture-backed startups, leads design at Vmax, is a partner at Mana Management, LLC, and founded INTDEV, where he wrote and approved the company’s security policies and administers its production systems. His CV is on <a href={JIMMY_LEE_CV}>LinkedIn</a>.
+      </p>
       <p>The board may engage independent information security experts, auditors, and counsel at the company’s expense whenever it needs expertise it does not have. That includes the annual penetration test and the SOC 2 auditor. The company uses Vanta for continuous control monitoring.</p>
     </Group>
   </Section>
@@ -197,7 +213,7 @@ export function BoardCharter() {
             'Every director discloses conflicts of interest and abstains from any decision where they have one.',
           ]}
         />
-        <Table columns={['Director', 'Position', 'Independent of management']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer', 'No']]} />
+        <Table columns={['Director', 'Position', 'Independent of management', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer', 'No', CV_LINK]]} />
       </Section>
       <Section title="3. Responsibilities">
         <List
@@ -257,7 +273,7 @@ export function OrganizationChart() {
             'INTDEV is a flat studio. Every Member of Technical Staff reports directly to the CEO.',
             'Product ownership: Caidan Williams leads Terminal Graph. The CEO owns the INTDEV API and Users Garden.',
             'Affiliates: Andrew Valantine, Hailey Elizabeth, Mitchell Ellero, Sah Pham, and Victoria Venturella are independent friends of the studio engaged case by case for photo, video, events, and ATProto work. They are not staff.',
-            `Former team members, now offboarded: ${FORMER_TEAM.map((person) => person.name).join(' and ')}.`,
+            `Former team members: ${joinNames(FORMER_TEAM.map((person) => person.name))}.`,
           ]}
         />
       </Section>
@@ -326,7 +342,7 @@ export function BoardExpertise() {
     >
       {CHARTER_EXPERTISE}
       <Section title="Composition">
-        <Table columns={['Director', 'Position', 'Security oversight expertise']} rows={[['Jimmy Lee', 'Director and Chair; CEO', 'Author and approver of all thirteen security policies; administers the AWS account and its GuardDuty, alerting, and flow-log controls; leads incident response']]} />
+        <Table columns={['Director', 'Position', 'Security oversight expertise', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; CEO', 'Author and approver of all thirteen security policies; administers the AWS account and its GuardDuty, alerting, and flow-log controls; leads incident response', CV_LINK]]} />
       </Section>
       <Section title="Third parties engaged">
         <List items={['Vanta, for continuous compliance monitoring and the risk register', 'An independent penetration tester, before the SOC 2 observation window closes', 'The SOC 2 auditor', 'Legal counsel, for breach determinations and customer agreements']} />
@@ -345,6 +361,7 @@ export function BoardMeetings() {
       summary="INTDEV’s board of directors meets at least once a year and keeps formal minutes. The charter sets out how directors independent of the company are seated."
       controls={['Board meets annually and maintains minutes; independent directors']}
     >
+      {DIRECTORS}
       {CHARTER_MEETINGS}
       {BOARD_MINUTES}
       <Section title="Independence">

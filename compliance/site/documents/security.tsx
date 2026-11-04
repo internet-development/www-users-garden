@@ -1,7 +1,30 @@
 import Document from '@root/compliance/site/Document';
+import fileVaultEncryption from '@root/compliance/site/images/filevault-encryption.png';
 
-import { Fields, Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
+import { EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN } from '@root/compliance/site/records';
+import { Fields, Figure, Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
+import { RemediationRecords } from '@root/compliance/site/Evidence';
+import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
+
+const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
+
+function ScanRecord() {
+  return (
+    <Group>
+      <Fields
+        items={[
+          ['Date', VULNERABILITY_SCAN.date],
+          ['Dependency scan', VULNERABILITY_SCAN.dependency],
+          ['External scan', VULNERABILITY_SCAN.external],
+          ['Configuration scan', VULNERABILITY_SCAN.configuration],
+          ['Record', <a key="record" href={VULNERABILITY_RECORD}>{VULNERABILITY_RECORD.replace('https://', '')}</a>],
+        ]}
+      />
+      <Table columns={['Severity', 'Before remediation', 'After remediation']} rows={VULNERABILITY_SCAN.counts.map((row) => [row.severity, row.before, row.after])} />
+    </Group>
+  );
+}
 
 const TLS_RESULTS = [
   ['api.internet.dev', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 26, 2026'],
@@ -10,9 +33,12 @@ const TLS_RESULTS = [
   ['terminalgraph.com', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 6, 2026'],
 ];
 
-function Register(props: { filter?: (status: string) => boolean }) {
-  const rows = VULNERABILITIES.filter((item) => (props.filter ? props.filter(item.status) : true));
-  return <Table columns={['ID', 'Component', 'Severity', 'Status', 'Action']} rows={rows.map((item) => [item.id, item.component, item.severity, item.status, item.action])} />;
+function FileVaultEvidence() {
+  return <Figure image={fileVaultEncryption} alt="macOS System Settings, signed in to the Apple Account of Jimmy Lee, Privacy and Security, FileVault: the FileVault switch is on, and a recovery key is set for password reset. The key itself is hidden." caption="FileVault on the CEO’s MacBook: full-disk encryption is on, with a recovery key for password reset. Captured November 4, 2026." />;
+}
+
+function Register() {
+  return <Table columns={['ID', 'Component', 'Severity', 'Status', 'Action']} rows={VULNERABILITIES.map((item) => [item.id, item.component, item.severity, item.status, item.action])} />;
 }
 
 export function RemovableMedia() {
@@ -46,9 +72,13 @@ export function RemovableMedia() {
           items={[
             'There is no need to move customer data onto devices. Customer data lives only in production systems (Render PostgreSQL and S3), and policy forbids copying it into non-production environments.',
             'Exceptions are requested in writing to the CEO and recorded with the media, the data, an encryption confirmation, and the date of destruction. No exceptions had been requested or approved as of November 4, 2026.',
+            'FileVault is on by default for every Mac used for INTDEV work. On November 4, 2026, fdesetup status on the CEO’s MacBook reported “FileVault is On”, and System Settings showed FileVault enabled with a recovery key.',
             'Security awareness training covers this rule. A violation is a policy violation and goes through the disciplinary process.',
           ]}
         />
+      </Section>
+      <Section title="Disk encryption evidence">
+        <FileVaultEvidence />
       </Section>
     </Document>
   );
@@ -100,13 +130,19 @@ export function PenetrationTesting() {
             ['Type', 'Internal white-box assessment by INTDEV engineering'],
             ['Targets', 'The INTDEV API (source, configuration, and dependencies), api.internet.dev, users.garden, internet.dev, terminalgraph.com, the AWS account, and the Render services and database'],
             ['Methods', 'Review of authentication and authorization code paths and of credential and cryptography handling; a dependency audit of the full production dependency tree; external TLS and redirect testing of each hostname; read-only review of AWS IAM, MFA, security groups, and GuardDuty; review of Render database network and backup configuration'],
-            ['Findings', 'Two high-severity dependency advisories (one fixed the same day, one awaiting an upstream release), one high and two medium configuration and cryptography findings, two moderate dependency advisories, and one low finding'],
+            ['Findings', 'Two high-severity dependency advisories (sharp, fixed and live in 2.0.8; zod, awaiting an upstream release under an approved risk treatment plan), one high and two medium configuration and cryptography findings, two moderate dependency advisories (fixed in 2.0.9), and one low finding'],
           ]}
         />
       </Section>
       <Section title="Remediation plan">
         <Register />
         <p>Remediation follows the Operations Security Policy SLAs: critical and high within 30 days, medium within 60, and low within 90. Specific details of open findings are Confidential and available to auditors on request.</p>
+      </Section>
+      <Section title="Remediation evidence and management sign-off">
+        <Group>
+          <p>For each finding: the change that fixed it, the release that shipped it, and how the fix was verified, or, for a finding still open, its risk treatment plan with management sign-off. Whether a fix is live is checked against the release api.internet.dev is serving when you load this page.</p>
+          <RemediationRecords />
+        </Group>
       </Section>
       <Section title="Next tests">
         <List items={['An independent third-party penetration test of the INTDEV API and Users Garden, before the SOC 2 observation window closes', 'A retest of every open finding after remediation', 'The next annual assessment, by November 2027']} />
@@ -135,6 +171,9 @@ export function MobileDeviceManagement() {
             ['Offboarding', 'Device returned and erased, or company data removed from personal devices', 'Human Resource Security Policy; Data Management Policy Appendix A'],
           ]}
         />
+      </Section>
+      <Section title="Disk encryption evidence">
+        <FileVaultEvidence />
       </Section>
       <Section title="Management">
         <List
@@ -214,24 +253,46 @@ export function NetworkSegmentation() {
   return (
     <Document
       title="Network segmentation"
-      summary="INTDEV’s networks and environments are separated so that customer data can be reached only by the production services and administrators that need it."
+      summary="INTDEV’s networks and environments are separated so that customer data can be reached only by the production services and administrators that need it. The diagram shows the segments and the only paths between them, and the configuration exports below show how each boundary is enforced."
       controls={['Network segmentation implemented']}
     >
+      <Section title="Topology">
+        <SegmentationDiagram />
+      </Section>
       <Section title="Segments">
         <Table
           columns={['Segment', 'Contains', 'Separation']}
           rows={[
             ['Public edge', 'Cloudflare proxy for every hostname', 'Only HTTPS reaches the origins'],
-            ['Production services', 'Render web services for the INTDEV API, Users Garden, and Terminal Graph', 'Each service is an isolated container with its own environment secrets. Only the HTTP port is exposed.'],
+            ['Production services', 'Render web services for the INTDEV API, Users Garden, Terminal Graph, and internet.dev', 'Each service is an isolated container with its own environment secrets. Only the HTTP port is exposed. Pull request previews are off, so no unreviewed copy of a service runs.'],
             ['Production data', 'Render PostgreSQL (INTDEV DATA) in Oregon', 'Separate managed instance. Every connection needs TLS and the database credential, which only the API environment and administrators hold.'],
-            ['Object storage', 'S3 buckets for public assets, private uploads, and private slide exports', 'Separate buckets and prefixes. Private buckets block public access and are reached through short-lived presigned URLs.'],
-            ['AWS account', 'Monitoring and legacy resources', 'No production workload. A separate VPC per region, with flow logs on.'],
+            ['Object storage', 'S3 buckets for uploads, private attachments, and public assets in us-west-2', 'Separate buckets and prefixes. Private objects are reached only through short-lived presigned URLs. All buckets encrypt at rest (SSE AES-256).'],
+            ['AWS account', 'Monitoring and stopped legacy resources', 'No production workload. One default VPC per region, each with flow logs and GuardDuty.'],
             ['Development', 'Engineers’ machines and local databases', 'Policy forbids customer data here. Integration tests use embedded PostgreSQL with synthetic accounts only.'],
           ]}
         />
       </Section>
-      <Section title="Open item">
-        <p>INTDEV-2026-NET-01 narrows the database network allow list to the Render private network and named maintainer addresses (due January 3, 2027).</p>
+      <Section title="Configuration export: Render">
+        <Group>
+          <p>Read from the Render API on November 4, 2026. Addresses are omitted.</p>
+          <Table columns={['Resource', 'Region', 'Network exposure', 'Redundancy', 'Previews']} rows={RENDER_NETWORK_EXPORT.map((row) => [row.resource, row.region, row.exposure, row.redundancy, row.previews])} />
+        </Group>
+      </Section>
+      <Section title="Configuration export: AWS VPC security groups">
+        <Group>
+          <p>Every security group in the four monitored US regions, read with the AWS EC2 API on November 4, 2026. Group IDs and named addresses are omitted. Every VPC is the default 172.31.0.0/16 network with one /20 subnet per availability zone.</p>
+          <Table columns={['Region', 'Security group', 'Inbound', 'Outbound', 'Attached to']} rows={SECURITY_GROUP_EXPORT.map((row) => [row.region, row.group, row.inbound, row.outbound, row.attached])} />
+        </Group>
+      </Section>
+      <Section title="Open items">
+        <List
+          items={[
+            'INTDEV-2026-NET-01: restrict the database allow list to the Render private network and named maintainer addresses (due January 3, 2027).',
+            'INTDEV-2026-NET-02: remove the legacy us-west-2 security groups, or restrict them to named sources, before any legacy instance is started again (due January 3, 2027).',
+            'Review S3 Block Public Access at the account level, keeping exceptions only for the buckets that serve public assets. Tracked with INTDEV-2026-NET-02.',
+          ]}
+        />
+        <Links items={[{ label: 'Network firewall review', href: '/compliance/firewall-review' }, { label: 'Service description and network diagram', href: '/compliance/service-description' }]} />
       </Section>
     </Document>
   );
@@ -285,14 +346,15 @@ export function InfrastructureMaintenance() {
         <Table
           columns={['Vulnerability', 'System', 'Remediation', 'Released']}
           rows={[
-            ['GHSA-wq5f-xc86-pv6w, sharp and librsvg (High)', 'INTDEV API', 'sharp 0.35.4 upgraded to 0.35.5', 'Fixed November 4, 2026; ships with the next API release'],
+            ['GHSA-wq5f-xc86-pv6w, sharp and librsvg (High)', 'INTDEV API', 'sharp 0.35.4 upgraded to 0.35.5', 'Deployed November 4, 2026 in INTDEV API 2.0.8 (commit 195333d)'],
+            ['GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249, glob and minimatch (Moderate)', 'INTDEV API', 'googleapis ^172 upgraded to ^189', 'Fixed November 4, 2026; ships in INTDEV API 2.0.9'],
             ['Critical React Server Components remote code execution advisory, December 3, 2025', 'Users Garden', 'Next.js upgraded to 16.0.7 (P0 severity patch)', 'Deployed December 5, 2025 (commit 8c17648)'],
             ['Framework currency', 'Users Garden', 'Next.js 16.1.4', 'Deployed February 2, 2026 (commit 7a247eb)'],
           ]}
         />
       </Section>
       <Section title="Related">
-        <Links items={[{ label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' }, { label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
+        <Links items={[{ label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' }, { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' }, { label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
       </Section>
     </Document>
   );
@@ -306,31 +368,50 @@ export function VulnerabilityScans() {
       controls={['Vulnerabilities scanned and remediated', 'Service infrastructure maintained']}
     >
       <Section title="Q4 2026 scan">
-        <Group>
-          <Fields
-            items={[
-              ['Date', 'November 4, 2026'],
-              ['Dependency scan', 'npm audit of the INTDEV API’s full production resolution of package.json, the same resolution Render installs: 373 packages'],
-              ['External scan', 'TLS, protocol, certificate, redirect, and security-header checks against api.internet.dev, users.garden, internet.dev, and terminalgraph.com'],
-              ['Configuration scan', 'AWS IAM, MFA, security groups, GuardDuty, and malware protection; Render database network and backup settings'],
-            ]}
-          />
-          <Table
-            columns={['Severity', 'Before remediation', 'After remediation']}
-            rows={[
-              ['Critical', '0', '0'],
-              ['High', '17 package entries from 2 advisories (sharp; zod through @atproto) plus 1 configuration finding', '16 package entries from 1 advisory (zod, no upstream fix) plus 1 configuration finding'],
-              ['Moderate and medium', '5 package entries from 2 advisories (glob, minimatch) plus 2 configuration findings', 'Unchanged, scheduled'],
-              ['Low', '1 (HSTS)', 'Unchanged, scheduled'],
-            ]}
-          />
-        </Group>
+        <ScanRecord />
       </Section>
       <Section title="Vulnerability register">
         <Register />
       </Section>
       <Section title="SLAs and schedule">
         <List items={['Critical and high: 30 days. Medium: 60 days. Low: 90 days. Informational: as needed.', 'A finding that can’t meet its SLA needs a risk treatment plan and a new date.', 'Scans run every quarter (Q1 2027 by March 31) and after every major change.']} />
+      </Section>
+      <Section title="Related">
+        <Links items={[{ label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' }, { label: 'Penetration testing', href: '/compliance/penetration-testing' }, { label: 'Vulnerability record (JSON)', href: VULNERABILITY_RECORD }]} />
+      </Section>
+    </Document>
+  );
+}
+
+export function RemediatedVulnerabilities() {
+  const remediated = VULNERABILITIES.filter((finding) => finding.state !== 'open').map((finding) => finding.id);
+  const treated = VULNERABILITIES.filter((finding) => finding.state === 'open' && finding.treatment).map((finding) => finding.id);
+  return (
+    <Document
+      title="Sample of remediated vulnerabilities"
+      summary="Proof of INTDEV’s most recent periodic vulnerability scan, every finding it produced, and how each one was remedied, with the high-severity findings first. The same record is served by the INTDEV API, which checks each fix against the release in production."
+      controls={['Vulnerabilities scanned and remediated', 'Service infrastructure maintained']}
+    >
+      <Section title="Most recent periodic scan">
+        <ScanRecord />
+      </Section>
+      <Section title="Remediated findings">
+        <Group>
+          <p>Each remediated finding with the change that fixed it, the release that shipped it, and how the fix was verified. GHSA-wq5f-xc86-pv6w is the high-severity finding from this scan, and it is live in production.</p>
+          <RemediationRecords ids={remediated} />
+        </Group>
+      </Section>
+      <Section title="High-severity findings under a risk treatment plan">
+        <Group>
+          <p>These high findings cannot be fully remediated yet. Each has an approved risk treatment plan, compensating controls, and management sign-off, as the Operations Security Policy requires for a finding that cannot meet its SLA.</p>
+          <RemediationRecords ids={treated} />
+        </Group>
+      </Section>
+      <Section title="All findings">
+        <Register />
+      </Section>
+      <Section title="Related">
+        <Links items={[{ label: 'Vulnerability record (JSON)', href: VULNERABILITY_RECORD }, { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' }, { label: 'Penetration testing', href: '/compliance/penetration-testing' }, { label: 'CI/CD production deployments', href: '/compliance/ci-cd' }]} />
       </Section>
     </Document>
   );

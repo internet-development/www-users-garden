@@ -1,7 +1,11 @@
 import Document from '@root/compliance/site/Document';
+import ciCdDeploys from '@root/compliance/site/images/ci-cd-render-deploys.png';
+import ciCdProject from '@root/compliance/site/images/ci-cd-render-project.png';
+import internalCommunication1 from '@root/compliance/site/images/internal-communication-1.webp';
+import internalCommunication2 from '@root/compliance/site/images/internal-communication-2.webp';
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
-import { Fields, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
+import { Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
 import { CONTACTS, TEAM } from '@root/compliance/site/facts';
 
 export function TabletopExercise() {
@@ -110,6 +114,12 @@ export function ContinuousDeployment() {
       summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A reviewed commit lands on main in GitHub, and Render builds it and releases it to production. Each table below is read from the Render API when you load this page."
       controls={['CI/CD system in use', 'Change management']}
     >
+      <Section title="The CI/CD system">
+        <Group>
+          <Figure image={ciCdProject} alt="Render dashboard: the Internet Development Studio Company project, Production environment, with the internet-apis web service deployed on the Node runtime in Oregon." caption="Render, the CI/CD and hosting system. The Internet Development Studio Company project’s Production environment, with the internet-apis service deployed in Oregon." />
+          <Figure image={ciCdDeploys} alt="Render dashboard: the internet-apis web service connected to GitHub internet-development/apis on branch main, live at commit 195333d, with deploys 2.0.8, 2.0.6, and 2.0.5, each triggered by auto-deploy, with durations and rollback controls." caption="The internet-apis service is connected to GitHub internet-development/apis, branch main. Each release (2.0.8, 2.0.6, 2.0.5) was built by auto-deploy from a commit and can be rolled back to. Captured November 4, 2026." />
+        </Group>
+      </Section>
       <Section title="Pipeline">
         <List
           ordered
@@ -276,10 +286,18 @@ export function InternalChangeCommunication() {
             ['Every production deploy', 'Render records each deploy with its commit and can notify maintainers when a deploy fails. The history is mirrored on the CI/CD page.', 'Maintainers; the whole team through the CI/CD page'],
             ['Architecture, routes, permissions, rate limits, tables, workers, scripts', 'The repository’s AGENTS.md and published skills, updated in the same change', 'Engineers and the agents working in the repositories'],
             ['Planned work and handoffs', 'Each repository’s NEXT.md control file, which records the selected task, its evidence, and what remains', 'Engineers'],
+            ['Production system activity and updates', 'Slack channels where INTDEV systems post each production run and its result, with the team’s discussion in the thread (screenshots below)', 'The whole team'],
             ['Incidents and security changes', 'The incident war room in Slack and the incident ticket in GitHub Issues, as the Incident Response Plan requires', 'The incident response team and executive staff'],
             ['Policy changes', 'Vanta policy versions with approval, then announced to the team', 'All personnel, who acknowledge them'],
           ]}
         />
+      </Section>
+      <Section title="Internal communication channel in use">
+        <Group>
+          <p>The team works in the Internet Development Studio Company Slack workspace. Production systems post their own activity to channels, and staff discuss each change in the thread under it. The screenshots below are from the #ask-queries channel in September and October 2026: an INTDEV application posts every production run with its result, and staff review the update and sign off in the thread.</p>
+          <Figure image={internalCommunication1} alt="Slack, Internet Development Studio Company workspace, #ask-queries channel: application posts for production runs on October 14, 17, and 21, 2026, with their results and a thread showing each query step. A customer email address is redacted." caption="Slack #ask-queries, October 2026. Each production run is posted with its status, and the thread records each step. A client customer’s email address is redacted." />
+          <Figure image={internalCommunication2} alt="Slack #ask-queries channel, September 17, 2026: production runs requested by staff, with a thread in which Hannah Suh shares a screenshot of the change and Sol Ruck replies that it looks good." caption="Slack #ask-queries, September 2026. Staff discuss a system update in the thread and confirm it before it is relied on." />
+        </Group>
       </Section>
       <Section title="Expectations">
         <List

@@ -1,7 +1,20 @@
 import Document from '@root/compliance/site/Document';
 
+import type { Person } from '@root/compliance/site/types';
+
+import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, TEAM } from '@root/compliance/site/facts';
+import { EVIDENCE_ENDPOINTS, TRAINING_COURSES } from '@root/compliance/site/records';
 import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
-import { AGREEMENT_TEMPLATES, COMPANY, CONTACTS, TEAM } from '@root/compliance/site/facts';
+import { TrainingRoster } from '@root/compliance/site/Evidence';
+
+const LEADERSHIP_TYPES: Record<string, string> = {
+  'Jimmy Lee': 'Founder; Chief Executive Officer',
+  'Andrew Alimbuyuguen': 'Co-founder, Partner',
+};
+
+function staffType(person: Person): string {
+  return LEADERSHIP_TYPES[person.name] ?? 'Member of Technical Staff';
+}
 
 export function Whistleblower() {
   return (
@@ -60,8 +73,8 @@ export function BackgroundChecks() {
         />
       </Section>
       <Section title="Record">
-        <Table columns={['Team member', 'Type', 'Background check', 'Citizenship']} rows={TEAM.map((person) => [person.name, person.type, 'Completed before access was granted', 'United States citizen'])} />
-        <p>Every current INTDEV team member is a United States citizen. Background check reports are Confidential personnel records, kept for seven years, and available to auditors on request.</p>
+        <Table columns={['Team member', 'Position', 'Background check']} rows={TEAM.map((person) => [person.name, staffType(person), 'Completed before access was granted'])} />
+        <p>Background check reports are Confidential personnel records, kept for seven years, and available to auditors on request.</p>
       </Section>
     </Document>
   );
@@ -198,9 +211,12 @@ export function SecurityAwarenessTraining() {
   return (
     <Document
       title="Security awareness training"
-      summary="INTDEV’s security awareness training. Every employee and every contractor with privileged access completes it within 30 days of hire and every year after, as the Human Resource Security Policy requires."
+      summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Every employee and every contractor with privileged access completes both within 30 days of hire and every year after, as the Human Resource Security Policy requires."
       controls={['Security awareness training implemented']}
     >
+      <Section title="Completion record">
+        <TrainingRoster />
+      </Section>
       {TRAINING_MODULES.map(([title, points]) => (
         <Section key={title} title={title}>
           <List items={points} />
@@ -216,13 +232,25 @@ export function SecurityAwarenessTraining() {
           ]}
         />
       </Section>
-      <Section title="Completion">
+      <Section title="Business continuity and disaster recovery training">
+        <List
+          items={[
+            'Your role when the Incident Manager declares a disaster, and the key contacts the plan names.',
+            'The recovery objectives: four hours to restore the INTDEV API and its sign-in (RTO), with at most one hour of data loss (RPO).',
+            'The restore procedure: point-in-time recovery of the production database into a new instance, verification, credential rotation, and a ticketed record.',
+            'Customer communication: only the CEO sends customer notices, through the status page, the changelog, and email.',
+            'The November 4, 2026 tabletop exercise, its findings, and the seven action items every participant signed off on.',
+          ]}
+        />
+      </Section>
+      <Section title="Program">
         <Fields
           items={[
             ['Who', 'All employees and partners, plus contractors with administrative or privileged technical access'],
             ['When', 'Within 30 days of hire, then every year'],
-            ['Evidence', 'Each person acknowledges completion, and the record is kept in Vanta'],
-            ['Current version', 'November 4, 2026'],
+            ['Courses', TRAINING_COURSES.map((course) => `${course.title} (version: ${course.version})`).join('; ')],
+            ['Evidence', <a key="evidence" href={`${API_HOST}${EVIDENCE_ENDPOINTS.training}`}>{`${API_HOST.replace('https://', '')}${EVIDENCE_ENDPOINTS.training}`}</a>],
+            ['How it is recorded', 'Each person signs an acknowledgement of both courses. The record is published by the INTDEV API with each person’s user_id and live account level, so it can be checked against the production system.'],
           ]}
         />
       </Section>

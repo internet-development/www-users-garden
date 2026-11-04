@@ -1,4 +1,4 @@
-import type { Person, Vendor } from '@root/compliance/site/types';
+import type { Person, Vendor, Vulnerability } from '@root/compliance/site/types';
 
 export const COMPANY = {
   name: 'Internet Development Studio Company',
@@ -11,7 +11,7 @@ export const COMPANY = {
 export const CONTACTS = {
   support: 'eng@internet.dev',
   security: 'security@internet.dev',
-  ceo: 'jimmy@internet.dev',
+  ceo: 'j@internet.dev',
 };
 
 export const PUBLISHED = 'November 4, 2026';
@@ -50,20 +50,23 @@ export const PRODUCTS = [
 const AVATAR = 'https://pbs.twimg.com/profile_images';
 
 export const TEAM: Person[] = [
-  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer; Director; acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', joined: 'November 11, 2023', type: 'Founder' },
-  { name: 'Andrew Alimbuyuguen', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1958569334726668288/GFE8mhKI_400x400.jpg`, href: 'https://x.com/aalimbuyuguen', joined: 'November 11, 2023', type: 'Co-founder, Partner' },
-  { name: 'Elijah Seed Arita', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1890125319224598528/ZILr9OGp_400x400.jpg`, href: 'https://x.com/elijaharita', joined: 'March 6, 2024', type: 'Partner' },
-  { name: 'Caidan Williams', title: 'Webmaster', role: 'Member of Technical Staff; Terminal Graph product lead', avatar: `${AVATAR}/1989080994687991809/CoUHUW0A_400x400.jpg`, href: 'https://x.com/caidanwilliams', joined: 'June 24, 2025', type: 'Partner' },
-  { name: 'Hannah Suh', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2091636350445629440/4WCkh6JZ_400x400.jpg`, href: 'https://x.com/hellohsuh', joined: 'June 24, 2025', type: 'Partner' },
-  { name: 'Sol Ruck', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2090924616269414400/q7qc0FcP_400x400.jpg`, href: 'https://x.com/solruck', joined: null, type: 'Member of Technical Staff' },
-  { name: 'Vani Agarwal', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1953144649725431808/fbHIGXnV_400x400.jpg`, href: 'https://x.com/vaniagrwall', joined: 'September 16, 2026', type: 'Employee' },
-  { name: 'Rishav Kundu', title: 'Webmaster', role: 'Member of Technical Staff', avatar: 'https://osoi4zg5m42do5ig.public.blob.vercel-storage.com/rishav.avif', href: 'https://github.com/rishavkundu', joined: 'October 5, 2026', type: 'Employee' },
+  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer; Director; acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', joined: 'November 11, 2023', type: 'Founder', userId: 'b997a0b4-abb6-4d05-9d53-d12d4c69ab6d' },
+  { name: 'Andrew Alimbuyuguen', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1958569334726668288/GFE8mhKI_400x400.jpg`, href: 'https://x.com/aalimbuyuguen', joined: 'November 11, 2023', type: 'Co-founder, Partner', userId: '52f9fbc7-67c3-41df-8178-15671d3f92e7' },
+  { name: 'Elijah Seed Arita', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1890125319224598528/ZILr9OGp_400x400.jpg`, href: 'https://x.com/elijaharita', joined: 'March 6, 2024', type: 'Partner', userId: '82fdbce2-8e8a-4875-ab8c-6880387c4259' },
+  { name: 'Caidan Williams', title: 'Webmaster', role: 'Member of Technical Staff; Terminal Graph product lead', avatar: `${AVATAR}/1989080994687991809/CoUHUW0A_400x400.jpg`, href: 'https://x.com/caidanwilliams', joined: 'June 24, 2025', type: 'Partner', userId: '0f419e87-dbac-4fca-bb5d-42562c8a0825' },
+  { name: 'Hannah Suh', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2111650312314638336/qsx-UDAb_400x400.jpg`, href: 'https://x.com/hellohsuh', joined: 'June 24, 2025', type: 'Partner', userId: '9832d912-5afc-4f44-8a49-85028eefadb3' },
+  { name: 'Sol Ruck', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2090924616269414400/q7qc0FcP_400x400.jpg`, href: 'https://x.com/solruck', joined: null, type: 'Member of Technical Staff', userId: '28769d62-01a0-4e2b-8cf4-5c31e5e407f5' },
+  { name: 'Vani Agarwal', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1953144649725431808/fbHIGXnV_400x400.jpg`, href: 'https://x.com/vaniagrwall', joined: 'September 16, 2026', type: 'Employee', userId: 'f9548b4b-281d-4052-9d3c-f4a369bef6c2' },
+  { name: 'Rishav Kundu', title: 'Webmaster', role: 'Member of Technical Staff', avatar: 'https://osoi4zg5m42do5ig.public.blob.vercel-storage.com/rishav.avif', href: 'https://github.com/rishavkundu', joined: 'October 5, 2026', type: 'Employee', userId: '9eecc6aa-0e96-4388-abab-63b787142634' },
 ];
 
 export const FORMER_TEAM = [
-  { name: 'Anastasiya Uraleva', type: 'Co-founder, Partner', joined: 'November 11, 2023', left: 'July 11, 2026' },
-  { name: 'Chenyu Huang', type: 'Partner', joined: 'January 15, 2025', left: 'No longer on the active roster at internet.dev' },
+  { name: 'Anastasiya Uraleva', type: 'Co-founder, Partner', joined: 'November 11, 2023', left: 'July 11, 2026', userId: 'b8abafa4-6c7b-4e6c-9db2-ab146ecfaaad' },
+  { name: 'Chenyu Huang', type: 'Partner', joined: 'January 15, 2025', left: 'No longer on the active roster at internet.dev', userId: 'fa784f8d-5410-4f51-8dd1-4c6afb7d22a1' },
+  { name: 'Louanne Murphy', type: 'Team member', joined: 'March 12, 2026 (account created)', left: 'Offboarding recorded November 4, 2026', userId: '3b1bda59-6474-4cb4-9883-63772d575992' },
 ];
+
+export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
 
 export const EXECUTIVE = 'Jimmy Lee';
 
@@ -118,13 +121,142 @@ export const AGREEMENT_TEMPLATES = [
 
 export const AWS_REGIONS = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2'];
 
-export const VULNERABILITIES = [
-  { id: 'GHSA-wq5f-xc86-pv6w', component: 'sharp (direct dependency of the INTDEV API)', severity: 'High', found: 'November 4, 2026', status: 'Remediated November 4, 2026', action: 'Upgraded sharp 0.35.4 to 0.35.5, which bundles the patched librsvg (CVE-2026-96889). The pinned version is in package.json, so every Render build installs the fix.' },
-  { id: 'GHSA-mrhx-c7xc-m3w5', component: 'zod 3.x, through 15 @atproto packages used for Bluesky sign-in', severity: 'High', found: 'November 4, 2026', status: 'Open, risk treatment plan', action: 'No fixed release exists for zod 3, and every current @atproto release still requires zod ^3.23.8. Tracked until @atproto moves to zod 4.6.6 or later; the affected code parses OAuth and DID documents from identity servers, not arbitrary customer input. Target: upgrade within 30 days of an upstream release.' },
-  { id: 'GHSA-3g3m-2fjr-6pw4', component: 'glob 10.x through rimraf and googleapis-common (googleapis ^172)', severity: 'Moderate', found: 'November 4, 2026', status: 'Open, scheduled', action: 'Fixed by moving googleapis to the current major (189), whose googleapis-common no longer depends on rimraf. Scheduled as a tested upgrade because it changes the Google sign-in client library. SLA: 60 days.' },
-  { id: 'GHSA-g3hv-75wg-m249', component: 'minimatch 9.x through the same googleapis chain', severity: 'Moderate', found: 'November 4, 2026', status: 'Open, scheduled', action: 'Resolved by the same googleapis upgrade. SLA: 60 days.' },
-  { id: 'INTDEV-2026-CRYPTO-01', component: 'INTDEV API credential storage and cross-origin payload encryption', severity: 'High', found: 'November 4, 2026', status: 'Open, remediation plan approved', action: 'Identified during the November 2026 tabletop exercise. Bring stored credentials and the cross-origin encryption scheme to the Cryptography Policy standard. The change is coordinated with every consuming site because the scheme is shared across origins. Details are Confidential under the Data Management Policy and are available to auditors on request. SLA: 30 days.' },
-  { id: 'INTDEV-2026-NET-01', component: 'Managed production database network access', severity: 'Medium', found: 'November 4, 2026', status: 'Open, remediation plan approved', action: 'Identified during the November 2026 tabletop exercise. Narrow the database network allow list to the Render private network and named maintainer addresses. Connections already require TLS and a database credential. SLA: 60 days.' },
-  { id: 'INTDEV-2026-NET-02', component: 'Legacy AWS EC2 security groups in us-west-2', severity: 'Medium', found: 'November 4, 2026', status: 'Open, remediation plan approved', action: 'Found in the 2026 firewall review. Inbound rules on legacy security groups are broader than their business need. The instances they protect are stopped, and no production workload runs on EC2. Remove the legacy groups or restrict them to named sources before any instance is started again. SLA: 60 days.' },
-  { id: 'INTDEV-2026-HSTS', component: 'api.internet.dev, users.garden, internet.dev, terminalgraph.com', severity: 'Low', found: 'November 4, 2026', status: 'Open, scheduled', action: 'Every hostname redirects HTTP to HTTPS and negotiates TLS 1.3, but none sends a Strict-Transport-Security header. Enable HSTS at the Cloudflare edge. SLA: 90 days.' },
+export const VULNERABILITIES: Vulnerability[] = [
+  {
+    id: 'GHSA-wq5f-xc86-pv6w',
+    component: 'sharp (direct dependency of the INTDEV API)',
+    severity: 'High',
+    found: 'November 4, 2026',
+    status: 'Remediated November 4, 2026, live in INTDEV API 2.0.8',
+    state: 'remediated',
+    fixed_in: '2.0.8',
+    action: 'Pinned sharp to 0.35.5, which bundles the patched librsvg (CVE-2026-96889). The exact version is pinned in package.json, so every Render build installs the fix.',
+    evidence: [
+      { label: 'Change', detail: 'package.json pins "sharp": "0.35.5" (previously 0.35.4), reviewed and merged to main in GitHub internet-development/apis' },
+      { label: 'Release', detail: 'INTDEV API 2.0.8, commit 195333d, Render deploy dep-dbl7rd9srm7s73fm9te0 (auto-deploy on commit), live November 4, 2026 00:38 UTC', href: '/compliance/ci-cd' },
+      { label: 'Verification', detail: 'A fresh production resolution of package.json was audited after the release. GHSA-wq5f-xc86-pv6w is no longer reported.' },
+    ],
+  },
+  {
+    id: 'GHSA-3g3m-2fjr-6pw4',
+    component: 'glob 10.x through rimraf and googleapis-common (googleapis ^172)',
+    severity: 'Moderate',
+    found: 'November 4, 2026',
+    status: 'Fixed November 4, 2026 in INTDEV API 2.0.9',
+    state: 'fixed_pending_release',
+    fixed_in: '2.0.9',
+    action: 'Upgraded googleapis from ^172 to ^189, whose googleapis-common no longer depends on rimraf or glob. The API uses googleapis only for the Google OAuth2 client and the People API profile read, and both are unchanged in 189.',
+    evidence: [
+      { label: 'Change', detail: 'package.json "googleapis": "^172.0.0" changed to "^189.0.0"; the INTDEV API test suite passes on 189.0.0' },
+      { label: 'Verification', detail: 'npm audit of a fresh production resolution (googleapis 189.0.0) reports no glob advisory' },
+      { label: 'Release', detail: 'Ships in INTDEV API 2.0.9. This page reports it live when api.internet.dev serves 2.0.9 or later.', href: '/compliance/ci-cd' },
+    ],
+  },
+  {
+    id: 'GHSA-g3hv-75wg-m249',
+    component: 'minimatch 9.x through the same googleapis chain',
+    severity: 'Moderate',
+    found: 'November 4, 2026',
+    status: 'Fixed November 4, 2026 in INTDEV API 2.0.9',
+    state: 'fixed_pending_release',
+    fixed_in: '2.0.9',
+    action: 'Resolved by the same googleapis 189 upgrade.',
+    evidence: [
+      { label: 'Change', detail: 'Same googleapis upgrade as GHSA-3g3m-2fjr-6pw4' },
+      { label: 'Verification', detail: 'npm audit of a fresh production resolution reports no minimatch advisory' },
+    ],
+  },
+  {
+    id: 'GHSA-mrhx-c7xc-m3w5',
+    component: 'zod 3.x, through 15 @atproto packages used for Bluesky sign-in',
+    severity: 'High',
+    found: 'November 4, 2026',
+    status: 'Open, risk treatment plan approved November 4, 2026',
+    state: 'open',
+    fixed_in: null,
+    action: 'No fixed zod 3 release exists, and every current @atproto release still requires zod ^3.23.8. The advisory is memory exhaustion while validating oversized collections. The affected code parses OAuth metadata and DID documents returned by identity servers during Bluesky sign-in, not arbitrary customer input.',
+    evidence: [
+      { label: 'Upstream check', detail: 'npm registry, November 4, 2026: @atproto/oauth-client-node 0.5.13 and its @atproto dependencies still declare zod ^3.23.8' },
+      { label: 'Verification', detail: 'npm audit of a fresh production resolution: 16 package entries, all from this one advisory' },
+    ],
+    treatment: {
+      likelihood: 2,
+      impact: 2,
+      treatment: 'Mitigate now with compensating controls; remediate by upgrading @atproto as soon as a release moves to zod 4.6.6 or later',
+      compensating_controls: [
+        'Bluesky sign-in routes sit in the auth rate-limit category: 5 requests per minute per key or IP',
+        'The API runs as two Render instances, so one exhausted process does not take the service down; Render restarts it',
+        'Only identity-server responses reach the vulnerable parser; customer request bodies do not',
+        'npm audit runs against a fresh production resolution every week until the advisory clears',
+      ],
+      target: 'Within 30 days of an @atproto release on zod 4.6.6 or later; plan reviewed December 4, 2026',
+      review: 'December 4, 2026',
+      approved_by: 'Jimmy Lee, Chief Executive Officer and Director',
+      approved_at: '2026-11-04',
+      ratified: 'Board resolution of November 4, 2026 approving the vulnerability remediation plan',
+    },
+  },
+  {
+    id: 'INTDEV-2026-CRYPTO-01',
+    component: 'INTDEV API credential storage and cross-origin payload encryption',
+    severity: 'High',
+    found: 'November 4, 2026',
+    status: 'Open, risk treatment plan approved November 4, 2026',
+    state: 'open',
+    fixed_in: null,
+    action: 'Identified during the November 2026 tabletop exercise. Bring stored credentials and the cross-origin encryption scheme to the Cryptography Policy standard. The change is coordinated with every consuming site because the scheme is shared across origins. Details are Confidential under the Data Management Policy and are available to auditors on request.',
+    evidence: [
+      { label: 'Source', detail: 'Tabletop exercise of November 4, 2026, action item 1', href: '/compliance/tabletop-exercise' },
+      { label: 'Plan', detail: 'Remediation sequenced with users.garden, txt.dev, and payments.internet.dev so no consuming site breaks' },
+    ],
+    treatment: {
+      likelihood: 2,
+      impact: 4,
+      treatment: 'Mitigate: harden credential storage and replace the cross-origin scheme in a coordinated release',
+      compensating_controls: [
+        'All traffic is HTTPS with TLS 1.3 at the edge; the database connection requires TLS',
+        'Encryption keys and database credentials live only in the Render environment and maintainers’ local, git-ignored files',
+        'Credential-guessing routes are in the auth rate-limit category; customers can regenerate an exposed API key at any time',
+        'GuardDuty and VPC Flow Logs monitor the AWS account; Render records every deploy',
+      ],
+      target: 'December 4, 2026 (30-day SLA for High)',
+      review: 'November 18, 2026 progress check; December 4, 2026 closure',
+      approved_by: 'Jimmy Lee, Chief Executive Officer and Director',
+      approved_at: '2026-11-04',
+      ratified: 'Board resolution of November 4, 2026 approving the tabletop action items',
+    },
+  },
+  {
+    id: 'INTDEV-2026-NET-01',
+    component: 'Managed production database network access',
+    severity: 'Medium',
+    found: 'November 4, 2026',
+    status: 'Open, remediation plan approved',
+    state: 'open',
+    fixed_in: null,
+    action: 'Identified during the November 2026 tabletop exercise. The Render PostgreSQL allow list is not restricted to named sources. Narrow it to the Render private network and named maintainer addresses. Connections already require TLS and a database credential. SLA: 60 days (January 3, 2027).',
+    evidence: [{ label: 'Configuration export', detail: 'Render API read of INTDEV DATA, November 4, 2026', href: '/compliance/network-segmentation' }],
+  },
+  {
+    id: 'INTDEV-2026-NET-02',
+    component: 'Legacy AWS EC2 security groups in us-west-2',
+    severity: 'Medium',
+    found: 'November 4, 2026',
+    status: 'Open, remediation plan approved',
+    state: 'open',
+    fixed_in: null,
+    action: 'Found in the 2026 firewall review. Inbound rules on legacy security groups are broader than their business need. The four instances they protect are stopped, and no production workload runs on EC2. Remove the legacy groups or restrict them to named sources before any instance is started again. SLA: 60 days (January 3, 2027).',
+    evidence: [{ label: 'Configuration export', detail: 'AWS EC2 security group export, November 4, 2026', href: '/compliance/network-segmentation' }],
+  },
+  {
+    id: 'INTDEV-2026-HSTS',
+    component: 'api.internet.dev, users.garden, internet.dev, terminalgraph.com',
+    severity: 'Low',
+    found: 'November 4, 2026',
+    status: 'Open, scheduled',
+    state: 'open',
+    fixed_in: null,
+    action: 'Every hostname redirects HTTP to HTTPS and negotiates TLS 1.3, but none sends a Strict-Transport-Security header. Enable HSTS at the Cloudflare edge. SLA: 90 days (February 2, 2027).',
+    evidence: [{ label: 'External test', detail: 'TLS and header test of each hostname, November 4, 2026', href: '/compliance/encryption-in-transit' }],
+  },
 ];
