@@ -56,6 +56,7 @@ function ExampleRootSinglePageApplication(props) {
   const [showBlueskyInput, setShowBlueskyInput] = React.useState<boolean>(false);
 
   const onGetSmsSettings = React.useCallback(() => Queries.onGetSmsSettings({ key }), [key]);
+  const onDeviceCheckIn = React.useCallback(({ device }) => Queries.onDeviceCheckIn({ key, device }), [key]);
   const phoneSession = React.useRef({ key, id: currentUser?.id });
   phoneSession.current = { key, id: currentUser?.id };
   const onSaveSmsPhone = React.useCallback(async (phone: string) => {
@@ -119,6 +120,8 @@ function ExampleRootSinglePageApplication(props) {
         onSaveSmsPhone={onSaveSmsPhone}
         onRequestSmsConsent={onRequestSmsConsent}
         onRemoveSmsPhone={onRemoveSmsPhone}
+        onDeviceCheckIn={onDeviceCheckIn}
+        onGetDeviceFleet={Queries.onGetDeviceFleet}
         onUserGetInvoices={async ({ id }) => {
           const response = await Queries.onUserGetInvoices({ key, id });
           return response;

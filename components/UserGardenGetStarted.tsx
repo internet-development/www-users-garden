@@ -1,6 +1,7 @@
 import styles from '@components/UserGardenGetStarted.module.css';
 
 import * as Constants from '@common/constants';
+import * as DeviceCheck from '@common/device-check';
 import * as React from 'react';
 
 import Button from '@system/Button';
@@ -12,6 +13,7 @@ import StandardHeader from '@components/StandardHeader';
 import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P } from '@system/typography';
+import { DEVICE_CHECK_FRESH_DAYS } from '@root/compliance/site/records';
 
 export default function UserDanger(props) {
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -37,6 +39,15 @@ export default function UserDanger(props) {
       >
         Welcome! You can manage your account, organization, and physical workspace from here.
       </StandardHeader>
+
+      {DeviceCheck.isCurrentTeamMember(props.viewer) ? (
+        <StandardLayoutSection title="Report your laptop">
+          <P style={{ marginTop: 6 }}>As an INTDEV team member, report every Mac you use for INTDEV work at least every {DEVICE_CHECK_FRESH_DAYS} days. Device check gives you one Terminal command to run, then you paste its report and send it with your signed-in account.</P>
+          <div className={styles.actions}>
+            <ButtonPrimary onClick={() => props.onNavigate({ active: 'TEAM_DEVICE_CHECK', nextOrganization: null })}>Device check</ButtonPrimary>
+          </div>
+        </StandardLayoutSection>
+      ) : null}
 
       <StandardLayoutSection title="Get started">
         <P style={{ marginTop: 6, paddingBottom: 88 }}>Here is everything you need to start using our API for authentication, user management, and more.</P>
