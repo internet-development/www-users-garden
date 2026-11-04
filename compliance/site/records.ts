@@ -1,4 +1,4 @@
-import type { AccessGrant, ChecklistStep, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
+import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
 
 import { FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
 
@@ -14,6 +14,7 @@ export const EVIDENCE_ENDPOINTS = {
   report: '/api/compliance/report',
   releases: '/api/compliance/releases',
   devices: '/api/compliance/devices',
+  encryption: '/api/compliance/encryption',
 } as const;
 
 export const DEVICE_CHECK_IN = '/api/compliance/devices/check-in';
@@ -29,7 +30,112 @@ export const REMOVABLE_MEDIA_CONTROL = {
   due: 'December 4, 2026',
 };
 
-export const INTDEV_ORGANIZATION_DOMAINS = ['internet.dev', 'users.garden', 'terminalgraph.com', 'txt.dev'];
+export const ENCRYPTION_RECORDED_AT = '2026-11-04';
+
+const APPLE_FILEVAULT = 'https://support.apple.com/guide/security/volume-encryption-with-filevault-sec4c6dc1b6e/web';
+const APPLE_DATA_PROTECTION = 'https://support.apple.com/guide/security/data-protection-overview-secf6276da8a/web';
+const APPLE_ENCRYPTION_OVERVIEW = 'https://support.apple.com/guide/security/encryption-and-data-protection-overview-sece3bee0835/web';
+
+export const APPLE_ENCRYPTION_SOURCES = {
+  fileVault: { title: 'Apple Platform Security: Volume encryption with FileVault in macOS', href: APPLE_FILEVAULT, quote: 'FileVault uses the AES-XTS data encryption algorithm to protect full volumes on internal and removable storage devices.' },
+  appleSilicon: { title: 'Apple Platform Security: Volume encryption with FileVault in macOS', href: APPLE_FILEVAULT, quote: 'FileVault on a Mac with Apple silicon is implemented using Data Protection Class C with a volume key.' },
+  aes256: {
+    title: 'Apple Platform Security: Data Protection overview',
+    href: APPLE_DATA_PROTECTION,
+    quote: 'On A14 through A18 and M1 or later devices, the encryption uses AES-256 in XTS mode, where the 256-bit per-file-key goes through a Key Derivation Function (NIST Special Publication 800-108) to derive a 256-bit value and a 256-bit cipher key.',
+  },
+  aes128: { title: 'Apple Platform Security: Data Protection overview', href: APPLE_DATA_PROTECTION, quote: 'On A9 through A13 and S5 or later devices, the encryption uses AES-128 in XTS mode, where the 256-bit per file key is split to provide a 128-bit value and a 128-bit cipher key.' },
+  t2: {
+    title: 'Apple Platform Security: Volume encryption with FileVault in macOS',
+    href: APPLE_FILEVAULT,
+    quote: 'On a Mac with Apple silicon and a Mac with an Apple T2 Security Chip, encrypted internal storage devices directly connected to the Secure Enclave leverage its hardware security capabilities as well as that of the AES Engine.',
+  },
+  intel: { title: 'Apple Platform Security: Encryption and Data Protection overview', href: APPLE_ENCRYPTION_OVERVIEW, quote: '(An Intel-based Mac with a T1 or lacking a Secure Enclave doesn’t use dedicated silicon to protect its FileVault encryption keys.)' },
+  removable: {
+    title: 'Apple Platform Security: Volume encryption with FileVault in macOS',
+    href: APPLE_FILEVAULT,
+    quote: 'Encryption of removable storage devices doesn’t utilize the security capabilities of the Secure Enclave and instead is performed in the same manner as an Intel-based Mac without the T2 chip.',
+  },
+  fileVaultOff: {
+    title: 'Apple Platform Security: Volume encryption with FileVault in macOS',
+    href: APPLE_FILEVAULT,
+    quote: 'If FileVault isn’t turned on in a Mac with Apple silicon or a Mac with the T2 chip during the initial Setup Assistant process, the volume is still encrypted but the volume encryption key is protected only by the hardware UID in the Secure Enclave.',
+  },
+  onByDefault: {
+    title: 'Apple Platform Security: Data Protection overview',
+    href: APPLE_DATA_PROTECTION,
+    quote: 'On a Mac with macOS 26.4 or later, FileVault is turned on by default, which automatically provides users the full protection of entangling the encryption key hierarchy with their password.',
+  },
+} satisfies Record<string, EncryptionSource>;
+
+export const FILEVAULT_STANDARD: Record<DeviceChip, DiskEncryptionStandard> = {
+  apple_silicon: {
+    hardware: 'Mac with Apple silicon (M1 or later)',
+    algorithm: 'AES-256 in XTS mode',
+    aes_key_bits: 256,
+    key_handling: 'FileVault is Data Protection Class C with a volume key. All FileVault key handling occurs in the Secure Enclave and the AES Engine encrypts the data, so encryption keys are never directly exposed to the CPU.',
+    cipher: 'AES-256-XTS (Apple silicon AES Engine, keys in the Secure Enclave)',
+    sources: [APPLE_ENCRYPTION_SOURCES.appleSilicon, APPLE_ENCRYPTION_SOURCES.aes256],
+  },
+  t2: {
+    hardware: 'Intel Mac with the Apple T2 Security Chip',
+    algorithm: 'AES in XTS mode. Apple does not publish the key size.',
+    aes_key_bits: null,
+    key_handling: 'Keys are handled in the T2 Secure Enclave, and its AES Engine encrypts the data.',
+    cipher: 'AES-XTS (T2 Secure Enclave and AES Engine; Apple publishes no key size)',
+    sources: [APPLE_ENCRYPTION_SOURCES.fileVault, APPLE_ENCRYPTION_SOURCES.t2],
+  },
+  intel: {
+    hardware: 'Intel Mac without the T2 chip',
+    algorithm: 'AES in XTS mode. Apple does not publish the key size.',
+    aes_key_bits: null,
+    key_handling: 'Encrypted in software. No dedicated silicon protects the keys.',
+    cipher: 'AES-XTS (software, no Secure Enclave; Apple publishes no key size)',
+    sources: [APPLE_ENCRYPTION_SOURCES.fileVault, APPLE_ENCRYPTION_SOURCES.intel],
+  },
+};
+
+export const REMOVABLE_MEDIA_ENCRYPTION: DiskEncryptionStandard = {
+  hardware: 'External or USB drive, only with an approved exception',
+  algorithm: 'AES in XTS mode on an APFS (Encrypted) volume. Apple does not publish the key size.',
+  aes_key_bits: null,
+  key_handling: 'Unlocked with a unique password. The Secure Enclave is not used.',
+  cipher: 'AES-XTS (APFS Encrypted, software)',
+  sources: [APPLE_ENCRYPTION_SOURCES.removable],
+};
+
+export const XTS_KEY_SIZES =
+  'AES-XTS uses two AES keys of the same size: one encrypts the data and the other computes the XTS tweak. A “256-bit key” in XTS-AES-128 is therefore two 128-bit halves, and the data is encrypted with AES-128, which is how Apple describes its AES-128 XTS configuration: a 256-bit key split into a 128-bit value and a 128-bit cipher key. AES-256-XTS, which Apple documents for M1 and later, uses a 256-bit cipher key. The fleet report counts a laptop as AES-256 only where Apple documents a 256-bit cipher key, which today means Apple silicon. IEEE 1619 and NIST SP 800-38E define XTS-AES only with AES-128 or AES-256, so every FileVault configuration meets the Cryptography Policy’s endpoint storage standard of AES with 128 or 256-bit keys.';
+
+export const FILEVAULT_REQUIRED =
+  'A Mac with Apple silicon or a T2 chip encrypts its internal volume even with FileVault off, but its key is then protected only by the hardware UID, not by the user’s password. FileVault ties the key to the user’s password, which is what protects a lost or stolen laptop that is powered off. That is why the device check requires FileVault on, not only an encrypted volume.';
+
+export const CRYPTOGRAPHY_POLICY_KEYS = [
+  { domain: 'Endpoint storage (SSD or HDD), including laptops', algorithm: 'AES', key_length: '128 or 256 bit', expiration: 'Not applicable' },
+  { domain: 'Confidential data at rest', algorithm: 'AES', key_length: '256 bit', expiration: '1 year' },
+];
+
+export const APPLICATION_ENCRYPTION = {
+  name: 'INTDEV API application-layer encryption',
+  layer: 'A separate layer for a few application values. It is not disk or removable media encryption.',
+  algorithm: 'AES in CTR mode',
+  implementation: 'modules/aes.js in the INTDEV API, with the matching decryptor on each INTDEV site that receives these values',
+  key_custody: 'One key shared by the INTDEV API and the INTDEV sites that receive these values. The API and Users Garden keep it in server-side environment variables and decrypt only on the server; maintainers also hold it in local, git-ignored environment files.',
+  covers: [
+    'The API key an INTDEV site receives after Google, Apple, or Bluesky sign-in, or after an account transfer. It travels in the URL only as ciphertext and is decrypted on the receiving site’s server, so the plaintext key never appears in a URL.',
+    'License keys at rest in the production database, stored as ciphertext beside a SHA-256 hash used for lookup, so the database holds no plaintext license key.',
+  ],
+  does_not_cover: [
+    'Laptop disks and removable media. This layer encrypts nothing stored on a laptop or an external drive; FileVault and APFS encryption do that.',
+    'A stolen laptop. The key sits in the same environment files that FileVault protects on that disk, so this layer adds nothing once a disk can be read. FileVault is the protection for lost or stolen hardware.',
+    'Exposure of the encrypted value itself. The encrypted sign-in value still signs its holder in, so it is handled as a credential.',
+  ],
+  status:
+    'Not yet at the Cryptography Policy’s standard. Bringing this scheme to that standard is the open High finding INTDEV-2026-CRYPTO-01, coordinated with every site that shares the key. Until that finding closes, no compliance check relies on this layer: TLS protects these values in transit, and FileVault, Render, and Amazon S3 encrypt data at rest.',
+  finding: 'INTDEV-2026-CRYPTO-01',
+};
+
+export const INTDEV_ORGANIZATION_DOMAINS =['internet.dev', 'users.garden', 'terminalgraph.com', 'txt.dev'];
 
 export function isIntdevOrganizationDomain(domain: string | null | undefined): boolean {
   const value = (domain ?? '').trim().toLowerCase();

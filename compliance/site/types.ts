@@ -227,6 +227,21 @@ export interface DeviceReport {
   removable_media: { mounted: number; unencrypted_writable: number };
 }
 
+export interface EncryptionSource {
+  title: string;
+  href: string;
+  quote: string;
+}
+
+export interface DiskEncryptionStandard {
+  hardware: string;
+  algorithm: string;
+  aes_key_bits: 128 | 256 | null;
+  key_handling: string;
+  cipher: string;
+  sources: EncryptionSource[];
+}
+
 export interface DeviceAssessment {
   disk_encrypted: boolean;
   cipher: string;
@@ -260,6 +275,20 @@ export interface DeviceFleetSummary {
   devices_mdm_enrolled: number;
 }
 
+export interface LaptopEncryptionStandard extends DiskEncryptionStandard {
+  chip: DeviceChip;
+  current_laptops: number | null;
+  encrypted: number | null;
+}
+
+export interface EncryptionFinding {
+  id: string;
+  severity: Vulnerability['severity'];
+  status: string;
+  state: Vulnerability['state'];
+  target: string | null;
+}
+
 export interface ReportInputs {
   release: string | null;
   accounts: Record<string, AccountState> | null;
@@ -269,4 +298,21 @@ export interface ReportInputs {
   deletions: { evidenced: number; logged: number } | null;
   releaseScan: ReleaseScan | null;
   devices: DeviceFleetSummary | null;
+}
+
+export interface SoftwarePackage {
+  name: string;
+  scope: 'production' | 'development';
+  purpose: string;
+}
+
+export interface LiveSoftwarePackage extends SoftwarePackage {
+  declared: string | null;
+  installed: string | null;
+}
+
+export interface SoftwareInventory {
+  node: { declared: string | null; running: string };
+  packages: LiveSoftwarePackage[];
+  undocumented: string[];
 }

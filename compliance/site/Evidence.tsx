@@ -4,12 +4,12 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, CheckStatus, ComplianceReportData, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, ReleaseScan, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, CheckStatus, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
 
-import { CheckItem, CheckTable, Signed, State } from '@root/compliance/site/Blocks';
+import { CheckItem, CheckTable, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
-import { API_HOST, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
+import { ACCESS_GRANTS, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
 
@@ -376,6 +376,40 @@ export function RemediationRecords(props: { ids?: string[] }) {
   );
 }
 
+function installedLine(item: { scope: string; installed: string | null } | undefined, pending: boolean): React.ReactNode {
+  if (!item) return <State ok={null}>{pending ? 'Pending live check' : 'Unavailable'}</State>;
+  if (item.installed) return item.installed;
+  return item.scope === 'development' ? 'Not installed in production' : <State ok={false}>Not installed</State>;
+}
+
+export function SoftwareInventoryRecord() {
+  const path = EVIDENCE_ENDPOINTS.vulnerabilities;
+  const { data, source } = useEvidence<{ software: (SoftwareInventory & { manifest: string }) | null; evidence: EvidenceMeta }>(path);
+  const software = data?.software ?? null;
+  const live = new Map((software?.packages ?? []).map((item) => [item.name, item]));
+  const pending = source === 'loading';
+  const row = (item: (typeof API_SOFTWARE)[number]) => {
+    const current = live.get(item.name);
+    return [item.name, item.purpose, current ? (current.declared ?? 'Not declared') : '—', installedLine(current, pending)];
+  };
+
+  return (
+    <div className={styles.group}>
+      <p>
+        Runtime: Node.js {software ? <>{software.node.running} on api.internet.dev; {API_MANIFEST} declares {software.node.declared ?? 'no engine range'}</> : <State ok={null}>{pending ? 'pending live check' : 'unavailable'}</State>}.
+      </p>
+      <Table columns={['Production package', 'Used for', 'package.json', 'Installed in production']} rows={API_SOFTWARE.filter((item) => item.scope === 'production').map(row)} />
+      <Table columns={['Development package', 'Used for', 'package.json', 'Installed in production']} rows={API_SOFTWARE.filter((item) => item.scope === 'development').map(row)} />
+      {software && software.undocumented.length ? (
+        <p>
+          <State ok={false}>Declared in package.json but not yet described here: {software.undocumented.join(', ')}.</State>
+        </p>
+      ) : null}
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} />
+    </div>
+  );
+}
+
 interface LiveDeletions {
   summary: { evidenced_deletions: number; confirmed_within_last_12_months: number; orphaned_organization_memberships: number | null };
   records: { reference: string; source: string; account_created_at: string | null; deleted_after: string | null; deleted_by: string; within_last_12_months: string }[];
@@ -539,13 +573,13 @@ function encryptionLine(device: DeviceRecord): string {
   return device.filevault.on ? 'FileVault on, but the data volume does not report encryption' : 'FileVault off';
 }
 
-function deviceRow(person: string, device: DeviceRecord, first: boolean) {
+function deviceRow(person: string, device: DeviceRecord) {
   const current = device.current;
   const removable = device.removable_media;
   return {
     checked: current ? device.assessment.disk_encrypted && device.assessment.removable_media_clear : null,
     cells: [
-      first ? person : '',
+      person,
       <span key="device">
         {device.model} · macOS {device.os_version}
         <br />
@@ -582,13 +616,13 @@ export function DeviceEncryptionReport() {
   const rows = TEAM.flatMap((person) => {
     const member = members.get(person.userId);
     const devices = member?.devices ?? [];
-    if (member?.reporting) return devices.map((device, index) => deviceRow(person.name, device, index === 0));
+    if (member?.reporting) return devices.map((device) => deviceRow(person.name, device));
     const pending = !data;
     const missing = {
       checked: pending ? null : false,
       cells: [person.name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—', '—', '—'],
     };
-    return [missing, ...devices.map((device) => deviceRow(person.name, device, false))];
+    return [missing, ...devices.map((device) => deviceRow(person.name, device))];
   });
 
   return (
@@ -608,6 +642,61 @@ export function DeviceEncryptionReport() {
         </p>
       ) : null}
       <CheckTable columns={['Team member', 'Laptop', 'Disk encryption', 'Removable media', 'Last check-in']} rows={rows} />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+interface LiveEncryption {
+  laptops: { standards: LaptopEncryptionStandard[] };
+  evidence: EvidenceMeta;
+  live_check: string;
+}
+
+function laptopCount(standard: LaptopEncryptionStandard | undefined, loading: boolean): React.ReactNode {
+  if (!standard || standard.current_laptops === null || standard.encrypted === null) return <State ok={null}>{loading ? 'Pending live check' : 'Unavailable'}</State>;
+  if (!standard.current_laptops) return 'None';
+  return (
+    <State ok={standard.encrypted === standard.current_laptops}>
+      {standard.encrypted} of {standard.current_laptops} with FileVault on
+    </State>
+  );
+}
+
+export function FileVaultStandardReport() {
+  const path = EVIDENCE_ENDPOINTS.encryption;
+  const { data, source } = useEvidence<LiveEncryption>(path);
+  const live = new Map((data?.laptops.standards ?? []).map((standard) => [standard.chip, standard]));
+  const chips = Object.keys(FILEVAULT_STANDARD) as DeviceChip[];
+
+  return (
+    <div className={styles.group}>
+      <Table
+        columns={['Mac', 'FileVault encryption', 'AES cipher key', 'Current laptops', 'Apple’s documentation']}
+        rows={chips.map((chip) => {
+          const standard = FILEVAULT_STANDARD[chip];
+          return [
+            standard.hardware,
+            <span key="algorithm">
+              {standard.algorithm}
+              <br />
+              <span className={styles.muted}>{standard.key_handling}</span>
+            </span>,
+            standard.aes_key_bits ? `${standard.aes_key_bits}-bit` : 'Not published by Apple',
+            laptopCount(live.get(chip), source === 'loading'),
+            <span key="sources">
+              {standard.sources
+                .filter((item, index, all) => all.findIndex((other) => other.href === item.href) === index)
+                .map((item, index) => (
+                  <React.Fragment key={item.href}>
+                    {index ? <br /> : null}
+                    <a href={item.href}>{item.title.replace('Apple Platform Security: ', '')}</a>
+                  </React.Fragment>
+                ))}
+            </span>,
+          ];
+        })}
+      />
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );

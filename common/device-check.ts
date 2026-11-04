@@ -17,6 +17,8 @@ export type DeviceCheckInput = {
   data_volume: { encrypted: boolean; filevault: boolean };
   mdm_enrolled: boolean;
   removable_media: { mounted: number; unencrypted_writable: number };
+  generated_at?: string;
+  check?: string;
 };
 
 export type DeviceCheckInResult = { success: true; data: { device: DeviceReport; assessment: DeviceAssessment; checked_at: string } } | { success: false; message: string };
@@ -34,8 +36,10 @@ export function isCurrentTeamMember(viewer: { id?: string | null } | null | unde
 // NOTE(jimmylee)
 // Accepts exactly what `device-check.sh --copy` puts on the clipboard. The
 // shape is checked here only so a wrong paste is caught before it is sent;
-// the API validates every field again and decides compliance from the raw
-// values.
+// the API validates every field again, refuses a report whose seal (`check`)
+// no longer matches its values or that is more than a day old, and decides
+// compliance from the raw values. The report is sent as pasted, never
+// rebuilt, so the seal survives.
 export function readDeviceReport(text: string): { device: DeviceCheckInput } | { error: string } | null {
   const trimmed = text.trim();
   if (!trimmed) return null;

@@ -221,7 +221,7 @@ export function StatusBoard() {
         </div>
         <div className={styles.field}>
           <div className={styles.fieldLabel}>What it tests</div>
-          <div>{API_HOST}/api/status performs a live AES-256 encrypt and decrypt and a JWT sign and verify inside the production API.</div>
+          <div>{API_HOST}/api/status performs a live encrypt and decrypt with the API’s application-layer AES and a JWT sign and verify inside the production API.</div>
         </div>
         <div className={styles.field}>
           <div className={styles.fieldLabel}>Checked</div>

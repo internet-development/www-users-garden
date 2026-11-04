@@ -2,12 +2,14 @@ import Document from '@root/compliance/site/Document';
 import fileVaultEncryption from '@root/compliance/site/images/filevault-encryption.png';
 
 import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
-import { DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, REMOVABLE_MEDIA_CONTROL, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN } from '@root/compliance/site/records';
+import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES } from '@root/compliance/site/records';
 import { Fields, Figure, Group, Links, List, Mail, Section, Table } from '@root/compliance/site/Blocks';
-import { DeviceEncryptionReport, RemediationRecords } from '@root/compliance/site/Evidence';
+import { DeviceEncryptionReport, FileVaultStandardReport, RemediationRecords, SoftwareInventoryRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
+const ENCRYPTION_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.encryption}`;
+const ENCRYPTION_LINK = { label: 'Encryption standard from the INTDEV API (JSON)', href: ENCRYPTION_RECORD, detail: 'FileVault per Mac with Apple’s documentation and live laptop counts, removable media, and the API’s separate application-layer AES' };
 
 function ScanRecord() {
   return (
@@ -57,10 +59,54 @@ function DeviceCheckProcess() {
         </>,
         'It reads the configuration from macOS itself: fdesetup status for FileVault, diskutil for the data volume’s encryption, the chip (Apple silicon, T2, or Intel), the MDM enrollment status, and every mounted external volume with whether it is encrypted and writable. Disk images are not removable media and are skipped.',
         `The raw values reach ${DEVICE_CHECK_IN} under the team member’s own account: either the script posts them with their API key, or it copies the report and they send it from Device check on users.garden while signed in. Any signed-in account can report its own laptops, so a new team member can report before joining, but this report lists only current team members. The API refuses a laptop that another current team member has already reported, so one Mac cannot stand in for several people. The API decides compliance from the raw values, so a Mac that is still encrypting, or whose data volume does not report encryption, does not pass.`,
+        'The script seals each report with a SHA-256 hash of every value it read and the time it ran. The API recomputes the seal and refuses a report that was edited after the check made it, one more than a day old, one from an older version of the check, and one whose Mac model contradicts its chip. The seal shows a report was not changed by hand on its way to the API; it is not a signature, and the script that computes it is public.',
+        'Every laptop row on this record names the team member it is reported under. A team member with more than one current laptop has one named row for each.',
         'Every check-in is kept in the production database as an audit trail. The record identifies a laptop only by a one-way hash of its hardware UUID; it holds no serial number, hostname, user name, or IP address.',
-        'Apple documents AES-256 in XTS mode for Mac computers with Apple silicon, with keys handled in the Secure Enclave. For T2 and older Intel Macs Apple documents AES-XTS without a key size, so the report counts only Apple silicon laptops as AES-256.',
+        <>
+          Each laptop’s cipher comes from the FileVault encryption standard in <a href={ENCRYPTION_RECORD}>{ENCRYPTION_RECORD.replace('https://', '')}</a>: AES-256-XTS on Apple silicon, where Apple documents a 256-bit cipher key, and AES-XTS with no stated key size on T2 and Intel Macs, where Apple publishes none. Only Apple silicon laptops count as AES-256.
+        </>,
       ]}
     />
+  );
+}
+
+function FileVaultStandard() {
+  return (
+    <Group>
+      <p>FileVault is Apple’s full-disk encryption, built into macOS. INTDEV relies on Apple’s implementation and publishes only what Apple documents for each kind of Mac, with the number of current laptops of that kind from the fleet report.</p>
+      <FileVaultStandardReport />
+      <p>{XTS_KEY_SIZES}</p>
+      <p>{FILEVAULT_REQUIRED}</p>
+      <List
+        items={[APPLE_ENCRYPTION_SOURCES.fileVault, APPLE_ENCRYPTION_SOURCES.aes256, APPLE_ENCRYPTION_SOURCES.aes128, APPLE_ENCRYPTION_SOURCES.fileVaultOff, APPLE_ENCRYPTION_SOURCES.onByDefault, APPLE_ENCRYPTION_SOURCES.removable].map((source) => (
+          <>
+            “{source.quote}” <a href={source.href}>{source.title}</a>
+          </>
+        ))}
+      />
+    </Group>
+  );
+}
+
+function ApplicationEncryption() {
+  const finding = VULNERABILITIES.find((item) => item.id === APPLICATION_ENCRYPTION.finding);
+  return (
+    <Group>
+      <p>
+        INTDEV also encrypts a few application values itself, on top of TLS. This is a different layer from FileVault and is not part of the removable media control: it applies to specific values as they move between INTDEV sites and while they sit in the production database, never to the contents of a laptop or drive.
+      </p>
+      <Fields
+        items={[
+          ['Algorithm', APPLICATION_ENCRYPTION.algorithm],
+          ['Implementation', APPLICATION_ENCRYPTION.implementation],
+          ['Key', APPLICATION_ENCRYPTION.key_custody],
+          ['Covers', <List key="covers" items={APPLICATION_ENCRYPTION.covers} />],
+          ['Does not cover', <List key="not-covered" items={APPLICATION_ENCRYPTION.does_not_cover} />],
+          ['Status', finding ? `${APPLICATION_ENCRYPTION.status} Finding status: ${finding.status}${finding.treatment ? `; target ${finding.treatment.target}` : ''}.` : APPLICATION_ENCRYPTION.status],
+        ]}
+      />
+      <Links items={[{ label: `Vulnerability register: ${APPLICATION_ENCRYPTION.finding}`, href: '/compliance/remediated-vulnerabilities' }, { label: 'Data transmission encryption', href: '/compliance/encryption-in-transit' }]} />
+    </Group>
   );
 }
 
@@ -73,14 +119,18 @@ export function RemovableMedia() {
     <Document
       slug="removable-media"
       title="Removable media encryption"
-      summary="INTDEV does not allow confidential data on portable or removable media unless there is a documented exception, and any media allowed by exception must be encrypted. Every company laptop is fully disk-encrypted, and each one proves it to the INTDEV API, which publishes the fleet report below."
+      summary="INTDEV does not allow confidential data on portable or removable media unless there is a documented exception, and any media allowed by exception must be encrypted. Every company laptop is fully disk-encrypted with FileVault, and each one proves it to the INTDEV API, which publishes the fleet report below. The API’s own application-layer encryption is a separate layer and is described separately, so neither is mistaken for the other."
       controls={['Removable media encryption']}
+      related={[ENCRYPTION_LINK]}
     >
       <Section title="Fleet disk encryption report">
         <FleetReport />
       </Section>
       <Section title="How the report is generated">
         <DeviceCheckProcess />
+      </Section>
+      <Section title="FileVault encryption standard">
+        <FileVaultStandard />
       </Section>
       <Section title="Removable media enforcement">
         <Fields
@@ -102,14 +152,20 @@ export function RemovableMedia() {
         />
       </Section>
       <Section title="Encryption standard">
-        <Table
-          columns={['Media', 'Requirement', 'Mechanism']}
-          rows={[
-            ['Laptop internal storage', 'AES 128 or 256-bit full-disk encryption', 'FileVault, turned on before the device is used for INTDEV work. AES-256-XTS on Apple silicon; AES-XTS on T2 and older Intel Macs.'],
-            ['Removable media, by exception only', 'AES-256 encryption with a unique password', 'An APFS (Encrypted) volume on the USB or external drive, created with Disk Utility or diskutil'],
-            ['Backups', 'Encrypted', 'Render-managed database backups. No removable backup media is used.'],
-          ]}
-        />
+        <Group>
+          <Table columns={['Cryptography Policy key table', 'Algorithm', 'Key length', 'Key expiration']} rows={CRYPTOGRAPHY_POLICY_KEYS.map((row) => [row.domain, row.algorithm, row.key_length, row.expiration])} />
+          <Table
+            columns={['Media', 'Requirement', 'Mechanism']}
+            rows={[
+              ['Laptop internal storage', 'Full-disk encryption with AES, 128 or 256-bit keys', 'FileVault, turned on before the device is used for INTDEV work. AES-256-XTS on Apple silicon; AES-XTS on T2 and older Intel Macs, where Apple does not publish the key size.'],
+              ['Removable media, by exception only', 'Encrypted with an approved standard (AES, 128 or 256-bit keys) and a unique password', `An APFS (Encrypted) volume on the USB or external drive, created with Disk Utility or diskutil: ${REMOVABLE_MEDIA_ENCRYPTION.algorithm}`],
+              ['Backups', 'Encrypted', 'Render-managed database backups. No removable backup media is used.'],
+            ]}
+          />
+        </Group>
+      </Section>
+      <Section title="Application-layer encryption, a separate layer">
+        <ApplicationEncryption />
       </Section>
       <Section title="How it is enforced">
         <List
@@ -409,12 +465,13 @@ export function MobileDeviceManagement() {
       title="Mobile device management"
       summary="The configuration INTDEV centrally requires on every laptop and mobile device that supports the service, and how devices are enrolled and kept in compliance."
       controls={['MDM system utilized']}
+      related={[ENCRYPTION_LINK]}
     >
       <Section title="Required configuration">
         <Table
           columns={['Setting', 'Requirement', 'Source']}
           rows={[
-            ['Disk encryption', 'FileVault on (AES-256-XTS on Apple silicon; AES-XTS on older Macs), reported by the device check at least every 30 days', 'Cryptography Policy; Data Management Policy'],
+            ['Disk encryption', 'FileVault on (AES-256-XTS on Apple silicon; AES-XTS on T2 and older Intel Macs, where Apple does not publish the key size), reported by the device check at least every 30 days', 'Cryptography Policy; Data Management Policy'],
             ['Removable media', `Writes to external storage blocked by the Storage management restriction once enrolled (due ${REMOVABLE_MEDIA_CONTROL.due}); until then, no confidential data on removable media without an approved exception`, 'Cryptography Policy; Data Management Policy'],
             ['Screen lock', 'Password or biometric; locks after 5 minutes on devices with confidential data, 10 minutes at most on any device', 'Data Management Policy; Information Security Policy'],
             ['Operating system updates', 'Automatic security updates on', 'Operations Security Policy'],
@@ -482,6 +539,7 @@ export function EncryptionInTransit() {
       title="Data transmission encryption"
       summary="INTDEV encrypts confidential and sensitive data whenever it crosses a public network, with TLS between every client, edge, service, database, and processor."
       controls={['Data transmission encrypted']}
+      related={[ENCRYPTION_LINK]}
     >
       <Section title="External test, November 4, 2026">
         <Table columns={['Hostname', 'HTTP', 'Negotiated', 'TLS 1.1', 'Certificate']} rows={TLS_RESULTS} />
@@ -495,7 +553,7 @@ export function EncryptionInTransit() {
             ['INTDEV API to PostgreSQL', 'TLS required by the application’s database client (ssl: true for every non-local host)'],
             ['INTDEV API to S3, Stripe, Mailgun, Twilio, and OAuth providers', 'HTTPS through each provider’s official API'],
             ['Uploads', 'Presigned HTTPS URLs straight to S3 or Google Cloud Storage'],
-            ['Cross-origin payloads between INTDEV sites', 'HTTPS, with the payload also encrypted using AES-256'],
+            ['Cross-origin payloads between INTDEV sites', `HTTPS. The API key in the payload is also encrypted with the API’s application-layer AES, which is being brought to the Cryptography Policy’s standard under ${APPLICATION_ENCRYPTION.finding}; TLS is the control relied on.`],
             ['Staff remote access', 'Encrypted connections only, and a VPN on public Wi-Fi for confidential work'],
           ]}
         />
@@ -597,11 +655,17 @@ export function InfrastructureMaintenance() {
           columns={['Layer', 'Patched by', 'How']}
           rows={[
             ['Host operating systems, container runtime, and PostgreSQL engine', 'Render (managed platform)', 'Continuous platform maintenance; minor PostgreSQL updates applied by Render'],
-            ['Node.js runtime and frameworks (Next.js, React)', 'INTDEV', 'Framework upgrades shipped as tagged releases through CI/CD'],
-            ['Application dependencies', 'INTDEV', 'Dependency audit every quarter and whenever an advisory is published, fixed within SLA'],
+            ['Node.js runtime and frameworks (Next.js, React)', 'INTDEV', 'Framework upgrades shipped as tagged releases through CI/CD. Render selects the Node.js version from the service’s NODE_VERSION setting when one is set, and otherwise from the engines range in package.json, which resolves to the newest Node.js release that satisfies it.'],
+            ['Application dependencies', 'INTDEV', 'Dependency audit every quarter and whenever an advisory is published, fixed within SLA. No lockfile is committed, so every Render build installs a fresh resolution of package.json, the same resolution the dependency scan audits. A package pinned to an exact version changes only when package.json does.'],
             ['Edge TLS and certificates', 'Cloudflare', 'Automatic certificate issuance and renewal'],
           ]}
         />
+      </Section>
+      <Section title="INTDEV API software inventory">
+        <Group>
+          <p>Every package the INTDEV API declares in package.json, what it is used for, the version range declared, and the version installed in the release api.internet.dev is serving when you load this page. The versions are read by the API from its own installed files, not typed here.</p>
+          <SoftwareInventoryRecord />
+        </Group>
       </Section>
       <Section title="Sample of remediated vulnerabilities">
         <Table

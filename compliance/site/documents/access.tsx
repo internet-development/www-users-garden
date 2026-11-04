@@ -18,14 +18,16 @@ const MATRIX = [
   ['Management (CEO)', 'Yes', 'Yes', 'Yes (admin, MFA)', 'Yes (owner)', 'Yes', 'Yes (owner)', 'Yes (owner)', 'Yes (admin)'],
 ];
 
+const AWS_OWNER = 'j@internet.dev (VantaOwner tag)';
+
 const AWS_IDENTITIES = [
-  ['admin', 'Human administrator, local-only console and CLI use', 'Yes', 'Owner: j@internet.dev (VantaOwner tag)'],
-  ['intdev', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', 'Review key use and rotation'],
-  ['nexts3', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', 'Review key use; holds two keys'],
-  ['nicole', 'Programmatic service user for a client site', 'Not applicable (no console password)', 'Confirm the client site still needs it'],
-  ['readingsupply', 'Programmatic service user created in 2018', 'Not applicable (no console password)', 'Confirm need, or remove'],
-  ['txtdev', 'Programmatic service user for txt.dev uploads', 'Not applicable (no console password)', 'Review key use and rotation'],
-  ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', 'Keep'],
+  ['admin', 'Human administrator, local-only console and CLI use', 'Yes', AWS_OWNER, 'Keep'],
+  ['intdev', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', AWS_OWNER, 'Review key use and rotation'],
+  ['nexts3', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', AWS_OWNER, 'Review key use; holds two keys'],
+  ['nicole', 'Programmatic service user for a client site', 'Not applicable (no console password)', AWS_OWNER, 'Confirm the client site still needs it'],
+  ['readingsupply', 'Programmatic service user created in 2018', 'Not applicable (no console password)', AWS_OWNER, 'Confirm need, or remove'],
+  ['txtdev', 'Programmatic service user for txt.dev uploads', 'Not applicable (no console password)', AWS_OWNER, 'Review key use and rotation'],
+  ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', AWS_OWNER, 'Keep'],
 ];
 
 export function AccessControlProcedures() {
@@ -115,10 +117,11 @@ export function AccessReviews() {
             ['Access register', endpointLink(EVIDENCE_ENDPOINTS.accessRequests)],
           ]}
         />
-        <Table columns={['AWS identity', 'Purpose', 'MFA', 'Review outcome']} rows={AWS_IDENTITIES} />
+        <Table columns={['AWS identity', 'Purpose', 'MFA', 'Owner', 'Review outcome']} rows={AWS_IDENTITIES} />
         <List
           items={[
             'Result: one human administrator account, with MFA, and five programmatic service users that have never signed in to the console. The root account has MFA. The IAM password policy requires at least 14 characters including symbols.',
+            'Ownership: every IAM user, the vanta-auditor role, and all seven S3 buckets carry the VantaOwner tag naming j@internet.dev, the account owner, so Vanta assigns each one to a person. The service users and buckets were tagged on November 4, 2026, and a read-only IAM and S3 listing confirmed every tag the same day. Follow-up 1 can still retire a service user; until then the tag names who answers for it.',
             'Follow-up 1: check when each service key was last used. Rotate the keys that are in use and delete the ones that are not, starting with readingsupply and nicole. Owner: Jimmy Lee. Due: December 4, 2026.',
             'Follow-up 2: record GitHub, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
             'INTDEV API: two former team members still held platform admin. Both were lowered to level 20 on November 4, 2026. A third never held admin and stays at level 10, the level the account had before the review. All three are verified live in the access register and the termination records.',

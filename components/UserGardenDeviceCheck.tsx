@@ -103,7 +103,7 @@ export default function UserGardenDeviceCheck(props) {
       </StandardLayoutSection>
 
       <StandardLayoutSection title="2. Paste the report and send it">
-        <P style={{ marginTop: 6 }}>Paste the report here. It is sent with your signed-in account, {props.viewer.email}, and recorded as your laptop. Send only a report made on your own laptop: the API refuses a laptop an INTDEV team member has already reported.</P>
+        <P style={{ marginTop: 6 }}>Paste the report here. It is sent with your signed-in account, {props.viewer.email}, and recorded as your laptop. Send only a report made on your own laptop, exactly as the check copied it and within a day: the API refuses an edited or day-old report, and a laptop an INTDEV team member has already reported.</P>
         <TextArea
           aria-label="Device check report"
           autoComplete="off"
@@ -127,6 +127,7 @@ export default function UserGardenDeviceCheck(props) {
               ['External drives', `${device.removable_media.mounted} mounted, ${device.removable_media.unencrypted_writable} unencrypted and writable`],
               ['MDM enrolled', device.mdm_enrolled ? 'Yes' : 'No'],
               ['Reference', device.device_ref],
+              ...(device.generated_at ? [['Checked on this Mac', formatDate(device.generated_at)] as [string, string]] : []),
             ]}
           />
         ) : null}

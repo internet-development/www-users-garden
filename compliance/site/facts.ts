@@ -1,4 +1,4 @@
-import type { Person, SecurityRole, Vendor, Vulnerability } from '@root/compliance/site/types';
+import type { Person, SecurityRole, SoftwarePackage, Vendor, Vulnerability } from '@root/compliance/site/types';
 
 export const COMPANY = {
   name: 'Internet Development Studio Company',
@@ -223,6 +223,36 @@ export const AGREEMENT_TEMPLATES = [
 
 export const AWS_REGIONS = ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2'];
 
+export const API_MANIFEST = 'package.json in GitHub internet-development/apis';
+
+export const API_SOFTWARE: SoftwarePackage[] = [
+  { name: 'next', scope: 'production', purpose: 'Web framework and production server for the API routes and the OAuth sign-in pages' },
+  { name: 'react', scope: 'production', purpose: 'Renders the OAuth sign-in, account transfer, and verification pages' },
+  { name: 'react-dom', scope: 'production', purpose: 'Server rendering for those pages, required by Next.js' },
+  { name: 'knex', scope: 'production', purpose: 'SQL query builder behind every database query helper and migration' },
+  { name: 'pg', scope: 'production', purpose: 'PostgreSQL driver for the TLS connection to INTDEV DATA' },
+  { name: 'bcrypt', scope: 'production', purpose: 'Password hashing' },
+  { name: 'stripe', scope: 'production', purpose: 'Subscriptions, marketplace and guest checkout, and the Stripe webhook' },
+  { name: '@aws-sdk/client-s3', scope: 'production', purpose: 'Amazon S3 uploads, download clones, and deletion' },
+  { name: '@aws-sdk/s3-request-presigner', scope: 'production', purpose: 'Short-lived presigned S3 URLs' },
+  { name: '@aws-sdk/s3-presigned-post', scope: 'production', purpose: 'Presigned POST uploads for private slide images; pinned to an exact version' },
+  { name: 'googleapis', scope: 'production', purpose: 'Google sign-in: the OAuth2 client and the People API profile read' },
+  { name: '@atproto/oauth-client-node', scope: 'production', purpose: 'Bluesky sign-in over AT Protocol OAuth' },
+  { name: '@atproto/api', scope: 'production', purpose: 'Reads the Bluesky account’s confirmed email after sign-in' },
+  { name: '@atproto/jwk-jose', scope: 'production', purpose: 'Key handling for the AT Protocol OAuth client, which also depends on it; no INTDEV code imports it directly' },
+  { name: 'dotenv', scope: 'production', purpose: 'Loads local environment files for the database client, migrations, and scripts' },
+  { name: 'puppeteer', scope: 'production', purpose: 'Headless Chrome for slide exports (HTML, PDF, PNG) and the price-from-URL worker' },
+  { name: 'sharp', scope: 'production', purpose: 'Image processing for slide images; pinned to an exact version for GHSA-wq5f-xc86-pv6w' },
+  { name: 'typescript', scope: 'development', purpose: 'Type checking' },
+  { name: 'vitest', scope: 'development', purpose: 'The unit specs (npm test) and the integration suites' },
+  { name: 'embedded-postgres', scope: 'development', purpose: 'A temporary PostgreSQL server for the integration suites, which use synthetic accounts only' },
+  { name: 'ts-node', scope: 'development', purpose: 'Runs the TypeScript scripts and workers' },
+  { name: 'tsconfig-paths', scope: 'development', purpose: 'Resolves the repository’s import aliases for scripts and workers' },
+  { name: '@types/node', scope: 'development', purpose: 'Node.js type definitions' },
+  { name: '@types/react', scope: 'development', purpose: 'React type definitions' },
+  { name: 'baseline-browser-mapping', scope: 'development', purpose: 'Keeps the browser compatibility data used by the Next.js build current' },
+];
+
 export const VULNERABILITIES: Vulnerability[] = [
   {
     id: 'GHSA-wq5f-xc86-pv6w',
@@ -286,7 +316,6 @@ export const VULNERABILITIES: Vulnerability[] = [
       impact: 2,
       treatment: 'Mitigate now with compensating controls; remediate by upgrading @atproto as soon as a release moves to zod 4.6.6 or later',
       compensating_controls: [
-        'Bluesky sign-in routes sit in the auth rate-limit category: 5 requests per minute per key or IP',
         'The API runs as two Render instances, so one exhausted process does not take the service down; Render restarts it',
         'Only identity-server responses reach the vulnerable parser; customer request bodies do not',
         'npm audit runs against a fresh production resolution every week until the advisory clears',

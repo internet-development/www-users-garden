@@ -121,7 +121,8 @@ export function ContinuousDeployment() {
           items={[
             'Work happens on a branch and goes through a GitHub pull request. Significant changes are reviewed and approved before merge, as the Secure Development Policy requires.',
             'Merging to main triggers Render automatically (auto-deploy on every commit). Maintainers can also start a manual deploy of a specific commit, or roll back to one.',
-            'Render installs dependencies, builds (for the API: route prebuild, then next build), and starts the new version. Traffic moves to it only once it is up.',
+            'Render installs a fresh resolution of package.json (no lockfile is committed), builds, and starts the new version. For the API, npm run build regenerates the route manifest, runs the build scan described below, then runs next build. Traffic moves to the new version only once it is up.',
+            'The INTDEV API’s automated tests run on maintainers’ machines, not in Render’s build: npm test runs the Vitest specs, which hold the permission boundaries, the compliance registers, and the device check contract, and separate integration suites run the slides, Vmax Public access, SMS, and device check-in routes against a temporary embedded PostgreSQL with synthetic accounts only.',
             'Render releases only a build that passes. A failed build or release leaves the previous version serving, and the tables show it as failed.',
             'Every deploy is recorded with its ID, trigger, commit, and timestamps. That record is the evidence shown below.',
           ]}

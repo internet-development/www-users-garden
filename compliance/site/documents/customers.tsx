@@ -2,7 +2,7 @@ import Document from '@root/compliance/site/Document';
 
 import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS } from '@root/compliance/site/facts';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
-import { DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
+import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
 import { SecurityJobDescriptions, SecurityTeamStatement } from '@root/compliance/site/documents/governance';
 import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
@@ -214,7 +214,7 @@ export function ServiceDescription() {
             ['Uploads and downloads', 'Client → presigned URL → Amazon S3 (or Google Cloud Storage)', 'HTTPS; short-lived signed URLs; SSE AES-256 at rest in S3; malware scanning on upload buckets'],
             ['Payments', 'Client → Stripe; internet-apis → Stripe API; Stripe → webhook', 'Card data goes only to Stripe; webhook signatures verified'],
             ['Email, SMS, and sign-in', 'internet-apis → Mailgun, Twilio, Google, Apple, Bluesky', 'HTTPS to each provider’s API; Twilio callbacks signature-verified'],
-            ['Cross-origin payloads', 'internet-apis ↔ INTDEV sites', 'HTTPS, with the payload also AES-256 encrypted'],
+            ['Cross-origin payloads', 'internet-apis ↔ INTDEV sites', `HTTPS; the API key in the payload is also encrypted with the API’s application-layer AES, being brought to the Cryptography Policy’s standard under ${APPLICATION_ENCRYPTION.finding}`],
             ['Change', 'Engineer → GitHub pull request → main → Render build → release', 'Review before merge; only main deploys; every deploy recorded with its commit'],
             ['Monitoring', 'AWS GuardDuty findings → EventBridge → SNS → eng@internet.dev; VPC Flow Logs → CloudWatch', 'All severities alert; flow logs kept 365 days'],
           ]}
