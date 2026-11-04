@@ -1,8 +1,8 @@
 import Document from '@root/compliance/site/Document';
 
 import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
-import { AccessRequestRecords, TerminationRecords } from '@root/compliance/site/Evidence';
-import { EVIDENCE_ENDPOINTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
+import { AccessRequestRecords, SystemAccountRecords, TerminationRecords } from '@root/compliance/site/Evidence';
+import { EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
 import { Fields, Group, List, Section, Table } from '@root/compliance/site/Blocks';
 
 function endpointLink(path: string) {
@@ -20,14 +20,18 @@ const MATRIX = [
 
 const AWS_OWNER = 'j@internet.dev (VantaOwner tag)';
 
+const NO_CONSOLE = 'Not applicable (no console password)';
+
+const KEEP = 'Keep: stores images, such as those for blog posts';
+
 const AWS_IDENTITIES = [
-  ['admin', 'Human administrator, local-only console and CLI use', 'Yes', AWS_OWNER, 'Keep'],
-  ['intdev', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', AWS_OWNER, 'Review key use and rotation'],
-  ['nexts3', 'Programmatic service user for application S3 access', 'Not applicable (no console password)', AWS_OWNER, 'Review key use; holds two keys'],
-  ['nicole', 'Programmatic service user for a client site', 'Not applicable (no console password)', AWS_OWNER, 'Confirm the client site still needs it'],
-  ['readingsupply', 'Programmatic service user created in 2018', 'Not applicable (no console password)', AWS_OWNER, 'Confirm need, or remove'],
-  ['txtdev', 'Programmatic service user for txt.dev uploads', 'Not applicable (no console password)', AWS_OWNER, 'Review key use and rotation'],
-  ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', AWS_OWNER, 'Keep'],
+  ['admin', 'Human administrator, local-only console and CLI use', 'Yes', 'November 4, 2026 (this review)', AWS_OWNER, 'Keep'],
+  ['intdev', 'Programmatic service user for application S3 access', NO_CONSOLE, 'November 4, 2026 (S3)', AWS_OWNER, KEEP],
+  ['nexts3', 'Programmatic service user for application S3 access', NO_CONSOLE, 'October 10, 2020 (S3); its second key has never been used', AWS_OWNER, KEEP],
+  ['nicole', 'Programmatic service user for a client site', NO_CONSOLE, 'March 31, 2025 (S3)', AWS_OWNER, KEEP],
+  ['readingsupply', 'Programmatic service user created in 2018', NO_CONSOLE, 'August 24, 2025 (STS)', AWS_OWNER, KEEP],
+  ['txtdev', 'Programmatic service user for txt.dev uploads', NO_CONSOLE, 'August 26, 2023 (S3)', AWS_OWNER, KEEP],
+  ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', 'Not applicable (role)', AWS_OWNER, 'Keep'],
 ];
 
 export function AccessControlProcedures() {
@@ -117,23 +121,29 @@ export function AccessReviews() {
             ['Access register', endpointLink(EVIDENCE_ENDPOINTS.accessRequests)],
           ]}
         />
-        <Table columns={['AWS identity', 'Purpose', 'MFA', 'Owner', 'Review outcome']} rows={AWS_IDENTITIES} />
+        <Table columns={['AWS identity', 'Purpose', 'MFA', 'Access key last used', 'Owner', 'Review outcome']} rows={AWS_IDENTITIES} />
         <List
           items={[
             'Result: one human administrator account, with MFA, and five programmatic service users that have never signed in to the console. The root account has MFA. The IAM password policy requires at least 14 characters including symbols.',
-            'Ownership: every IAM user, the vanta-auditor role, and all seven S3 buckets carry the VantaOwner tag naming j@internet.dev, the account owner, so Vanta assigns each one to a person. The service users and buckets were tagged on November 4, 2026, and a read-only IAM and S3 listing confirmed every tag the same day. Follow-up 1 can still retire a service user; until then the tag names who answers for it.',
-            'Follow-up 1: check when each service key was last used. Rotate the keys that are in use and delete the ones that are not, starting with readingsupply and nicole. Owner: Jimmy Lee. Due: December 4, 2026.',
+            'Ownership: every IAM user, the vanta-auditor role, and all seven S3 buckets carry the VantaOwner tag naming j@internet.dev, the account owner, so Vanta assigns each one to a person. The service users and buckets were tagged on November 4, 2026, and a read-only IAM and S3 listing confirmed every tag the same day.',
+            'Follow-up 1, closed November 4, 2026: a read-only IAM read recorded when each access key was last used (the table above), and the CEO reviewed every identity and kept all of them. The service users store images, such as those for blog posts, and none can sign in to the console.',
             'Follow-up 2: record GitHub, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
             'INTDEV API: two former team members still held platform admin. Both were lowered to level 20 on November 4, 2026. A third never held admin and stays at level 10, the level the account had before the review. All three are verified live in the access register and the termination records.',
             'INTDEV API organizations: re-checking termination found one former team member still an organization admin of internet.dev and events.internet.dev, and another still a member of internet.dev. Those three memberships were removed at 03:58 UTC on November 4, 2026. On the CEO’s instruction, four more memberships of former team members in organizations outside INTDEV’s domains (three shared with current team members, one not) were removed at 04:29 UTC. The termination checklist now includes this step, and the live termination record checks it on every load.',
             'INTDEV API email-domain grants: an @internet.dev address on a former team member’s account still qualified it for staff grants (Vmax Public access management and organization waitlists). From INTDEV API 2.0.9 the API refuses those grants to every account in the termination register.',
             'Render: a former team member was still listed as a workspace Developer. The CEO removed the membership on November 4, 2026, a Render API read of workspace members confirmed it the same day, and termination record TR-2026-001 is closed. MFA is not yet enforced for every workspace member; enforcement is due November 18, 2026. Owner: Jimmy Lee.',
-            'INTDEV API: platform admin accounts that are not tied to a current team member, such as shared mailboxes and service accounts, must each get a named owner or be lowered. The compliance report counts them live against the access register. Owner: Jimmy Lee. Due: December 4, 2026.',
+            'INTDEV API platform admin census, closed November 4, 2026: 13 accounts held platform admin. Six belong to people in the access register, and the treasury was already a documented system account. The other six were settled the same day: Xiangan He, who quit INTDEV in April 2025, was lowered to level 10 and removed from analytics.page and internet.dev under termination record TR-2026-004; a second account of Elijah Seed Arita was registered to him in the access register; three accounts (blogs, caladbolg, and intdev_vendors) were documented as system accounts with an owner and a purpose; and the southparkcommons example account was documented as a system account and lowered to level 30. Platform admin is now held by 11 accounts: 7 registered to people and 4 documented system accounts. The compliance report recounts them live against both registers on every load.',
           ]}
         />
       </Section>
+      <Section title="System accounts">
+        <Group>
+          <p>Accounts on the INTDEV API that belong to no one person. Each has a named owner, a documented purpose, and a documented level, and the INTDEV API checks that level against the production users table every time {endpointLink(EVIDENCE_ENDPOINTS.accessRequests)} loads. {SYSTEM_ACCOUNTS.filter((record) => record.level >= 100).length} hold platform admin because the system they serve requires it; the compliance report counts any platform admin account in neither this register nor the access register as open.</p>
+          <SystemAccountRecords />
+        </Group>
+      </Section>
       <Section title="Cadence">
-        <Table columns={['Quarter', 'Due', 'Status']} rows={[['Q4 2026', 'December 31, 2026', 'In progress: AWS, Render, and INTDEV API reviewed November 4, 2026'], ['Q1 2027', 'March 31, 2027', 'Scheduled'], ['Q2 2027', 'June 30, 2027', 'Scheduled'], ['Q3 2027', 'September 30, 2027', 'Scheduled']]} />
+        <Table columns={['Quarter', 'Due', 'Status']} rows={[['Q4 2026', 'December 31, 2026', 'In progress: the AWS and INTDEV API reviews closed November 4, 2026; Render MFA enforcement (due November 18, 2026) and follow-up 2 (due December 4, 2026) remain open'], ['Q1 2027', 'March 31, 2027', 'Scheduled'], ['Q2 2027', 'June 30, 2027', 'Scheduled'], ['Q3 2027', 'September 30, 2027', 'Scheduled']]} />
       </Section>
     </Document>
   );
@@ -155,7 +165,7 @@ export function AccessTermination() {
       </Section>
       <Section title="Termination records">
         <Group>
-          <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself: the production users table, INTDEV’s organizations on the INTDEV API, the Render API, and AWS IAM. Every one of those was re-checked at 04:29 UTC on November 4, 2026, when this page was last updated. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review or in that re-check, and are recorded with the time they were actually completed.</p>
+          <p>Each record below is served by {endpointLink(EVIDENCE_ENDPOINTS.terminations)}. Steps marked verified in system were checked against the system itself: the production users table, INTDEV’s organizations on the INTDEV API, the Render API, and AWS IAM. Every one of those was re-checked for every record at 09:49 UTC on November 4, 2026, when this page was last updated. Steps marked attested were confirmed complete by the CEO on November 4, 2026. Removals that missed the 24-hour SLA were found in the Q4 2026 access review or in that re-check, and are recorded with the time they were actually completed.</p>
           <p>The access checks are not a copy of the checklist. The INTDEV API runs them against production every time the record loads: the account’s level, its memberships in INTDEV organizations (INTDEV’s own domains and every organization a current team member belongs to), whether the API refuses it staff grants based on an INTDEV email address, and, when the API holds a Render key, its Render workspace membership. Naming a person in this register is itself a revocation: from INTDEV API 2.0.9, an account in the register is refused every grant that comes from an @internet.dev address, even though the account keeps that address.</p>
           <TerminationRecords />
         </Group>

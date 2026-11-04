@@ -89,6 +89,17 @@ export interface AccessGrant {
   assignment: { level: number; level_name: string; previous_level: number | null; at: string | null; detail: string };
 }
 
+export interface SystemAccount {
+  id: string;
+  account: string;
+  user_id: string;
+  level: number;
+  level_name: string;
+  purpose: string;
+  owner: string;
+  approved_at: string;
+}
+
 export interface Confirmation {
   by: string;
   at: string;

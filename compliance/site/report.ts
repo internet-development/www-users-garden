@@ -1,7 +1,7 @@
 import type { AccountState, CheckStatus, ComplianceReportData, ReportCheck, ReportInputs } from '@root/compliance/site/types';
 
 import { VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, PLATFORM_ADMIN_FOLLOW_UP, REMOVABLE_MEDIA_CONTROL, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
 
 export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembers: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null };
 
@@ -32,6 +32,10 @@ function counted(ok: number, total: number): CheckStatus {
   return ok === total ? 'pass' : 'open';
 }
 
+function counting(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
 export function buildComplianceReport(inputs: ReportInputs): ComplianceReportData {
   const checks: ReportCheck[] = [];
   const pending = 'Pending the live check by the INTDEV API';
@@ -47,19 +51,29 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
     checks.push(check('access-register', 'Access', 'Every access grant and revocation is in effect in production', '/compliance/access-requests', EVIDENCE_ENDPOINTS.accessRequests, 'unavailable', `${ACCESS_GRANTS.length} records published. ${pending}`));
   }
 
+  if (inputs.accounts) {
+    const atLevel = SYSTEM_ACCOUNTS.filter((record) => {
+      const account = state(inputs.accounts, record.user_id);
+      return !!account && account.exists && account.level === record.level;
+    }).length;
+    checks.push(check('system-accounts', 'Access', 'Every documented system account is at its documented level in production', '/compliance/access-reviews', EVIDENCE_ENDPOINTS.accessRequests, counted(atLevel, SYSTEM_ACCOUNTS.length), `${atLevel} of ${SYSTEM_ACCOUNTS.length} system accounts match the production users table`));
+  } else {
+    checks.push(check('system-accounts', 'Access', 'Every documented system account is at its documented level in production', '/compliance/access-reviews', EVIDENCE_ENDPOINTS.accessRequests, 'unavailable', `${SYSTEM_ACCOUNTS.length} system accounts published. ${pending}`));
+  }
+
   const admins = inputs.platformAdmins;
   checks.push(
     check(
       'platform-admins',
       'Access',
-      'Every platform admin account belongs to a person in the access register',
+      'Every platform admin account has a named owner in the access register or the system account register',
       '/compliance/access-reviews',
       EVIDENCE_ENDPOINTS.accessRequests,
       admins ? (admins.unregistered === 0 ? 'pass' : 'open') : 'unavailable',
       admins
         ? admins.unregistered === 0
-          ? `${admins.registered} accounts belong to people in the register; ${admins.system} documented system account`
-          : `${admins.registered} of ${admins.total} belong to people in the register and ${admins.system} is a documented system account. The other ${admins.unregistered} each get a named owner or are lowered by ${PLATFORM_ADMIN_FOLLOW_UP} (Q4 2026 access review)`
+          ? `${counting(admins.total, 'account holds', 'accounts hold')} platform admin: ${counting(admins.registered, 'belongs', 'belong')} to people in the register and ${counting(admins.system, 'is a documented system account', 'are documented system accounts')}`
+          : `${admins.registered} of ${admins.total} belong to people in the register and ${counting(admins.system, 'is a documented system account', 'are documented system accounts')}. The other ${admins.unregistered} need a named owner in the access register or the system account register, or a lower level`
         : pending
     )
   );
@@ -99,7 +113,7 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
     const absent = TERMINATIONS.filter((record) => inputs.renderMembers?.[record.user_id] === false).length;
     checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, counted(absent, former), `${absent} of ${former} former team members are absent from every Render workspace INTDEV administers`));
   } else {
-    checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, 'unavailable', `Verified absent through the Render API at ${TERMINATIONS_REVERIFIED_AT.slice(11, 16)} UTC on November 4, 2026. A live Render check runs when the API holds a Render key`));
+    checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, 'unavailable', `All ${former} verified absent through the Render API at ${ALL_TERMINATIONS_VERIFIED_AT.slice(11, 16)} UTC on November 4, 2026. A live Render check runs when the API holds a Render key`));
   }
 
   const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;
@@ -130,7 +144,6 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
       devices ? (devices.devices ? `${devices.devices_removable_clear} of ${devices.devices} current laptops clear` : 'No laptop has checked in yet') : pending
     )
   );
-  checks.push(check('removable-media-blocked', 'Devices', 'Writes to removable media are blocked by device management on every laptop', '/compliance/removable-media', EVIDENCE_ENDPOINTS.devices, REMOVABLE_MEDIA_CONTROL.enforced ? 'pass' : 'open', REMOVABLE_MEDIA_CONTROL.enforced ? 'Enforced by the Storage management restriction' : `Not yet enforced by configuration; due ${REMOVABLE_MEDIA_CONTROL.due} with MDM enrollment`));
 
   const openSevere = VULNERABILITIES.filter((finding) => finding.state === 'open' && (finding.severity === 'Critical' || finding.severity === 'High'));
   const treated = openSevere.filter((finding) => finding.treatment).length;

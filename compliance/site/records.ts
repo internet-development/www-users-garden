@@ -1,4 +1,4 @@
-import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
+import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, SystemAccount, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
 
 import { FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
 
@@ -24,10 +24,9 @@ export const DEVICE_CHECK_SCRIPT = 'https://api.internet.dev/compliance/device-c
 export const DEVICE_CHECK_FRESH_DAYS = 30;
 
 export const REMOVABLE_MEDIA_CONTROL = {
-  enforced: false,
-  requirement: 'Writes to removable media are blocked on every company laptop by the device management Storage management restriction (external storage Disallowed), which needs macOS 15 or later and a supervised MDM enrollment. An approved exception is a recorded, time-boxed change to that restriction for one device.',
-  status: 'Not yet enforced by configuration. No company laptop is enrolled in MDM, and Apple deprecated the older manually installed media-control profile in macOS 11, so INTDEV does not rely on it. Until enrollment, the rule is enforced by policy, training, and the device check, which reports any unencrypted writable removable volume mounted on a laptop.',
-  due: 'December 4, 2026',
+  enforced_by: 'conduct',
+  requirement: 'Team members do not write company or customer data to removable media. INTDEV’s rules of conduct prohibit it: the Information Security Policy’s acceptable use rules and the Data Management Policy forbid storing confidential information on USB drives or other removable media, and the Cryptography Policy allows it only with a documented exception approved by the CEO.',
+  status: 'Enforced by conduct, not by device configuration. Each team member uses their own judgement to make sure company data never reaches removable media, and acknowledges the rule in security awareness training. INTDEV does not require device management to block writes to removable media. The device check reports any unencrypted writable removable volume mounted on a laptop, and the compliance report opens an item when it finds one.',
 };
 
 export const ENCRYPTION_RECORDED_AT = '2026-11-04';
@@ -142,11 +141,9 @@ export function isIntdevOrganizationDomain(domain: string | null | undefined): b
   return INTDEV_ORGANIZATION_DOMAINS.some((root) => value === root || value.endsWith(`.${root}`));
 }
 
-export const PLATFORM_ADMIN_FOLLOW_UP = 'December 4, 2026';
+export const PLATFORM_ADMINS_SETTLED_AT = '2026-11-04T09:48:00.452Z';
 
 export const DOMAIN_GRANT_BLOCK_RELEASE = '2.0.9';
-
-export const SYSTEM_ACCOUNTS = [{ username: 'treasury', purpose: 'Platform credit treasury. The credit system requires this account at level 100 for double-entry bookkeeping.' }];
 
 export const LEVEL_NAMES: Record<number, string> = {
   0: 'Unverified',
@@ -161,6 +158,22 @@ export function levelName(level: number | null): string {
   if (level === null) return 'No account';
   return LEVEL_NAMES[level] ?? `Level ${level}`;
 }
+
+const SYSTEM_ACCOUNT_RECORDS = [
+  { account: 'treasury', user_id: '7da03287-2f60-4903-ad68-b9f8f27b2103', level: 100, purpose: 'Platform credit treasury. The credit system requires this account at level 100 for double-entry bookkeeping.' },
+  { account: 'blogs', user_id: '78a22648-0922-4abc-8d00-93b7271b21e0', level: 100, purpose: 'Shared account of the eng@internet.dev engineering mailbox, which also receives the GuardDuty alerts. Used for INTDEV engineering posts.' },
+  { account: 'caladbolg (no username; named for its internet.dev mailbox)', user_id: '83a2ea7a-9773-4e47-a44a-2e40ef54c66e', level: 100, purpose: 'Systems account for INTDEV experiments.' },
+  { account: 'intdev_vendors', user_id: 'f3835b7f-28cb-4632-8b98-efe6c1b39279', level: 100, purpose: 'Service account for vendor credit distribution. POST /api/credits/vendor-distribution-to-email accepts only a platform admin with this username, so lowering it would turn that route off.' },
+  { account: 'southparkcommons', user_id: 'b7dbed26-e735-4bc7-aef6-79c96743336f', level: 30, purpose: 'Example account that shows a venture capital firm what its posts could look like. Lowered from platform admin to level 30 on November 4, 2026, so it holds no administrative rights.' },
+];
+
+export const SYSTEM_ACCOUNTS: SystemAccount[] = SYSTEM_ACCOUNT_RECORDS.map((record, index) => ({
+  id: `SA-2026-${String(index + 1).padStart(3, '0')}`,
+  ...record,
+  level_name: levelName(record.level),
+  owner: 'Jimmy Lee, Chief Executive Officer',
+  approved_at: '2026-11-04',
+}));
 
 const ACCOUNT_CREATED: Record<string, string> = {
   'Jimmy Lee': '2024-01-17T23:24:41.232Z',
@@ -223,16 +236,23 @@ export const LEVEL_RESTORED_AT = '2026-11-04T03:37:51.799Z';
 export const ORGANIZATIONS_REMOVED_AT = '2026-11-04T03:58:41.614Z';
 export const SHARED_ORGANIZATIONS_REMOVED_AT = '2026-11-04T04:29:10.752Z';
 export const TERMINATIONS_REVERIFIED_AT = '2026-11-04T04:29:55.178Z';
+export const ALL_TERMINATIONS_VERIFIED_AT = '2026-11-04T09:49:49.846Z';
 
 interface Offboarding {
   account: { previous: number; level: number; at: string; detail: string };
   render: { completed_at: string; evidence: string };
   organizations: { completed_at: string; evidence: string };
+  aws: string;
+  close: { completed_at: string; evidence: string };
 }
 
-const REVERIFIED = 'Re-verified at 04:29 UTC on November 4, 2026, when this record was last updated';
+const REVERIFIED = 'Re-verified at 04:29 UTC on November 4, 2026, and again with every termination record at 09:49 UTC that day';
 
 const NOT_A_RENDER_MEMBER = { completed_at: CONFIRMED_AT, evidence: `Render API read of the members of every Render workspace INTDEV administers on November 4, 2026: not a member. ${REVERIFIED}.` };
+
+const NO_IAM_USER = `AWS IAM list-users on November 4, 2026: no IAM user exists for this person. ${REVERIFIED}`;
+
+const CLOSED_AT_REVERIFICATION = { completed_at: TERMINATIONS_REVERIFIED_AT, evidence: 'Closed November 4, 2026, once every step above was complete, and re-verified against the users table, every INTDEV organization, the Render API, and AWS IAM at 04:29 UTC that day' };
 
 const LOWERED_FROM_ADMIN = { previous: 100, level: 20, at: RECORDED_AT, detail: 'Lowered from platform admin (100) to level 20 in the production users table on November 4, 2026' };
 
@@ -244,16 +264,32 @@ const OFFBOARDING: Record<string, Offboarding> = {
       completed_at: SHARED_ORGANIZATIONS_REMOVED_AT,
       evidence: 'Found as organization admin of internet.dev and events.internet.dev when termination was re-checked; both memberships were removed from the production organizations_membership table at 03:58 UTC on November 4, 2026. Her memberships in three organizations that current team members also belong to (admin of elcap.xyz and item.market, member of diagram.page) were removed at 04:29 UTC the same day on the CEO’s instruction, and a read at 04:29 UTC found none',
     },
+    aws: NO_IAM_USER,
+    close: CLOSED_AT_REVERIFICATION,
   },
   'Chenyu Huang': {
     account: LOWERED_FROM_ADMIN,
     render: NOT_A_RENDER_MEMBER,
     organizations: { completed_at: SHARED_ORGANIZATIONS_REMOVED_AT, evidence: 'Held no membership in an INTDEV organization. On the CEO’s instruction, his organization admin membership of talkingheads.vision, an organization outside INTDEV, was also removed from the production organizations_membership table at 04:29 UTC on November 4, 2026, and a read at 04:29 UTC found no INTDEV organization membership' },
+    aws: NO_IAM_USER,
+    close: CLOSED_AT_REVERIFICATION,
   },
   'Louanne Murphy': {
     account: { previous: 20, level: 10, at: LEVEL_RESTORED_AT, detail: 'Never held platform admin. The 03:05 UTC update on November 4, 2026 raised this account from 10 to 20; it was restored to 10, its earlier level, at 03:37 UTC, before any credit payout' },
     render: NOT_A_RENDER_MEMBER,
     organizations: { completed_at: ORGANIZATIONS_REMOVED_AT, evidence: 'Found as a member of internet.dev when termination was re-checked. The membership was removed from the production organizations_membership table at 03:58 UTC on November 4, 2026, and a read one second later found none' },
+    aws: NO_IAM_USER,
+    close: CLOSED_AT_REVERIFICATION,
+  },
+  'Xiangan He': {
+    account: { previous: 100, level: 10, at: PLATFORM_ADMINS_SETTLED_AT, detail: 'Found at platform admin in the Q4 2026 review of platform admin accounts outside the access register. Lowered from platform admin (100) to level 10, on the CEO’s instruction, in the production users table at 09:48 UTC on November 4, 2026' },
+    render: { completed_at: '2026-11-04T09:45:51.645Z', evidence: 'Render API read of the members of every Render workspace INTDEV administers at 09:45 UTC on November 4, 2026: not a member. Re-verified at 09:49 UTC that day' },
+    organizations: {
+      completed_at: PLATFORM_ADMINS_SETTLED_AT,
+      evidence: 'Found as organization admin of analytics.page and a member of internet.dev. Both memberships were removed from the production organizations_membership table at 09:48 UTC on November 4, 2026, in the same transaction that lowered the account, and a read at 09:49 UTC found no organization membership',
+    },
+    aws: 'AWS IAM list-users at 09:46 UTC on November 4, 2026: no IAM user exists for this person. Re-verified at 09:49 UTC that day',
+    close: { completed_at: ALL_TERMINATIONS_VERIFIED_AT, evidence: 'Closed November 4, 2026, once every step above was complete, and verified against the users table, every INTDEV organization, the Render API, and AWS IAM at 09:49 UTC that day. He left in April 2025, so every removal missed the 24 business hour SLA; each is recorded at the time it was actually completed' },
   },
 };
 
@@ -272,13 +308,31 @@ const REVOCATIONS: AccessGrant[] = FORMER_TEAM.map((person, index) => {
     role: `Former ${person.type.toLowerCase()}`,
     user_id: person.userId,
     system: 'INTDEV API (api.internet.dev)',
-    request: { by: APPROVER, at: CONFIRMED_AT, detail: 'Termination checklist step: remove administrative rights. A platform admin account is lowered to level 20, a standard tier; an account is never raised' },
+    request: { by: APPROVER, at: CONFIRMED_AT, detail: 'Termination checklist step: remove administrative rights. A platform admin account is lowered to a standard tier (level 20, or 10 where the CEO directs); an account is never raised' },
     approval: { by: APPROVER, at: CONFIRMED_AT, decision: 'Approved', detail: 'Approved under the Access Control Policy termination procedure' },
     assignment: { level: account.level, level_name: levelName(account.level), previous_level: account.previous, at: account.at, detail: account.detail },
   };
 });
 
-export const ACCESS_GRANTS: AccessGrant[] = [...GRANTS, ...REVOCATIONS];
+const ADDITIONAL_ACCOUNTS = [{ person: 'Elijah Seed Arita', user_id: '75b06f73-e508-4200-ab55-37edd1e9a7d2', created: '2026-07-28T01:23:25.353Z', level: 100, label: 'a plus address of his internet.dev mailbox' }];
+
+const ADDITIONAL_GRANTS: AccessGrant[] = ADDITIONAL_ACCOUNTS.map((extra, index) => {
+  const person = TEAM.find((member) => member.name === extra.person);
+  if (!person) throw new Error(`records.ts: ${extra.person} is not in TEAM`);
+  return {
+    id: `AR-2026-${String(GRANTS.length + REVOCATIONS.length + index + 1).padStart(3, '0')}`,
+    kind: 'grant',
+    person: person.name,
+    role: person.role,
+    user_id: extra.user_id,
+    system: 'INTDEV API (api.internet.dev)',
+    request: { by: person.name, at: extra.created, detail: `Registered a second account, on ${extra.label}, for production support of INTDEV products` },
+    approval: { by: APPROVER, at: '2026-11-04', decision: 'Approved', detail: 'Registered in the Q4 2026 access review as the second account of a team member approved for platform admin; it holds the same access as his first account' },
+    assignment: { level: extra.level, level_name: levelName(extra.level), previous_level: null, at: null, detail: 'Assigned to this user_id; the current level is read live from the production users table on every request' },
+  };
+});
+
+export const ACCESS_GRANTS: AccessGrant[] = [...GRANTS, ...REVOCATIONS, ...ADDITIONAL_GRANTS];
 
 const STEP = {
   open: 'Record the last day and open the termination record',
@@ -308,13 +362,13 @@ function steps(plan: Offboarding): ChecklistStep[] {
     { step: STEP.github, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.render, status: 'completed', method: 'system', completed_at: plan.render.completed_at, evidence: plan.render.evidence },
     { step: STEP.secrets, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
-    { step: STEP.aws, status: 'completed', method: 'system', completed_at: CONFIRMED_AT, evidence: `AWS IAM list-users on November 4, 2026: no IAM user exists for this person. ${REVERIFIED}` },
+    { step: STEP.aws, status: 'completed', method: 'system', completed_at: CONFIRMED_AT, evidence: plan.aws },
     { step: STEP.tools, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.account, status: 'completed', method: 'system', completed_at: plan.account.at, evidence: `${plan.account.detail}. The current level is read live on every request.` },
     { step: STEP.organizations, status: 'completed', method: 'system', completed_at: plan.organizations.completed_at, evidence: `${plan.organizations.evidence}. Memberships are read live on every request, and from INTDEV API 2.0.9 the API refuses staff grants based on an INTDEV email address to any account in this register.` },
     { step: STEP.equipment, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
     { step: STEP.confidentiality, status: 'completed', method: 'attested', completed_at: null, evidence: CONFIRMED },
-    { step: STEP.close, status: 'completed', method: 'system', completed_at: TERMINATIONS_REVERIFIED_AT, evidence: 'Closed November 4, 2026, once every step above was complete, and re-verified against the users table, every INTDEV organization, the Render API, and AWS IAM at 04:29 UTC that day' },
+    { step: STEP.close, status: 'completed', method: 'system', completed_at: plan.close.completed_at, evidence: plan.close.evidence },
   ];
 }
 

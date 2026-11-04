@@ -23,7 +23,7 @@ export default function ComplianceIndex() {
       </Section>
       <Section title="Compliance report">
         <Group>
-          <p>Every check below is computed by the INTDEV API when you load this page, from the production database, the published registers, the release it is serving, and, where configured, the Render API. A green check means the control holds right now. Each row links to the record behind it.</p>
+          <p>Every check below is computed by the INTDEV API when you load this page, from the production database, the published registers, the release it is serving, and, where configured, the Render API. A green check means the control holds right now. A red box is a control that production contradicts, and a grey box is a check still waiting for its live input, such as a Render key the API does not hold; neither is ever shown as passing. Each row links to the record behind it.</p>
           <ComplianceReport />
         </Group>
       </Section>

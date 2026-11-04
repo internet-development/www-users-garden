@@ -4,12 +4,12 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, CheckStatus, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
 
 import { CheckItem, CheckTable, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
 
@@ -151,6 +151,48 @@ export function AccessRequestRecords() {
   );
 }
 
+type LiveSystemAccount = SystemAccount & { live: LiveLevel & { in_effect: boolean | null } };
+
+export function SystemAccountRecords() {
+  const path = EVIDENCE_ENDPOINTS.accessRequests;
+  const { data, source } = useEvidence<{ system_accounts?: LiveSystemAccount[]; evidence: EvidenceMeta; live_check: string }>(path);
+  const live = new Map((data?.system_accounts ?? []).map((record) => [record.id, record]));
+
+  return (
+    <div className={styles.group}>
+      <CheckTable
+        columns={['Account', 'Purpose', 'Documented level', 'Live check']}
+        rows={SYSTEM_ACCOUNTS.map((record) => {
+          const current = live.get(record.id);
+          const inEffect = current ? current.live.in_effect : null;
+          return {
+            checked: inEffect,
+            cells: [
+              <span key="account">
+                {record.id} · {record.account}
+                <br />
+                <span className={styles.muted}>user_id {record.user_id}</span>
+              </span>,
+              <span key="purpose">
+                {record.purpose}
+                <br />
+                <span className={styles.muted}>
+                  Owner: {record.owner}, approved {formatDay(record.approved_at)}
+                </span>
+              </span>,
+              `${record.level_name} (${record.level})`,
+              <State key="live" ok={inEffect}>
+                {current ? (inEffect ? `In effect: ${levelLine(current.live, record.level)}` : `Differs: ${levelLine(current.live, record.level)}`) : 'Pending live check'}
+              </State>,
+            ],
+          };
+        })}
+      />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
 interface TerminationLive extends LiveLevel {
   admin_removed: boolean | null;
   level_in_effect?: boolean | null;
@@ -161,7 +203,7 @@ interface TerminationLive extends LiveLevel {
 
 type LiveTermination = TerminationRecord & { progress: { completed: number; total: number }; live: TerminationLive };
 
-const REVERIFIED = `verified ${formatUtc(TERMINATIONS_REVERIFIED_AT)}`;
+const REVERIFIED = `verified ${formatUtc(ALL_TERMINATIONS_VERIFIED_AT)}`;
 
 function accessChecks(record: TerminationRecord, current: LiveTermination | undefined, renderLive: boolean) {
   const live = current?.live;

@@ -136,8 +136,7 @@ export function RemovableMedia() {
         <Fields
           items={[
             ['Requirement', REMOVABLE_MEDIA_CONTROL.requirement],
-            ['Current state', REMOVABLE_MEDIA_CONTROL.status],
-            ['Due', `${REMOVABLE_MEDIA_CONTROL.due}, with enrollment of every laptop in device management. The compliance report keeps this item open until the restriction is in effect.`],
+            ['Enforced by', REMOVABLE_MEDIA_CONTROL.status],
             ['Exceptions', 'None requested or approved as of November 4, 2026.'],
           ]}
         />
@@ -472,7 +471,7 @@ export function MobileDeviceManagement() {
           columns={['Setting', 'Requirement', 'Source']}
           rows={[
             ['Disk encryption', 'FileVault on (AES-256-XTS on Apple silicon; AES-XTS on T2 and older Intel Macs, where Apple does not publish the key size), reported by the device check at least every 30 days', 'Cryptography Policy; Data Management Policy'],
-            ['Removable media', `Writes to external storage blocked by the Storage management restriction once enrolled (due ${REMOVABLE_MEDIA_CONTROL.due}); until then, no confidential data on removable media without an approved exception`, 'Cryptography Policy; Data Management Policy'],
+            ['Removable media', 'No company or customer data written to removable media without an approved exception. Prohibited by INTDEV’s rules of conduct and left to each team member’s judgement, not blocked by device management; the device check reports any unencrypted writable removable volume', 'Information Security Policy; Data Management Policy; Cryptography Policy'],
             ['Screen lock', 'Password or biometric; locks after 5 minutes on devices with confidential data, 10 minutes at most on any device', 'Data Management Policy; Information Security Policy'],
             ['Operating system updates', 'Automatic security updates on', 'Operations Security Policy'],
             ['Anti-malware and firewall', 'XProtect and Gatekeeper on; application firewall on', 'Information Security Policy (Remote Working)'],

@@ -8,7 +8,7 @@ import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
 import { ReleaseChecks } from '@root/compliance/site/Evidence';
 import { CheckTable, Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
 import { CONTACTS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
-import { DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMIN_FOLLOW_UP, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
+import { ALL_TERMINATIONS_VERIFIED_AT, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMINS_SETTLED_AT, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
 
 export function TabletopExercise() {
   return (
@@ -348,9 +348,9 @@ export function IncidentReport() {
             ['Detected', 'November 4, 2026, by Jimmy Lee (CEO) in the Q4 2026 access review'],
             ['Detection method', 'Read-only query of platform admin (level 100) accounts in the production users table, and a read-only Render API listing of workspace members'],
             ['Incident Manager', 'Jimmy Lee, Chief Executive Officer'],
-            ['Contained', `November 4, 2026, ${utc(TERMINATIONS_REVERIFIED_AT)}, when every former account was re-verified with no access remaining`],
+            ['Contained', `November 4, 2026, ${utc(ALL_TERMINATIONS_VERIFIED_AT)}, when every former account, including the fourth found by the platform admin follow-up, was verified with no access remaining`],
             ['Breach determination', 'Not a reportable breach. The CEO found no evidence that the retained access was used after departure. No customer, partner, or regulator notice was required.'],
-            ['Status', 'Closed November 4, 2026. Corrective actions are in place; three follow-up actions are open and tracked below.'],
+            ['Status', 'Closed November 4, 2026. Corrective actions are in place; two follow-up actions are open and tracked below.'],
             ['Plans followed', 'Incident Response Plan v1.0; Access Control Policy v1.0 (termination procedure)'],
             ['Records', <a key="records" href="/compliance/access-termination">{`Termination records ${terminationRecords}`}</a>],
           ]}
@@ -359,16 +359,17 @@ export function IncidentReport() {
 
       <Section title="What happened">
         <Group>
-          <p>Access granted to team members was not removed when they left. The access review found it in three accounts:</p>
+          <p>Access granted to team members was not removed when they left. The access review found it in four accounts, the fourth through its follow-up on platform admin accounts outside the access register:</p>
           <Table
             columns={['Former team member', 'Departure', 'Access still held', 'Removed (November 4, 2026)']}
             rows={[
               ['Anastasiya Uraleva', departure('Anastasiya Uraleva'), 'INTDEV API platform admin (level 100); Render workspace Developer; organization admin of internet.dev and events.internet.dev; admin of elcap.xyz and item.market and member of diagram.page, organizations current team members also belong to', `Lowered to level 20 at ${utc(RECORDED_AT)}; Render removal verified at ${utc(RENDER_REMOVAL_VERIFIED_AT)}; INTDEV organizations at ${utc(ORGANIZATIONS_REMOVED_AT)}; shared organizations at ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`],
               ['Chenyu Huang', departure('Chenyu Huang'), 'INTDEV API platform admin (level 100); organization admin of talkingheads.vision, an organization outside INTDEV', `Lowered to level 20 at ${utc(RECORDED_AT)}; organization at ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`],
               ['Louanne Murphy', departure('Louanne Murphy'), 'Member of the internet.dev organization; never platform admin', `Organization at ${utc(ORGANIZATIONS_REMOVED_AT)}`],
+              ['Xiangan He', departure('Xiangan He'), 'INTDEV API platform admin (level 100); organization admin of analytics.page; member of internet.dev', `Lowered to level 10, and both organizations removed, at ${utc(PLATFORM_ADMINS_SETTLED_AT)}`],
             ]}
           />
-          <p>Anastasiya Uraleva kept her access for 116 days after she left. The exact departure dates of the other two were not recorded, which is itself part of the finding. A former team member’s account also kept its @internet.dev address, which still qualified it for staff grants that are based on email domain: Vmax Public access management and organization waitlists.</p>
+          <p>Anastasiya Uraleva kept her access for 116 days after she left, and Xiangan He, who quit in April 2025, kept platform admin for about 19 months. Only the month of his departure was recorded, and the departure dates of the other two were not recorded at all, which is itself part of the finding. A former team member’s account also kept its @internet.dev address, which still qualified it for staff grants that are based on email domain: Vmax Public access management and organization waitlists.</p>
           <p>A second nonconformity occurred during containment. The update that lowered the two former platform admins at {utc(RECORDED_AT)} also raised Louanne Murphy’s account from level 10 to level 20. It was restored to 10 at {utc(LEVEL_RESTORED_AT)}, 32 minutes later and before any monthly credit payout, which the adjutant worker makes to accounts at level 20 or above.</p>
         </Group>
       </Section>
@@ -377,6 +378,7 @@ export function IncidentReport() {
         <Table
           columns={['When', 'Event']}
           rows={[
+            ['April 2025', 'Xiangan He quits INTDEV. No termination checklist is run, and his account keeps platform admin.'],
             [departure('Anastasiya Uraleva'), 'Anastasiya Uraleva leaves INTDEV. No termination checklist is run, and her access stays in place.'],
             ['September 26, 2026', 'The Access Control Policy v1.0 takes effect, with the 24 business hour removal requirement. Departures before it are not re-checked.'],
             ['November 4, 2026', 'The Q4 2026 access review finds two former partners at platform admin and one former team member still a Render workspace Developer. The CEO, as Incident Manager, opens a termination record for each of the three former team members.'],
@@ -387,6 +389,8 @@ export function IncidentReport() {
             [`November 4, ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`, 'On the CEO’s instruction, four memberships of former team members in organizations outside INTDEV’s domains are removed: three shared with current team members, and one not.'],
             [`November 4, ${utc(TERMINATIONS_REVERIFIED_AT)}`, 'Every termination record is re-verified against the production users table, every INTDEV organization, the Render API, and AWS IAM (no IAM user exists for any of the three), and closed.'],
             [`INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`, 'The API refuses staff grants based on an INTDEV email address to every account in the termination register.'],
+            [`November 4, ${utc(PLATFORM_ADMINS_SETTLED_AT)}`, 'The follow-up on platform admin accounts outside the access register finds a fourth former team member, Xiangan He, at platform admin, organization admin of analytics.page, and member of internet.dev. On the CEO’s instruction, one transaction lowers his account to level 10 and removes both memberships, and termination record TR-2026-004 is opened. The same transaction lowers the southparkcommons example account to level 30.'],
+            [`November 4, ${utc(ALL_TERMINATIONS_VERIFIED_AT)}`, 'All four termination records are verified against the production users table, every INTDEV organization, the Render API, and AWS IAM. TR-2026-004 is closed.'],
           ]}
         />
       </Section>
@@ -414,7 +418,7 @@ export function IncidentReport() {
           <p>The review was widened from the accounts first found to every former team member and every system on the termination checklist. It confirmed that no former team member holds an AWS IAM user, a Render workspace membership, platform admin, or a membership in any INTDEV organization or any organization a current team member belongs to. It also opened related findings that could lead to the same failure:</p>
           <List
             items={[
-              `Platform admin accounts not tied to a current team member, such as shared mailboxes, must each get a named owner or be lowered. Due ${PLATFORM_ADMIN_FOLLOW_UP}.`,
+              'Platform admin accounts not tied to a current team member. Of the six found, one belonged to Xiangan He, a former team member, who is now in the termination register (TR-2026-004). The other five were given named owners on November 4, 2026: a second account of a current team member in the access register, and four accounts in the system account register on the access reviews page, one of them lowered to level 30. Closed.',
               'GitHub, Google Workspace, Stripe, and Vanta memberships must be recorded against the current roster and former team members removed. Due December 4, 2026.',
               'MFA must be enforced for every Render workspace member. Due November 18, 2026.',
             ]}
@@ -432,7 +436,7 @@ export function IncidentReport() {
             { checked: true, cells: ['Live checks: the termination records and the compliance report re-check every former account’s level, organization memberships, domain grants, and, with a Render key, Render membership each time they load', 'Undetected retained access', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
             { checked: true, cells: ['The launch scan checks revoked access for every former team member each time a production instance starts', 'A release that undoes a revocation', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
             { checked: true, cells: ['A revocation records the account’s previous level and may only lower it. The register validation and the API test suite fail on a revocation that raises an account or leaves platform admin in place', 'A containment change that raises access', 'Jimmy Lee', 'November 4, 2026'] },
-            { checked: false, cells: ['Give every platform admin account outside the access register a named owner, or lower it', 'Admin access no one is accountable for', 'Jimmy Lee', PLATFORM_ADMIN_FOLLOW_UP] },
+            { checked: true, cells: ['Give every platform admin account outside the access register a named owner, or lower it. The compliance report counts platform admin accounts against the access register and the system account register on every load', 'Admin access no one is accountable for', 'Jimmy Lee', 'November 4, 2026'] },
             { checked: false, cells: ['Reconcile GitHub, Google Workspace, Stripe, and Vanta memberships with the current roster', 'Retained access in the remaining systems', 'Jimmy Lee', 'December 4, 2026'] },
             { checked: false, cells: ['Enforce MFA for every Render workspace member', 'Misuse of a Render membership', 'Jimmy Lee', 'November 18, 2026'] },
           ]}
@@ -442,7 +446,7 @@ export function IncidentReport() {
       <Section title="Effectiveness review">
         <List
           items={[
-            `Immediate: the re-verification at ${utc(TERMINATIONS_REVERIFIED_AT)} on November 4, 2026 found every checklist step complete and no access remaining for any former team member.`,
+            `Immediate: the re-verification at ${utc(TERMINATIONS_REVERIFIED_AT)} on November 4, 2026, and the verification of all four records at ${utc(ALL_TERMINATIONS_VERIFIED_AT)}, found every checklist step complete and no access remaining for any former team member.`,
             'Continuous: the compliance report runs the termination checks against production every time it loads: no former team member at platform admin, every former account at its recorded level, no INTDEV organization memberships, email-domain grants refused, and no Render workspace membership. A check that production contradicts shows as open.',
             'Scheduled: the Q1 2027 access review, due March 31, 2027, confirms that every departure since this incident was closed within 24 business hours. A missed departure is recorded as a new nonconformity under the Incident Response Plan.',
           ]}
@@ -453,7 +457,7 @@ export function IncidentReport() {
         <List
           items={[
             'A new policy must be applied to the people and accounts that came before it, not only to future events.',
-            'Departures need a dated record on the last day. Two of the three departure dates here were never written down.',
+            'Departures need a dated record on the last day. Only one of the four departures here was recorded to the day.',
             'Access granted from an attribute a person keeps after leaving, such as an email domain, must be ended by an explicit record of departure.',
             'A corrective change to access must be checked against each account’s previous state before it runs, and must only ever reduce access.',
             'A control that depends on a quarterly review needs an automated check behind it, so a gap is visible the day it opens.',

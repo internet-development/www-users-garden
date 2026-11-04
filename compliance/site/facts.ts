@@ -64,6 +64,7 @@ export const FORMER_TEAM = [
   { name: 'Anastasiya Uraleva', type: 'Co-founder, Partner', joined: 'November 11, 2023', left: 'July 11, 2026', userId: 'b8abafa4-6c7b-4e6c-9db2-ab146ecfaaad' },
   { name: 'Chenyu Huang', type: 'Partner', joined: 'January 15, 2025', left: 'Before February 1, 2026, having joined Discord; exact date not recorded', userId: 'fa784f8d-5410-4f51-8dd1-4c6afb7d22a1' },
   { name: 'Louanne Murphy', type: 'Team member', joined: 'March 12, 2026 (account created)', left: 'Offboarding recorded November 4, 2026', userId: '3b1bda59-6474-4cb4-9883-63772d575992' },
+  { name: 'Xiangan He', type: 'Team member', joined: 'January 4, 2024 (account created)', left: 'April 2025, having quit; exact day not recorded', userId: '729f61e8-085e-4954-b5e6-06047a8cb029' },
 ];
 
 export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
