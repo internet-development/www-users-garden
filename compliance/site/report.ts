@@ -1,9 +1,9 @@
 import type { AccountState, CheckStatus, ComplianceReportData, ReportCheck, ReportInputs } from '@root/compliance/site/types';
 
 import { VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, PLATFORM_ADMIN_FOLLOW_UP, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, PLATFORM_ADMIN_FOLLOW_UP, REMOVABLE_MEDIA_CONTROL, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
 
-export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembers: null, platformAdmins: null, deletions: null, releaseScan: null };
+export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembers: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null };
 
 export function compareVersions(a: string, b: string): number {
   const left = a.split('.').map((part) => Number.parseInt(part, 10) || 0);
@@ -104,6 +104,33 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
 
   const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;
   checks.push(check('training', 'People', 'Every team member has signed both training courses', '/compliance/security-awareness-training', EVIDENCE_ENDPOINTS.training, counted(signed, TRAINING_COMPLETIONS.length), `${signed} of ${TRAINING_COMPLETIONS.length} team members signed`));
+
+  const devices = inputs.devices;
+  checks.push(
+    check(
+      'device-encryption',
+      'Devices',
+      `Every team member’s laptops reported FileVault full-disk encryption on in the last ${DEVICE_CHECK_FRESH_DAYS} days`,
+      '/compliance/removable-media',
+      EVIDENCE_ENDPOINTS.devices,
+      devices ? (devices.members > 0 && devices.members_encrypted === devices.members ? 'pass' : 'open') : 'unavailable',
+      devices
+        ? `${devices.members_encrypted} of ${devices.members} team members encrypted; ${devices.members_reporting} reporting. ${devices.devices_encrypted} of ${devices.devices} current laptops encrypted, ${devices.devices_aes_256} with AES-256`
+        : pending
+    )
+  );
+  checks.push(
+    check(
+      'device-removable-media',
+      'Devices',
+      'No current laptop had an unencrypted, writable removable volume mounted at its last check-in',
+      '/compliance/removable-media',
+      EVIDENCE_ENDPOINTS.devices,
+      devices ? (devices.devices > 0 && devices.devices_removable_clear === devices.devices ? 'pass' : 'open') : 'unavailable',
+      devices ? (devices.devices ? `${devices.devices_removable_clear} of ${devices.devices} current laptops clear` : 'No laptop has checked in yet') : pending
+    )
+  );
+  checks.push(check('removable-media-blocked', 'Devices', 'Writes to removable media are blocked by device management on every laptop', '/compliance/removable-media', EVIDENCE_ENDPOINTS.devices, REMOVABLE_MEDIA_CONTROL.enforced ? 'pass' : 'open', REMOVABLE_MEDIA_CONTROL.enforced ? 'Enforced by the Storage management restriction' : `Not yet enforced by configuration; due ${REMOVABLE_MEDIA_CONTROL.due} with MDM enrollment`));
 
   const openSevere = VULNERABILITIES.filter((finding) => finding.state === 'open' && (finding.severity === 'Critical' || finding.severity === 'High'));
   const treated = openSevere.filter((finding) => finding.treatment).length;

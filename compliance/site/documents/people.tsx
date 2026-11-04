@@ -8,7 +8,7 @@ import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/co
 import { TrainingRoster } from '@root/compliance/site/Evidence';
 
 const LEADERSHIP_TYPES: Record<string, string> = {
-  'Jimmy Lee': 'Founder; Chief Executive Officer',
+  'Jimmy Lee': 'Founder; Chief Executive Officer and Chief Information Security Officer',
   'Andrew Alimbuyuguen': 'Co-founder, Partner',
 };
 

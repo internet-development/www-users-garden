@@ -1,4 +1,4 @@
-import type { Person, Vendor, Vulnerability } from '@root/compliance/site/types';
+import type { Person, SecurityRole, Vendor, Vulnerability } from '@root/compliance/site/types';
 
 export const COMPANY = {
   name: 'Internet Development Studio Company',
@@ -50,7 +50,7 @@ export const PRODUCTS = [
 const AVATAR = 'https://pbs.twimg.com/profile_images';
 
 export const TEAM: Person[] = [
-  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer; Director; acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', joined: 'November 11, 2023', type: 'Founder', userId: 'b997a0b4-abb6-4d05-9d53-d12d4c69ab6d' },
+  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer and Chief Information Security Officer (CISO); Director; Privacy Management Lead (Data Protection Officer); acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', joined: 'November 11, 2023', type: 'Founder', userId: 'b997a0b4-abb6-4d05-9d53-d12d4c69ab6d' },
   { name: 'Andrew Alimbuyuguen', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1958569334726668288/GFE8mhKI_400x400.jpg`, href: 'https://x.com/aalimbuyuguen', joined: 'November 11, 2023', type: 'Co-founder, Partner', userId: '52f9fbc7-67c3-41df-8178-15671d3f92e7' },
   { name: 'Elijah Seed Arita', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1890125319224598528/ZILr9OGp_400x400.jpg`, href: 'https://x.com/elijaharita', joined: 'March 6, 2024', type: 'Partner', userId: '82fdbce2-8e8a-4875-ab8c-6880387c4259' },
   { name: 'Caidan Williams', title: 'Webmaster', role: 'Member of Technical Staff; Terminal Graph product lead', avatar: `${AVATAR}/1989080994687991809/CoUHUW0A_400x400.jpg`, href: 'https://x.com/caidanwilliams', joined: 'June 24, 2025', type: 'Partner', userId: '0f419e87-dbac-4fca-bb5d-42562c8a0825' },
@@ -62,13 +62,115 @@ export const TEAM: Person[] = [
 
 export const FORMER_TEAM = [
   { name: 'Anastasiya Uraleva', type: 'Co-founder, Partner', joined: 'November 11, 2023', left: 'July 11, 2026', userId: 'b8abafa4-6c7b-4e6c-9db2-ab146ecfaaad' },
-  { name: 'Chenyu Huang', type: 'Partner', joined: 'January 15, 2025', left: 'No longer on the active roster at internet.dev', userId: 'fa784f8d-5410-4f51-8dd1-4c6afb7d22a1' },
+  { name: 'Chenyu Huang', type: 'Partner', joined: 'January 15, 2025', left: 'Before February 1, 2026, having joined Discord; exact date not recorded', userId: 'fa784f8d-5410-4f51-8dd1-4c6afb7d22a1' },
   { name: 'Louanne Murphy', type: 'Team member', joined: 'March 12, 2026 (account created)', left: 'Offboarding recorded November 4, 2026', userId: '3b1bda59-6474-4cb4-9883-63772d575992' },
 ];
 
 export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
 
 export const EXECUTIVE = 'Jimmy Lee';
+
+const TECHNICAL_STAFF = TEAM.filter((person) => person.name !== EXECUTIVE).map((person) => person.name);
+
+const EVERY_MEMBER = `Every Member of Technical Staff: ${TECHNICAL_STAFF.join(', ')}`;
+
+export const SECURITY_ROLES: SecurityRole[] = [
+  {
+    title: 'Chief Information Security Officer (CISO)',
+    holders: `${EXECUTIVE}, who is also Chief Executive Officer`,
+    reportsTo: 'Board of Directors',
+    policyRoles: 'Executive Leadership, CTO, and Security and Compliance Manager',
+    purpose: 'Owns INTDEV’s information security program and is accountable for the confidentiality, integrity, and availability of every INTDEV system and all customer data.',
+    responsibilities: [
+      'Writes and approves the thirteen information security policies, reviews them every year, and makes sure every team member acknowledges them.',
+      'Runs the risk management program: the annual risk assessment, the Vanta risk register, risk treatment plans and their sign-off, and the annual cybersecurity and privacy briefing to the board.',
+      'Sets the security architecture and control requirements for the INTDEV API, Users Garden, Terminal Graph, AWS, Render, and Cloudflare, and monitors them through GuardDuty alerts, VPC Flow Logs, release scans, the device check, and Vanta.',
+      'Approves privileged access, runs the quarterly access review, and closes every termination checklist.',
+      'Serves as Incident Manager under the Incident Response Plan, makes breach determinations with counsel, and approves customer and regulator notices.',
+      'Owns vulnerability management (SLAs, quarterly scans, and the annual penetration test) and the security review of critical vendors.',
+      'Runs security awareness training and keeps its completion records, and is the contact for auditors, law enforcement, and counsel.',
+    ],
+    qualifications: [
+      'Experience designing, building, and operating production internet services and their cloud infrastructure',
+      'Working knowledge of SOC 2, ISO 27001, NIST SP 800-30, and privacy law, including the CCPA and the GDPR',
+      'Authority to stop a release, revoke access, or take a system offline to protect customers',
+    ],
+  },
+  {
+    title: 'Security Engineer',
+    holders: EVERY_MEMBER,
+    reportsTo: 'Chief Information Security Officer',
+    policyRoles: 'Engineering Lead and Systems Owners',
+    purpose: 'Builds security into everything INTDEV ships, and finds and fixes weaknesses before they reach customers.',
+    responsibilities: [
+      'Designs every feature with authentication, authorization, input validation, and least privilege from the start, following the Secure Development Policy.',
+      'Opens every production change as a GitHub pull request, and reviews teammates’ changes for security as well as correctness.',
+      'Keeps secrets out of source code, uses only the cryptography the Cryptography Policy approves, and never weakens a security control without the CISO’s approval.',
+      'Writes and maintains the tests that hold permission boundaries and other security behavior in place.',
+      'Audits dependencies and fixes vulnerabilities within the SLAs: critical and high within 30 days, medium within 60, and low within 90.',
+      'Remediates penetration test and scan findings in the code they own, and records the evidence.',
+    ],
+    qualifications: [
+      'Proficiency in TypeScript, Node.js, and web application security, including the OWASP Top 10',
+      'Security awareness training within 30 days of hire and every year after',
+      'MFA on GitHub, Render, AWS, Google, and every other company account that offers it',
+    ],
+  },
+  {
+    title: 'DevOps (production operations)',
+    holders: `${EVERY_MEMBER}. Platform admin access is held only as approved in the access register.`,
+    reportsTo: 'Chief Information Security Officer',
+    policyRoles: 'Engineering Lead and Systems Owners, and the operation and monitoring of IT security controls',
+    purpose: 'Keeps production available, patched, and monitored, and changes it only through reviewed and audited paths.',
+    responsibilities: [
+      'Deploys only through GitHub pull requests and Render CI/CD, and never changes production by hand outside an approved change.',
+      'Keeps environment secrets only in Render and in git-ignored local files, and rotates any secret that may have been exposed.',
+      `Monitors deploys, the status page, release scans, and the GuardDuty alerts sent to ${CONTACTS.support}, and serves on the incident response team when engaged.`,
+      'Patches the Node.js runtime, frameworks, and dependencies, and keeps network rules in Cloudflare, Render, and AWS under change management.',
+      'Verifies backups, and takes part in the restore test and the business continuity tabletop exercise.',
+      'Keeps every laptop used for INTDEV work encrypted with FileVault, and reports it through the device check at least every 30 days.',
+    ],
+    qualifications: [
+      'Experience operating Render, PostgreSQL, Amazon S3, and Cloudflare, or equivalent platforms',
+      'Business continuity and disaster recovery training',
+      'Access granted through the access request process, at the least privilege the work needs',
+    ],
+  },
+  {
+    title: 'Privacy Management Lead (Data Protection Officer)',
+    holders: `${EXECUTIVE}, who is also CISO`,
+    reportsTo: 'Board of Directors',
+    policyRoles: 'Security and Compliance Manager (privacy law) and Customer Support Lead (retention and deletion)',
+    purpose: 'Accountable for how INTDEV collects, uses, keeps, and deletes personal data, and for compliance with privacy law and customer contracts.',
+    responsibilities: [
+      'Owns the Privacy Policy and the privacy commitments in the Terms of Service and the Master Services Agreement.',
+      'Keeps INTDEV compliant with the CCPA, the GDPR where it applies, and every contractual privacy obligation.',
+      'Keeps the inventory and classification of personal data and the list of subprocessors current.',
+      'Makes sure access, correction, and deletion requests are answered on time, and that customer data is deleted within 30 days of a contract ending.',
+      'Reviews new features and vendors that process personal data before they launch.',
+      'Leads the privacy side of incident response, including notice to affected customers within 72 hours of confirming a security incident that affects their data, and to regulators where the law requires it.',
+    ],
+    qualifications: [
+      'Working knowledge of the CCPA, the GDPR, and data protection by design',
+      'Authority to block the launch of a feature or vendor that does not meet the Privacy Policy',
+    ],
+  },
+  {
+    title: 'Privacy Team member',
+    holders: EVERY_MEMBER,
+    reportsTo: 'Privacy Management Lead',
+    policyRoles: 'Customer Support Lead (on rotation) and the duties of all employees and contractors',
+    purpose: 'Protects personal data in everything they build and in every request they handle.',
+    responsibilities: [
+      'Collects only the personal data a feature needs, and handles it only as the Data Management Policy allows.',
+      'Never copies customer data into development, test, or local environments, or onto removable media.',
+      `Answers privacy and deletion requests sent to ${CONTACTS.support} on the Customer Support Lead rotation: acknowledged within five business days and completed within 30 days.`,
+      'Respects each user’s choices, such as email exemptions and SMS consent, in the code they write.',
+      `Reports a suspected privacy incident or data exposure to ${CONTACTS.security} right away.`,
+    ],
+    qualifications: ['Security awareness training, which covers data handling', 'A signed confidentiality agreement'],
+  },
+];
 
 export const POLICIES = [
   { name: 'Information Security Policy (including Acceptable Use)', owner: 'CEO' },
@@ -260,3 +362,46 @@ export const VULNERABILITIES: Vulnerability[] = [
     evidence: [{ label: 'External test', detail: 'TLS and header test of each hostname, November 4, 2026', href: '/compliance/encryption-in-transit' }],
   },
 ];
+
+export const OSPREY = {
+  repository: 'https://github.com/roostorg/osprey',
+  recognition: { href: 'https://github.com/roostorg/osprey/commit/d748a3e35f92357a2a33d82569928bf570acf27b', detail: 'ROOST founder Juliet Shen adds INTDEV to the Osprey recognition, September 16, 2025 (UTC)' },
+  finalCommit: { href: 'https://github.com/roostorg/osprey/commit/4168854768e560e7ca04fa11f5c8cef974f51a9a', detail: 'Chenyu Huang’s commit adding Kafka support for the coordinator, INTDEV’s final Osprey delivery, December 4, 2025' },
+};
+
+export const PENETRATION_TEST = {
+  id: 'PT-2025-001',
+  target: 'INTDEV API (api.internet.dev)',
+  engagement: 'INTDEV’s work for Discord and ROOST (Robust Open Online Safety Tools) on Osprey, the open-source safety rules engine ROOST publishes on GitHub',
+  window: 'February 10, 2025 to December 4, 2025',
+  reportedAt: 'February 1, 2026',
+  windowEvidence: 'INTDEV began shipping deliverables for Discord on February 10, 2025, open-sourced Osprey for ROOST in September 2025, and delivered its final Osprey commit on December 4, 2025, as recorded on internet.dev and in the public roostorg/osprey history. The exact dates of the attempts on the API were not recorded.',
+  testers: 'ROOST, as part of the Osprey engagement, guided by Chenyu Huang',
+  lead: 'Chenyu Huang, a security professional and an INTDEV partner during the test (joined January 15, 2025). He authored INTDEV’s final Osprey commit. By the report date he had joined Discord and was no longer part of INTDEV.',
+  result: 'No attempt succeeded. No vulnerability was exploited, no unauthorized access or privilege was gained, no customer data was exposed, and the service was not disrupted.',
+  attestation: 'INTDEV’s work with ROOST on Osprey required ROOST to try to break the INTDEV API, guided by Chenyu Huang. The attempts did not succeed. The INTDEV API has never been compromised.',
+  attestedBy: 'Jimmy Lee, Chief Executive Officer and Chief Information Security Officer',
+  attestedAt: 'November 4, 2026',
+  followUp: 'INTDEV took a long time to act on this report. It is dated February 1, 2026, and INTDEV did not act on it until November 4, 2026, nine months later, when it ran the internal assessment recorded on the penetration testing page and the CEO attested to and published this report.',
+};
+
+export const BUG_BOUNTY = {
+  name: 'INTDEV bug bounty program',
+  started: 'November 4, 2026',
+  operator: 'INTDEV directly, without an intermediary platform such as HackerOne or Bugcrowd. Reports go straight to the people who fix them.',
+  rewards: 'INTDEV does not publish reward amounts or a reward table. Rewards are at INTDEV’s discretion, and researchers who report in good faith, follow the rules on this page, and communicate clearly are likely to be rewarded.',
+  inScope: [
+    ['INTDEV API', 'api.internet.dev', 'Every route, including authentication, API keys, OAuth sign-in, organizations, credits, payments, uploads, and the compliance evidence endpoints'],
+    ['Users Garden', 'users.garden', 'Sign-in, API keys, credits, subscriptions, organizations, and account deletion'],
+    ['Terminal Graph', 'terminalgraph.com and the latest release of the macOS application', 'The application, its update channel, and the website'],
+    ['INTDEV website', 'internet.dev', 'The website and its compliance pages'],
+  ],
+  outOfScope: [
+    'Services INTDEV uses but does not operate, such as Render, Cloudflare, AWS, Stripe, Google, Apple, Bluesky, Mailgun, and Twilio. Report those to the vendor.',
+    'Sites run by other companies that use the INTDEV API as their backend. Report those to the site’s owner.',
+    'Denial of service, load testing, or anything that degrades the service for other people.',
+    'Social engineering, phishing, or physical attacks against INTDEV staff, offices, or devices.',
+    'Output from automated scanners without a demonstrated impact.',
+    'Findings already listed in the vulnerability register on the penetration testing page.',
+  ],
+};

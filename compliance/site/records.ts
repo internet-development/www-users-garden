@@ -13,7 +13,21 @@ export const EVIDENCE_ENDPOINTS = {
   dataDeletions: '/api/compliance/data-deletions',
   report: '/api/compliance/report',
   releases: '/api/compliance/releases',
+  devices: '/api/compliance/devices',
 } as const;
+
+export const DEVICE_CHECK_IN = '/api/compliance/devices/check-in';
+
+export const DEVICE_CHECK_SCRIPT = 'https://api.internet.dev/compliance/device-check.sh';
+
+export const DEVICE_CHECK_FRESH_DAYS = 30;
+
+export const REMOVABLE_MEDIA_CONTROL = {
+  enforced: false,
+  requirement: 'Writes to removable media are blocked on every company laptop by the device management Storage management restriction (external storage Disallowed), which needs macOS 15 or later and a supervised MDM enrollment. An approved exception is a recorded, time-boxed change to that restriction for one device.',
+  status: 'Not yet enforced by configuration. No company laptop is enrolled in MDM, and Apple deprecated the older manually installed media-control profile in macOS 11, so INTDEV does not rely on it. Until enrollment, the rule is enforced by policy, training, and the device check, which reports any unencrypted writable removable volume mounted on a laptop.',
+  due: 'December 4, 2026',
+};
 
 export const INTDEV_ORGANIZATION_DOMAINS = ['internet.dev', 'users.garden', 'terminalgraph.com', 'txt.dev'];
 
@@ -98,10 +112,10 @@ const GRANTS: AccessGrant[] = TEAM.map((person, index) => {
 });
 
 const CONFIRMED_AT = '2026-11-04';
-const RENDER_REMOVAL_VERIFIED_AT = '2026-11-04T03:37:22.000Z';
-const LEVEL_RESTORED_AT = '2026-11-04T03:37:51.799Z';
-const ORGANIZATIONS_REMOVED_AT = '2026-11-04T03:58:41.614Z';
-const SHARED_ORGANIZATIONS_REMOVED_AT = '2026-11-04T04:29:10.752Z';
+export const RENDER_REMOVAL_VERIFIED_AT = '2026-11-04T03:37:22.000Z';
+export const LEVEL_RESTORED_AT = '2026-11-04T03:37:51.799Z';
+export const ORGANIZATIONS_REMOVED_AT = '2026-11-04T03:58:41.614Z';
+export const SHARED_ORGANIZATIONS_REMOVED_AT = '2026-11-04T04:29:10.752Z';
 export const TERMINATIONS_REVERIFIED_AT = '2026-11-04T04:29:55.178Z';
 
 interface Offboarding {

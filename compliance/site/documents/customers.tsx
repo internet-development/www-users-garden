@@ -4,6 +4,7 @@ import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDO
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 import { DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
+import { SecurityJobDescriptions, SecurityTeamStatement } from '@root/compliance/site/documents/governance';
 import { Fields, Group, Links, List, Mail, Note, Section, Table } from '@root/compliance/site/Blocks';
 
 const PRIVACY_POLICY = PUBLIC_TERMS.find((term) => term.href.endsWith('intdev-privacy-policy')) ?? { label: 'Privacy Policy', href: 'https://txt.dev/wwwjim/intdev-privacy-policy' };
@@ -83,6 +84,7 @@ export function Support() {
           items={[
             ['Help and support', <Mail key="support" address={CONTACTS.support} />],
             ['Security issues and incidents', <Mail key="security" address={CONTACTS.security} />],
+            ['Security research', <a key="bounty" href="/compliance/bug-bounty">Bug bounty program</a>],
             ['Anonymous concerns', <a key="whistle" href="/compliance/whistleblower">Whistleblower channel</a>],
             ['Terminal Graph in-app', 'Help → Report a Bug, or Help → Send Feedback'],
             ['Chat', <a key="telegram" href="https://t.me/internetdevelopmentstudio">Telegram</a>],
@@ -269,8 +271,8 @@ export function SecurityInformation() {
     <Document
       slug="security"
       title="Security at INTDEV"
-      summary="The security commitments INTDEV makes to its customers, and how they are met across the INTDEV API, Users Garden, and Terminal Graph."
-      controls={['Company commitments externally communicated']}
+      summary="The security commitments INTDEV makes to its customers, how they are met across the INTDEV API, Users Garden, and Terminal Graph, and the people responsible for them: the Chief Information Security Officer and every Member of Technical Staff."
+      controls={['Company commitments externally communicated', 'Roles and responsibilities specified']}
     >
       <Section title="Our commitments">
         <List
@@ -286,9 +288,13 @@ export function SecurityInformation() {
           ]}
         />
       </Section>
+      <Section title="Who is responsible for security and privacy">
+        <SecurityTeamStatement />
+      </Section>
+      <SecurityJobDescriptions />
       <Section title="Report a vulnerability">
         <p>
-          Email <Mail address={CONTACTS.security} /> with the steps to reproduce. Please don’t access other customers’ data, degrade the service, or disclose the issue publicly before we’ve fixed it. We don’t take legal action against good-faith research that follows these rules.
+          Email <Mail address={CONTACTS.security} /> with the steps to reproduce. Please don’t access other customers’ data, degrade the service, or disclose the issue publicly before we’ve fixed it. We don’t take legal action against good-faith research that follows these rules. Our <a href="/compliance/bug-bounty">bug bounty program</a> sets out the scope and rules, and researchers who report with good intent and communicate well are likely to be rewarded.
         </p>
       </Section>
       <Section title="Where these commitments are binding">
@@ -301,7 +307,10 @@ export function SecurityInformation() {
             { label: 'Intrusion detection', href: '/compliance/intrusion-detection' },
             { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' },
             { label: 'Penetration testing', href: '/compliance/penetration-testing' },
+            { label: 'Bug bounty program', href: '/compliance/bug-bounty' },
             { label: 'Vendor management', href: '/compliance/vendor-management' },
+            { label: 'Roles and responsibilities', href: '/compliance/roles-and-responsibilities' },
+            { label: 'Fleet disk encryption report', href: '/compliance/removable-media' },
             { label: 'All compliance records', href: '/compliance' },
           ]}
         />

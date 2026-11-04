@@ -70,7 +70,7 @@ export default function Document(props: DocumentProps) {
           <div className={styles.meta}>
             {props.controls.length ? <p>Controls: {props.controls.join('; ')}</p> : null}
             <p>
-              Owner: {props.owner ?? 'Jimmy Lee, Chief Executive Officer'} · Updated {updated}
+              Owner: {props.owner ?? 'Jimmy Lee, Chief Executive Officer and Chief Information Security Officer'} · Updated {updated}
             </p>
             <p>Applies to: {props.appliesTo ?? 'INTDEV API (api.internet.dev), Users Garden (users.garden), and Terminal Graph (terminalgraph.com)'}</p>
           </div>

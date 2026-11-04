@@ -41,6 +41,16 @@ export interface Person {
   userId: string;
 }
 
+export interface SecurityRole {
+  title: string;
+  holders: string;
+  reportsTo: string;
+  policyRoles: string;
+  purpose: string;
+  responsibilities: string[];
+  qualifications: string[];
+}
+
 export interface Vendor {
   name: string;
   service: string;
@@ -203,6 +213,53 @@ export interface ReleaseScan {
   checks: ReleaseCheck[];
 }
 
+export type DeviceChip = 'apple_silicon' | 't2' | 'intel';
+
+export interface DeviceReport {
+  tool_version: string;
+  device_ref: string;
+  model: string;
+  chip: DeviceChip;
+  os_version: string;
+  filevault: { status: string; on: boolean; in_progress: boolean };
+  data_volume: { encrypted: boolean; filevault: boolean };
+  mdm_enrolled: boolean;
+  removable_media: { mounted: number; unencrypted_writable: number };
+}
+
+export interface DeviceAssessment {
+  disk_encrypted: boolean;
+  cipher: string;
+  aes_256: boolean;
+  removable_media_clear: boolean;
+}
+
+export interface DeviceRecord extends DeviceReport {
+  checked_at: string;
+  current: boolean;
+  assessment: DeviceAssessment;
+}
+
+export interface DeviceMember {
+  person: string;
+  role: string;
+  user_id: string;
+  reporting: boolean;
+  encrypted: boolean | null;
+  devices: DeviceRecord[];
+}
+
+export interface DeviceFleetSummary {
+  members: number;
+  members_reporting: number;
+  members_encrypted: number;
+  devices: number;
+  devices_encrypted: number;
+  devices_aes_256: number;
+  devices_removable_clear: number;
+  devices_mdm_enrolled: number;
+}
+
 export interface ReportInputs {
   release: string | null;
   accounts: Record<string, AccountState> | null;
@@ -211,4 +268,5 @@ export interface ReportInputs {
   platformAdmins: PlatformAdminCensus | null;
   deletions: { evidenced: number; logged: number } | null;
   releaseScan: ReleaseScan | null;
+  devices: DeviceFleetSummary | null;
 }

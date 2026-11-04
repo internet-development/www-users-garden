@@ -1,10 +1,10 @@
 import Document from '@root/compliance/site/Document';
 import fileVaultEncryption from '@root/compliance/site/images/filevault-encryption.png';
 
-import { API_HOST, AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
-import { EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN } from '@root/compliance/site/records';
-import { Fields, Figure, Group, Links, List, Section, Table } from '@root/compliance/site/Blocks';
-import { RemediationRecords } from '@root/compliance/site/Evidence';
+import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
+import { DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, REMOVABLE_MEDIA_CONTROL, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN } from '@root/compliance/site/records';
+import { Fields, Figure, Group, Links, List, Mail, Section, Table } from '@root/compliance/site/Blocks';
+import { DeviceEncryptionReport, RemediationRecords } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
@@ -34,7 +34,34 @@ const TLS_RESULTS = [
 ];
 
 function FileVaultEvidence() {
-  return <Figure image={fileVaultEncryption} alt="macOS System Settings, signed in to the Apple Account of Jimmy Lee, Privacy and Security, FileVault: the FileVault switch is on, and a recovery key is set for password reset. The key itself is hidden." caption="FileVault on the CEO’s MacBook: full-disk encryption is on, with a recovery key for password reset. Captured November 4, 2026." />;
+  return <Figure image={fileVaultEncryption} alt="macOS System Settings, signed in to the Apple Account of Jimmy Lee, Privacy and Security, FileVault: the FileVault switch is on, and a recovery key is set for password reset. The key itself is hidden." caption="A sample of what the device check reads: FileVault on the CEO’s MacBook, with a recovery key for password reset. Captured November 4, 2026. The fleet report above, not this screenshot, is the evidence for every laptop." />;
+}
+
+function FleetReport() {
+  return (
+    <Group>
+      <p>
+        Every laptop used for INTDEV work reports its own disk encryption and removable media configuration to the INTDEV API, and this table is read live from that record each time the page loads. A laptop counts only while its last check-in is under {DEVICE_CHECK_FRESH_DAYS} days old, and a team member passes only when every current laptop they use is encrypted.
+      </p>
+      <DeviceEncryptionReport />
+    </Group>
+  );
+}
+
+function DeviceCheckProcess() {
+  return (
+    <List
+      items={[
+        <>
+          Each team member runs the INTDEV device check, <a href={DEVICE_CHECK_SCRIPT}>{DEVICE_CHECK_SCRIPT.replace('https://', '')}</a>, on every Mac they use for INTDEV work: at onboarding, whenever they set up a new laptop, and at least every {DEVICE_CHECK_FRESH_DAYS} days. It needs no administrator rights and changes nothing on the Mac.
+        </>,
+        'It reads the configuration from macOS itself: fdesetup status for FileVault, diskutil for the data volume’s encryption, the chip (Apple silicon, T2, or Intel), the MDM enrollment status, and every mounted external volume with whether it is encrypted and writable. Disk images are not removable media and are skipped.',
+        `It posts the raw values with the team member’s own API key to ${DEVICE_CHECK_IN}. Only current team members can report. The API decides compliance from the raw values, so a Mac that is still encrypting, or whose data volume does not report encryption, does not pass.`,
+        'Every check-in is kept in the production database as an audit trail. The record identifies a laptop only by a one-way hash of its hardware UUID; it holds no serial number, hostname, user name, or IP address.',
+        'Apple documents AES-256 in XTS mode for Mac computers with Apple silicon, with keys handled in the Secure Enclave. For T2 and older Intel Macs Apple documents AES-XTS without a key size, so the report counts only Apple silicon laptops as AES-256.',
+      ]}
+    />
+  );
 }
 
 function Register() {
@@ -46,9 +73,25 @@ export function RemovableMedia() {
     <Document
       slug="removable-media"
       title="Removable media encryption"
-      summary="INTDEV does not allow confidential data on portable or removable media unless there is a documented exception. Any media allowed by exception must be encrypted with an approved standard. Laptops are fully disk-encrypted."
+      summary="INTDEV does not allow confidential data on portable or removable media unless there is a documented exception, and any media allowed by exception must be encrypted. Every company laptop is fully disk-encrypted, and each one proves it to the INTDEV API, which publishes the fleet report below."
       controls={['Removable media encryption']}
     >
+      <Section title="Fleet disk encryption report">
+        <FleetReport />
+      </Section>
+      <Section title="How the report is generated">
+        <DeviceCheckProcess />
+      </Section>
+      <Section title="Removable media enforcement">
+        <Fields
+          items={[
+            ['Requirement', REMOVABLE_MEDIA_CONTROL.requirement],
+            ['Current state', REMOVABLE_MEDIA_CONTROL.status],
+            ['Due', `${REMOVABLE_MEDIA_CONTROL.due}, with enrollment of every laptop in device management. The compliance report keeps this item open until the restriction is in effect.`],
+            ['Exceptions', 'None requested or approved as of November 4, 2026.'],
+          ]}
+        />
+      </Section>
       <Section title="Policy">
         <List
           items={[
@@ -62,7 +105,7 @@ export function RemovableMedia() {
         <Table
           columns={['Media', 'Requirement', 'Mechanism']}
           rows={[
-            ['Laptop internal storage', 'AES 128 or 256-bit full-disk encryption', 'FileVault, turned on before the device is used for INTDEV work'],
+            ['Laptop internal storage', 'AES 128 or 256-bit full-disk encryption', 'FileVault, turned on before the device is used for INTDEV work. AES-256-XTS on Apple silicon; AES-XTS on T2 and older Intel Macs.'],
             ['Removable media, by exception only', 'AES-256 encryption with a unique password', 'An APFS (Encrypted) volume on the USB or external drive, created with Disk Utility or diskutil'],
             ['Backups', 'Encrypted', 'Render-managed database backups. No removable backup media is used.'],
           ]}
@@ -72,13 +115,13 @@ export function RemovableMedia() {
         <List
           items={[
             'There is no need to move customer data onto devices. Customer data lives only in production systems (Render PostgreSQL and S3), and policy forbids copying it into non-production environments.',
-            'Exceptions are requested in writing to the CEO and recorded with the media, the data, an encryption confirmation, and the date of destruction. No exceptions had been requested or approved as of November 4, 2026.',
-            'FileVault is on by default for every Mac used for INTDEV work. On November 4, 2026, fdesetup status on the CEO’s MacBook reported “FileVault is On”, and System Settings showed FileVault enabled with a recovery key.',
+            'Exceptions are requested in writing to the CEO and recorded with the media, the data, an encryption confirmation, and the date of destruction.',
+            'FileVault is on for every Mac used for INTDEV work, and on by default from macOS 26.4. The fleet report above shows each laptop’s state from its own check-in, and the compliance report opens an item when any team member’s laptop is unencrypted or has not reported in the last 30 days.',
             'Security awareness training covers this rule. A violation is a policy violation and goes through the disciplinary process.',
           ]}
         />
       </Section>
-      <Section title="Disk encryption evidence">
+      <Section title="Sample">
         <FileVaultEvidence />
       </Section>
     </Document>
@@ -147,8 +190,204 @@ export function PenetrationTesting() {
           <RemediationRecords />
         </Group>
       </Section>
+      <Section title="2025 penetration test">
+        <Group>
+          <p>{`During INTDEV’s Osprey engagement (${PENETRATION_TEST.window}), ROOST tried to break the INTDEV API, INTDEV’s purpose-built backend, guided by security professional Chenyu Huang. ${PENETRATION_TEST.result} The report is dated ${PENETRATION_TEST.reportedAt}. ${PENETRATION_TEST.followUp}`}</p>
+          <Links items={[{ label: `Penetration test report ${PENETRATION_TEST.id}`, href: '/compliance/penetration-test-report' }]} />
+        </Group>
+      </Section>
       <Section title="Next tests">
         <List items={['An independent third-party penetration test of the INTDEV API and Users Garden, before the SOC 2 observation window closes', 'A retest of every open finding after remediation', 'The next annual assessment, by November 2027']} />
+      </Section>
+    </Document>
+  );
+}
+
+export function PenetrationTestReport() {
+  return (
+    <Document
+      slug="penetration-test-report"
+      title={`Penetration test report ${PENETRATION_TEST.id}: INTDEV API`}
+      summary={`During INTDEV’s 2025 work for Discord and ROOST on Osprey, ROOST tried to break the INTDEV API, the backend INTDEV builds itself, with security professional Chenyu Huang guiding the testing. No attempt succeeded. This report, dated ${PENETRATION_TEST.reportedAt}, records the test’s scope, method, results, and recommendations.`}
+      controls={['Penetration testing performed']}
+      appliesTo="INTDEV API (api.internet.dev), INTDEV’s purpose-built, custom-developed backend"
+      related={[
+        { label: 'Osprey on GitHub', href: OSPREY.repository, detail: 'ROOST’s open-source safety rules engine, the engagement in which the test took place' },
+        { label: 'INTDEV in the Osprey recognition', href: OSPREY.recognition.href, detail: OSPREY.recognition.detail },
+        { label: 'INTDEV’s final Osprey commit', href: OSPREY.finalCommit.href, detail: OSPREY.finalCommit.detail },
+      ]}
+    >
+      <Section title="Report record">
+        <Fields
+          items={[
+            ['Report', PENETRATION_TEST.id],
+            ['Report date', PENETRATION_TEST.reportedAt],
+            ['Target', PENETRATION_TEST.target],
+            ['Software type', 'Purpose-built. INTDEV designs, writes, and maintains the INTDEV API’s application code. It is not a third-party product, a platform’s default configuration, or network infrastructure.'],
+            ['Engagement', PENETRATION_TEST.engagement],
+            ['Test window', PENETRATION_TEST.window],
+            ['Window evidence', PENETRATION_TEST.windowEvidence],
+            ['Testers', PENETRATION_TEST.testers],
+            ['Test lead', PENETRATION_TEST.lead],
+            ['Test type', 'Manual adversarial testing: people actively trying to break the API, not an automated scan'],
+            ['Result', PENETRATION_TEST.result],
+            ['Attested by', `${PENETRATION_TEST.attestedBy}, ${PENETRATION_TEST.attestedAt}`],
+          ]}
+        />
+      </Section>
+      <Section title="Scope: purpose-built software">
+        <Group>
+          <p>The target was the INTDEV API, the universal backend behind Users Garden, Terminal Graph accounts, and every other INTDEV product. Its attack surface is INTDEV’s own code: the routes, the authentication, and the authorization rules INTDEV wrote, running on hosting INTDEV rents. The test aimed at that code, not at the infrastructure under it.</p>
+          <Table
+            columns={['Component', 'What INTDEV built', 'In this test']}
+            rows={[
+              ['Public HTTP API', 'Every route on api.internet.dev is INTDEV’s own TypeScript code', 'In scope'],
+              ['Authentication', 'INTDEV’s own password sign-in and API key (x-api-key) handling', 'In scope'],
+              ['Authorization', 'User tiers and organization member and admin roles, checked on every request', 'In scope'],
+              ['Separation between customers', 'Accounts, organizations, and products that share one backend', 'In scope'],
+              ['Hosting and network (Render, Cloudflare, AWS)', 'Configured by INTDEV, operated by the vendors', 'Not the target. Covered by INTDEV’s vulnerability scans'],
+            ]}
+          />
+        </Group>
+      </Section>
+      <Section title="Method">
+        <List
+          items={[
+            'The testers attacked the INTDEV API the way an outside adversary would: by sending requests to it and trying to break it.',
+            'Chenyu Huang guided the testing.',
+            'A successful break would be any unauthorized access, any privilege gained beyond what the testers’ accounts were granted, any exposure of another customer’s data, or any disruption of the service.',
+          ]}
+        />
+      </Section>
+      <Section title="Results">
+        <Group>
+          <Table
+            columns={['Outcome', 'Result']}
+            rows={[
+              ['Vulnerabilities successfully exploited', 'None'],
+              ['Unauthorized access or privilege gained', 'None'],
+              ['Customer data exposed', 'None'],
+              ['Service disrupted or compromised', 'None'],
+              ['Findings requiring remediation', 'None'],
+            ]}
+          />
+          <Table columns={['Severity', 'Exploited findings']} rows={[['Critical', '0'], ['High', '0'], ['Medium', '0'], ['Low', '0']]} />
+        </Group>
+      </Section>
+      <Section title="Impact and remediation">
+        <Group>
+          <p>No vulnerability was exploited, so the test produced no impact to assess and no remediation of its own.</p>
+          <p>Recommendations from this report:</p>
+          <List
+            ordered
+            items={[
+              'Commission an independent third-party penetration test of the INTDEV API and Users Garden before the SOC 2 observation window closes.',
+              'Cover every route added to the INTDEV API after this test.',
+              'Keep each test’s dates, testers, attempt log, and results with its report, so every future report carries its own evidence.',
+              'Retest every finding after it is remediated.',
+            ]}
+          />
+        </Group>
+      </Section>
+      <Section title="Limitations">
+        <List
+          items={[
+            'The exact dates of the attempts were not recorded. The test window is the span of the engagement, taken from public records.',
+            'INTDEV did not keep the testers’ notes or a log of each attempt. This report records the outcome as the CEO attests it.',
+            `Chenyu Huang was an INTDEV partner during the test, so the test was not independent of INTDEV. By the report date, ${PENETRATION_TEST.reportedAt}, he had joined Discord and was no longer part of INTDEV. The independent third-party test above addresses this.`,
+            'The test covered the INTDEV API as it was in 2025.',
+          ]}
+        />
+      </Section>
+      <Section title="Follow-up">
+        <Group>
+          <p>{PENETRATION_TEST.followUp}</p>
+          <p>Findings from later scans and from the November 2026 internal assessment are tracked separately, each with its remediation evidence or approved risk treatment plan, on the remediated vulnerabilities and penetration testing pages. The independent third-party test and the retest of every finding recommended above are scheduled as next tests on the penetration testing page.</p>
+        </Group>
+      </Section>
+      <Section title="Attestation">
+        <Group>
+          <p>{PENETRATION_TEST.attestation}</p>
+          <p>{`${PENETRATION_TEST.attestedBy}, ${PENETRATION_TEST.attestedAt}.`}</p>
+        </Group>
+      </Section>
+    </Document>
+  );
+}
+
+export function BugBounty() {
+  return (
+    <Document
+      slug="bug-bounty"
+      title="Bug bounty program"
+      summary="INTDEV invites security researchers to find and report vulnerabilities in the INTDEV API, Users Garden, Terminal Graph, and internet.dev. INTDEV does not publish reward amounts, but people who report with good intent and communicate well are likely to be rewarded."
+      controls={['Bug bounty program']}
+      appliesTo="INTDEV API (api.internet.dev), Users Garden (users.garden), Terminal Graph (terminalgraph.com), and internet.dev"
+    >
+      <Section title="Program record">
+        <Fields
+          items={[
+            ['Program', BUG_BOUNTY.name],
+            ['Submit reports to', <Mail key="security" address={CONTACTS.security} />],
+            ['Run by', BUG_BOUNTY.operator],
+            ['In effect since', BUG_BOUNTY.started],
+            ['Rewards', 'At INTDEV’s discretion. Amounts are not published.'],
+            ['Safe harbor', 'INTDEV does not take legal action against good-faith research that follows the rules on this page.'],
+          ]}
+        />
+      </Section>
+      <Section title="Scope">
+        <Group>
+          <Table columns={['Product', 'Target', 'Includes']} rows={BUG_BOUNTY.inScope} />
+          <p>Out of scope:</p>
+          <List items={BUG_BOUNTY.outOfScope} />
+        </Group>
+      </Section>
+      <Section title="Rules">
+        <List
+          items={[
+            'Test only with accounts you created yourself, and with your own test data.',
+            'Do not access, change, keep, or share anyone else’s data. If you reach it by accident, stop, do not save it, and say so in your report.',
+            'Do not degrade the service. No denial of service, no high-volume automated scanning, and stay within the published rate limits.',
+            'Use a vulnerability only as far as you need to demonstrate it. Do not pivot to other systems or keep access.',
+            'Give INTDEV a reasonable time to fix the issue before you disclose it, and agree the disclosure date with us.',
+            'Follow the law.',
+          ]}
+        />
+      </Section>
+      <Section title="How to report">
+        <Group>
+          <p>
+            Email <Mail address={CONTACTS.security} /> with:
+          </p>
+          <List
+            items={[
+              'The product and the affected URL, route, or application version',
+              'Steps to reproduce, with the requests and responses',
+              'The impact you demonstrated',
+              'How to reach you, and the name or handle you would like us to use',
+            ]}
+          />
+          <p>Never include another person’s data, a password, or any API key other than your own test account’s.</p>
+        </Group>
+      </Section>
+      <Section title="What happens next">
+        <Table
+          columns={['Step', 'What INTDEV does']}
+          rows={[
+            ['Acknowledge', 'A person reads and answers every report. Security reports are triaged into P0 to P3 under the Incident Response Plan: P0 immediately, P1 within one business day.'],
+            ['Assess', 'Engineering assesses the severity. Under the Operations Security Policy, INTDEV’s assessed severity may differ from the researcher’s, based on real-world impact and exploitability.'],
+            ['Fix', 'Critical and high within 30 days, medium within 60, and low within 90. A finding that cannot be fixed in time gets a risk treatment plan with management sign-off.'],
+            ['Record', 'The finding joins the vulnerability register by component, severity, and status, without exploit details. Bug bounty reports are an input to risk assessment under the Risk Management Policy.'],
+            ['Close', 'INTDEV tells the researcher when the fix is live, agrees on any public disclosure, and decides on a reward.'],
+          ]}
+        />
+      </Section>
+      <Section title="Rewards">
+        <Group>
+          <p>{BUG_BOUNTY.rewards}</p>
+          <p>Good intent, following these rules, and clear communication from the first report to the fix matter as much as the finding itself. When more than one person reports the same issue, the first complete report is considered for a reward.</p>
+        </Group>
       </Section>
     </Document>
   );
@@ -166,7 +405,8 @@ export function MobileDeviceManagement() {
         <Table
           columns={['Setting', 'Requirement', 'Source']}
           rows={[
-            ['Disk encryption', 'FileVault on (AES-XTS)', 'Cryptography Policy; Data Management Policy'],
+            ['Disk encryption', 'FileVault on (AES-256-XTS on Apple silicon; AES-XTS on older Macs), reported by the device check at least every 30 days', 'Cryptography Policy; Data Management Policy'],
+            ['Removable media', `Writes to external storage blocked by the Storage management restriction once enrolled (due ${REMOVABLE_MEDIA_CONTROL.due}); until then, no confidential data on removable media without an approved exception`, 'Cryptography Policy; Data Management Policy'],
             ['Screen lock', 'Password or biometric; locks after 5 minutes on devices with confidential data, 10 minutes at most on any device', 'Data Management Policy; Information Security Policy'],
             ['Operating system updates', 'Automatic security updates on', 'Operations Security Policy'],
             ['Anti-malware and firewall', 'XProtect and Gatekeeper on; application firewall on', 'Information Security Policy (Remote Working)'],
@@ -176,16 +416,19 @@ export function MobileDeviceManagement() {
           ]}
         />
       </Section>
-      <Section title="Disk encryption evidence">
-        <FileVaultEvidence />
+      <Section title="Fleet disk encryption report">
+        <FleetReport />
+      </Section>
+      <Section title="How the report is generated">
+        <DeviceCheckProcess />
       </Section>
       <Section title="Management">
         <List
           items={[
             'Every device used for INTDEV work must be enrolled in central device management, which enforces the settings above and reports each device’s compliance before the device can reach company systems.',
             'Enrollment of every current device is due by December 4, 2026, tracked as an access review follow-up. When it is done, this page will name the management platform and the enrolled device count.',
-            'Until then, each team member confirms the settings above on their own devices when they acknowledge the security awareness training.',
-            'The device register lists each device’s owner, model, serial number, encryption status, and last check-in. It is Confidential and available to auditors on request.',
+            'Until then, every laptop reports its disk encryption, removable media, and enrollment status to the INTDEV API through the device check, and the fleet report above is generated from those check-ins. Each team member also confirms the other settings when they acknowledge the security awareness training.',
+            'The fleet report publishes each laptop’s owner, model, macOS version, encryption, and last check-in. Serial numbers are kept in the device register, which is Confidential and available to auditors on request.',
           ]}
         />
       </Section>

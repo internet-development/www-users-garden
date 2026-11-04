@@ -4,12 +4,12 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, CheckStatus, ComplianceReportData, EvidenceMeta, ReleaseScan, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, CheckStatus, ComplianceReportData, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, ReleaseScan, TerminationRecord, TrainingCompletion, Vulnerability } from '@root/compliance/site/types';
 
 import { CheckItem, CheckTable, Signed, State } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
-import { API_HOST, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, DELETION_SNAPSHOT, EVIDENCE_ENDPOINTS, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { API_HOST, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
+import { ACCESS_GRANTS, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, TERMINATIONS, TERMINATIONS_REVERIFIED_AT, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
 
@@ -521,6 +521,93 @@ export function ReleaseChecks(props: { limit?: number }) {
       ) : (
         <p className={styles.muted}>{source === 'loading' ? 'Loading release scans from the INTDEV API.' : 'No release scan has been recorded yet. The first one is written when an INTDEV API release from 2.0.9 starts in production.'}</p>
       )}
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+interface LiveDevices {
+  summary: DeviceFleetSummary;
+  members: DeviceMember[];
+  evidence: EvidenceMeta;
+  live_check: string;
+}
+
+function encryptionLine(device: DeviceRecord): string {
+  if (device.assessment.disk_encrypted) return `FileVault on: ${device.assessment.cipher}`;
+  if (device.filevault.on && device.filevault.in_progress) return 'FileVault on, still encrypting';
+  return device.filevault.on ? 'FileVault on, but the data volume does not report encryption' : 'FileVault off';
+}
+
+function deviceRow(person: string, device: DeviceRecord, first: boolean) {
+  const current = device.current;
+  const removable = device.removable_media;
+  return {
+    checked: current ? device.assessment.disk_encrypted && device.assessment.removable_media_clear : null,
+    cells: [
+      first ? person : '',
+      <span key="device">
+        {device.model} · macOS {device.os_version}
+        <br />
+        <span className={styles.muted}>
+          Reference {device.device_ref}
+          {device.mdm_enrolled ? ' · MDM enrolled' : ''}
+        </span>
+      </span>,
+      <State key="encryption" ok={current ? device.assessment.disk_encrypted : null}>
+        {encryptionLine(device)}
+      </State>,
+      <State key="removable" ok={current ? device.assessment.removable_media_clear : null}>
+        {removable.unencrypted_writable ? `${removable.unencrypted_writable} unencrypted writable volume${removable.unencrypted_writable === 1 ? '' : 's'} mounted` : removable.mounted ? `${removable.mounted} mounted, all encrypted or read-only` : 'None mounted'}
+      </State>,
+      <span key="checked">
+        {formatUtc(device.checked_at)}
+        {current ? null : (
+          <>
+            <br />
+            <span className={styles.muted}>Older than {DEVICE_CHECK_FRESH_DAYS} days; not counted</span>
+          </>
+        )}
+      </span>,
+    ],
+  };
+}
+
+export function DeviceEncryptionReport() {
+  const path = EVIDENCE_ENDPOINTS.devices;
+  const { data, source } = useEvidence<LiveDevices>(path);
+  const members = new Map((data?.members ?? []).map((member) => [member.user_id, member]));
+  const summary = data?.summary ?? null;
+
+  const rows = TEAM.flatMap((person) => {
+    const member = members.get(person.userId);
+    const devices = member?.devices ?? [];
+    if (member?.reporting) return devices.map((device, index) => deviceRow(person.name, device, index === 0));
+    const pending = !data;
+    const missing = {
+      checked: pending ? null : false,
+      cells: [person.name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—', '—', '—'],
+    };
+    return [missing, ...devices.map((device) => deviceRow(person.name, device, false))];
+  });
+
+  return (
+    <div className={styles.group}>
+      <p>
+        <CheckItem checked={summary ? summary.members > 0 && summary.members_encrypted === summary.members : null}>
+          {summary
+            ? `${summary.members_encrypted} of ${summary.members} team members have every current laptop encrypted with FileVault, and ${summary.members_reporting} reported in the last ${DEVICE_CHECK_FRESH_DAYS} days. ${summary.devices_encrypted} of ${summary.devices} current laptops are encrypted, ${summary.devices_aes_256} of them with AES-256.`
+            : `${TEAM.length} team members. Each laptop’s encryption loads from the INTDEV API.`}
+        </CheckItem>
+      </p>
+      {summary ? (
+        <p>
+          <CheckItem checked={summary.devices > 0 && summary.devices_removable_clear === summary.devices}>
+            {summary.devices ? `${summary.devices_removable_clear} of ${summary.devices} current laptops had no unencrypted, writable removable volume mounted at their last check-in.` : 'No laptop has checked in yet.'}
+          </CheckItem>
+        </p>
+      ) : null}
+      <CheckTable columns={['Team member', 'Laptop', 'Disk encryption', 'Removable media', 'Last check-in']} rows={rows} />
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );

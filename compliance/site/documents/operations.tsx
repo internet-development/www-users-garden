@@ -6,8 +6,9 @@ import internalCommunication2 from '@root/compliance/site/images/internal-commun
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
 import { ReleaseChecks } from '@root/compliance/site/Evidence';
-import { Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
-import { CONTACTS, TEAM } from '@root/compliance/site/facts';
+import { CheckTable, Fields, Figure, Group, Links, List, Mail, People, Section, Table } from '@root/compliance/site/Blocks';
+import { CONTACTS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
+import { DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMIN_FOLLOW_UP, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
 
 export function TabletopExercise() {
   return (
@@ -319,6 +320,174 @@ export function InternalChangeCommunication() {
   );
 }
 
+const INCIDENT_ID = 'INC-2026-001';
+
+const utc = (value: string) => `${value.slice(11, 16)} UTC`;
+
+const departure = (name: string) => FORMER_TEAM.find((person) => person.name === name)?.left ?? 'Not recorded';
+
+const terminationRecords = TERMINATIONS.map((record) => `${record.id} (${record.person})`).join(', ');
+
+export function IncidentReport() {
+  return (
+    <Document
+      slug="incident-report"
+      title={`Incident report and root cause analysis ${INCIDENT_ID}: former team members kept access after they left`}
+      summary="On November 4, 2026, INTDEV’s quarterly access review found that people who had left INTDEV still held access to the INTDEV API and Render. This report records how the nonconformity was found, contained, and corrected, the root cause analysis, the corrective actions that keep it from recurring, and how their effectiveness is checked."
+      controls={['Incident response plan tested', 'Access revoked upon termination', 'Nonconformity and corrective action (ISO 22301:2019 clause 10.1)']}
+      owner="Jimmy Lee, Chief Executive Officer and Incident Manager"
+      appliesTo="INTDEV API (api.internet.dev) accounts and organizations, and the Render workspace that deploys INTDEV’s services"
+    >
+      <Section title="Incident record">
+        <Fields
+          items={[
+            ['Incident', INCIDENT_ID],
+            ['Type', 'Security event and nonconformity with the Access Control Policy termination procedure, which requires all access removed within 24 business hours of departure'],
+            ['Severity', 'P1 (High) under the Incident Response Plan: a weakness with a direct risk of exploitation, because platform admin and Render workspace access were held by people no longer at INTDEV. No exploitation was found.'],
+            ['Detected', 'November 4, 2026, by Jimmy Lee (CEO) in the Q4 2026 access review'],
+            ['Detection method', 'Read-only query of platform admin (level 100) accounts in the production users table, and a read-only Render API listing of workspace members'],
+            ['Incident Manager', 'Jimmy Lee, Chief Executive Officer'],
+            ['Contained', `November 4, 2026, ${utc(TERMINATIONS_REVERIFIED_AT)}, when every former account was re-verified with no access remaining`],
+            ['Breach determination', 'Not a reportable breach. The CEO found no evidence that the retained access was used after departure. No customer, partner, or regulator notice was required.'],
+            ['Status', 'Closed November 4, 2026. Corrective actions are in place; three follow-up actions are open and tracked below.'],
+            ['Plans followed', 'Incident Response Plan v1.0; Access Control Policy v1.0 (termination procedure)'],
+            ['Records', <a key="records" href="/compliance/access-termination">{`Termination records ${terminationRecords}`}</a>],
+          ]}
+        />
+      </Section>
+
+      <Section title="What happened">
+        <Group>
+          <p>Access granted to team members was not removed when they left. The access review found it in three accounts:</p>
+          <Table
+            columns={['Former team member', 'Departure', 'Access still held', 'Removed (November 4, 2026)']}
+            rows={[
+              ['Anastasiya Uraleva', departure('Anastasiya Uraleva'), 'INTDEV API platform admin (level 100); Render workspace Developer; organization admin of internet.dev and events.internet.dev; admin of elcap.xyz and item.market and member of diagram.page, organizations current team members also belong to', `Lowered to level 20 at ${utc(RECORDED_AT)}; Render removal verified at ${utc(RENDER_REMOVAL_VERIFIED_AT)}; INTDEV organizations at ${utc(ORGANIZATIONS_REMOVED_AT)}; shared organizations at ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`],
+              ['Chenyu Huang', departure('Chenyu Huang'), 'INTDEV API platform admin (level 100); organization admin of talkingheads.vision, an organization outside INTDEV', `Lowered to level 20 at ${utc(RECORDED_AT)}; organization at ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`],
+              ['Louanne Murphy', departure('Louanne Murphy'), 'Member of the internet.dev organization; never platform admin', `Organization at ${utc(ORGANIZATIONS_REMOVED_AT)}`],
+            ]}
+          />
+          <p>Anastasiya Uraleva kept her access for 116 days after she left. The exact departure dates of the other two were not recorded, which is itself part of the finding. A former team member’s account also kept its @internet.dev address, which still qualified it for staff grants that are based on email domain: Vmax Public access management and organization waitlists.</p>
+          <p>A second nonconformity occurred during containment. The update that lowered the two former platform admins at {utc(RECORDED_AT)} also raised Louanne Murphy’s account from level 10 to level 20. It was restored to 10 at {utc(LEVEL_RESTORED_AT)}, 32 minutes later and before any monthly credit payout, which the adjutant worker makes to accounts at level 20 or above.</p>
+        </Group>
+      </Section>
+
+      <Section title="Timeline">
+        <Table
+          columns={['When', 'Event']}
+          rows={[
+            [departure('Anastasiya Uraleva'), 'Anastasiya Uraleva leaves INTDEV. No termination checklist is run, and her access stays in place.'],
+            ['September 26, 2026', 'The Access Control Policy v1.0 takes effect, with the 24 business hour removal requirement. Departures before it are not re-checked.'],
+            ['November 4, 2026', 'The Q4 2026 access review finds two former partners at platform admin and one former team member still a Render workspace Developer. The CEO, as Incident Manager, opens a termination record for each of the three former team members.'],
+            [`November 4, ${utc(RECORDED_AT)}`, 'Both former platform admins are lowered to level 20 in production. The same update raises Louanne Murphy’s account from 10 to 20.'],
+            [`November 4, ${utc(RENDER_REMOVAL_VERIFIED_AT)}`, 'A Render API read of workspace members confirms that the CEO has removed the former team member from the Render workspace.'],
+            [`November 4, ${utc(LEVEL_RESTORED_AT)}`, 'Louanne Murphy’s account is restored to level 10, its earlier level, before any credit payout.'],
+            [`November 4, ${utc(ORGANIZATIONS_REMOVED_AT)}`, 'A re-check of every termination finds three memberships in INTDEV organizations (internet.dev and events.internet.dev). They are removed, and a read one second later finds none.'],
+            [`November 4, ${utc(SHARED_ORGANIZATIONS_REMOVED_AT)}`, 'On the CEO’s instruction, four memberships of former team members in organizations outside INTDEV’s domains are removed: three shared with current team members, and one not.'],
+            [`November 4, ${utc(TERMINATIONS_REVERIFIED_AT)}`, 'Every termination record is re-verified against the production users table, every INTDEV organization, the Render API, and AWS IAM (no IAM user exists for any of the three), and closed.'],
+            [`INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`, 'The API refuses staff grants based on an INTDEV email address to every account in the termination register.'],
+          ]}
+        />
+      </Section>
+
+      <Section title="Root cause analysis">
+        <Group>
+          <p>Method: a five-whys analysis from the event back to the process that allowed it, followed by a search for similar nonconformities in every system the termination checklist covers.</p>
+          <Table
+            columns={['Question', 'Finding']}
+            rows={[
+              ['Why did former team members keep access?', 'No termination checklist was run when they left.'],
+              ['Why was no checklist run?', 'Before the Access Control Policy v1.0 took effect on September 26, 2026, INTDEV had no documented termination procedure, and adopting the policy did not trigger a re-check of earlier departures.'],
+              ['Why would a checklist alone not have caught all of it?', `Access lived in four separate places with no per-person inventory: the INTDEV API account level, INTDEV API organization memberships, the Render workspace, and grants inferred from an @internet.dev address. The first checklist did not include organization memberships, so the re-check at ${utc(ORGANIZATIONS_REMOVED_AT)} still found them.`],
+              ['Why did leaving not end the email-domain grants?', 'Some authorization was based on the account’s email domain alone, and an account keeps its company address after its owner leaves.'],
+              ['Why did nothing detect it sooner?', 'Detection relied on the manual quarterly access review, and Q4 2026 was the first one under the policy. No automated check compared admin accounts or organization memberships with the current roster.'],
+            ]}
+          />
+          <p>Root cause: removing access depended on people remembering every system, with no single register of who had left and no automated check that their access was gone.</p>
+          <p>Root cause of the second nonconformity: the containment update set every former account to a fixed level (20) instead of lowering each account from its own previous level, and it was not checked against each account’s previous level before it ran.</p>
+        </Group>
+      </Section>
+
+      <Section title="Similar nonconformities">
+        <Group>
+          <p>The review was widened from the accounts first found to every former team member and every system on the termination checklist. It confirmed that no former team member holds an AWS IAM user, a Render workspace membership, platform admin, or a membership in any INTDEV organization or any organization a current team member belongs to. It also opened related findings that could lead to the same failure:</p>
+          <List
+            items={[
+              `Platform admin accounts not tied to a current team member, such as shared mailboxes, must each get a named owner or be lowered. Due ${PLATFORM_ADMIN_FOLLOW_UP}.`,
+              'GitHub, Google Workspace, Stripe, and Vanta memberships must be recorded against the current roster and former team members removed. Due December 4, 2026.',
+              'MFA must be enforced for every Render workspace member. Due November 18, 2026.',
+            ]}
+          />
+        </Group>
+      </Section>
+
+      <Section title="Corrective actions">
+        <CheckTable
+          columns={['Action', 'Prevents', 'Owner', 'Done or due']}
+          rows={[
+            { checked: true, cells: [`A termination register: every departure is a record with a ${TERMINATION_CHECKLIST.length}-step checklist, published by the INTDEV API at ${EVIDENCE_ENDPOINTS.terminations}`, 'Departures with no checklist', 'Jimmy Lee', 'November 4, 2026'] },
+            { checked: true, cells: ['The checklist includes INTDEV organization memberships: INTDEV’s own domains and every organization a current team member belongs to', 'Access missed outside the account level', 'Jimmy Lee', 'November 4, 2026'] },
+            { checked: true, cells: ['Naming a person in the termination register makes the API refuse every grant based on an INTDEV email address, even though the account keeps that address', 'Email-domain grants after departure', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['Live checks: the termination records and the compliance report re-check every former account’s level, organization memberships, domain grants, and, with a Render key, Render membership each time they load', 'Undetected retained access', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['The launch scan checks revoked access for every former team member each time a production instance starts', 'A release that undoes a revocation', 'Jimmy Lee', `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
+            { checked: true, cells: ['A revocation records the account’s previous level and may only lower it. The register validation and the API test suite fail on a revocation that raises an account or leaves platform admin in place', 'A containment change that raises access', 'Jimmy Lee', 'November 4, 2026'] },
+            { checked: false, cells: ['Give every platform admin account outside the access register a named owner, or lower it', 'Admin access no one is accountable for', 'Jimmy Lee', PLATFORM_ADMIN_FOLLOW_UP] },
+            { checked: false, cells: ['Reconcile GitHub, Google Workspace, Stripe, and Vanta memberships with the current roster', 'Retained access in the remaining systems', 'Jimmy Lee', 'December 4, 2026'] },
+            { checked: false, cells: ['Enforce MFA for every Render workspace member', 'Misuse of a Render membership', 'Jimmy Lee', 'November 18, 2026'] },
+          ]}
+        />
+      </Section>
+
+      <Section title="Effectiveness review">
+        <List
+          items={[
+            `Immediate: the re-verification at ${utc(TERMINATIONS_REVERIFIED_AT)} on November 4, 2026 found every checklist step complete and no access remaining for any former team member.`,
+            'Continuous: the compliance report runs the termination checks against production every time it loads: no former team member at platform admin, every former account at its recorded level, no INTDEV organization memberships, email-domain grants refused, and no Render workspace membership. A check that production contradicts shows as open.',
+            'Scheduled: the Q1 2027 access review, due March 31, 2027, confirms that every departure since this incident was closed within 24 business hours. A missed departure is recorded as a new nonconformity under the Incident Response Plan.',
+          ]}
+        />
+      </Section>
+
+      <Section title="Lessons learned">
+        <List
+          items={[
+            'A new policy must be applied to the people and accounts that came before it, not only to future events.',
+            'Departures need a dated record on the last day. Two of the three departure dates here were never written down.',
+            'Access granted from an attribute a person keeps after leaving, such as an email domain, must be ended by an explicit record of departure.',
+            'A corrective change to access must be checked against each account’s previous state before it runs, and must only ever reduce access.',
+            'A control that depends on a quarterly review needs an automated check behind it, so a gap is visible the day it opens.',
+          ]}
+        />
+      </Section>
+
+      <Section title="ISO 22301:2019 clause 10.1">
+        <Table
+          columns={['Clause', 'Requirement', 'Where this report meets it']}
+          rows={[
+            ['10.1.1', 'React to the nonconformity: control and correct it, and deal with its consequences', 'What happened; Timeline; the breach determination in the incident record'],
+            ['10.1.2', 'Evaluate the root cause and act to prevent recurrence, including similar nonconformities, then review the effectiveness of that action', 'Root cause analysis; Similar nonconformities; Corrective actions; Effectiveness review'],
+            ['10.1.3', 'Retain documented information on the nature of the nonconformity, the actions taken, and their results', 'This report, the termination records and the access register served by the INTDEV API, and the Q4 2026 access review. Each change to the registers is a reviewed GitHub pull request.'],
+          ]}
+        />
+      </Section>
+
+      <Section title="Relationship to the tabletop exercise">
+        <p>The November 2026 tabletop exercise and the incident response plan test rehearsed a hypothetical compromise. This report records a real nonconformity in INTDEV’s own systems, found by a routine control, and corrected the same day. It follows the plan’s phases, from triage to lessons learned, and adds the documented root cause analysis the plan requires for every incident.</p>
+      </Section>
+
+      <Section title="Review and sign-off">
+        <Fields
+          items={[
+            ['Root cause analysis reviewed by', 'Jimmy Lee, Chief Executive Officer and acting Chief Technology Officer, the reviewer the Incident Response Plan names, November 4, 2026'],
+            ['Breach determination by', 'Jimmy Lee, Chief Executive Officer, November 4, 2026'],
+            ['Next review', 'With the Q1 2027 access review, due March 31, 2027'],
+          ]}
+        />
+      </Section>
+    </Document>
+  );
+}
+
 export function IncidentResponseTest() {
   return (
     <Document
@@ -351,6 +520,12 @@ export function IncidentResponseTest() {
             ['Lessons learned', 'Root cause analysis and action items', 'Seven action items with owners and due dates'],
           ]}
         />
+      </Section>
+      <Section title="Incidents under the plan">
+        <Group>
+          <p>{`${INCIDENT_ID}, November 4, 2026: former team members kept access after they left. P1, contained the same day, with a root cause analysis and corrective actions.`}</p>
+          <Links items={[{ label: `Incident report and root cause analysis ${INCIDENT_ID}`, href: '/compliance/incident-report' }]} />
+        </Group>
       </Section>
       <Section title="Reporting an incident">
         <p>

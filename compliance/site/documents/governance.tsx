@@ -2,7 +2,7 @@ import Document from '@root/compliance/site/Document';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 
 import { Fields, Group, Links, List, People, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, COMPANY, CONTACTS, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_DATES, PRODUCTS, TEAM, VENDORS } from '@root/compliance/site/facts';
+import { AWS_REGIONS, COMPANY, CONTACTS, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, VENDORS } from '@root/compliance/site/facts';
 
 const STAFF = TEAM.filter((person) => person.name !== 'Jimmy Lee');
 
@@ -15,7 +15,7 @@ const CV_LINK = <a href={JIMMY_LEE_CV}>CV (LinkedIn)</a>;
 
 const DIRECTORS = (
   <Section title="Directors">
-    <Table columns={['Director', 'Position', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer', CV_LINK]]} />
+    <Table columns={['Director', 'Position', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', CV_LINK]]} />
   </Section>
 );
 
@@ -216,7 +216,7 @@ export function BoardCharter() {
             'Every director discloses conflicts of interest and abstains from any decision where they have one.',
           ]}
         />
-        <Table columns={['Director', 'Position', 'Independent of management', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer', 'No', CV_LINK]]} />
+        <Table columns={['Director', 'Position', 'Independent of management', 'CV']} rows={[['Jimmy Lee', 'Director and Chair; Chief Executive Officer and Chief Information Security Officer', 'No', CV_LINK]]} />
       </Section>
       <Section title="3. Responsibilities">
         <List
@@ -266,15 +266,16 @@ export function OrganizationChart() {
           columns={['Level', 'Role', 'Person', 'Reports to']}
           rows={[
             ['Governance', 'Board of Directors', 'Jimmy Lee (Chair)', 'Stockholders'],
-            ['Executive', 'Chief Executive Officer; acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', 'Jimmy Lee', 'Board of Directors'],
-            ...STAFF.map((person) => ['Technical Staff', person.role, person.name, 'Jimmy Lee']),
+            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', 'Jimmy Lee', 'Board of Directors'],
+            ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, person.name, 'Jimmy Lee']),
           ]}
         />
       </Section>
       <Section title="Structure">
         <List
           items={[
-            'INTDEV is a flat studio. Every Member of Technical Staff reports directly to the CEO.',
+            'INTDEV is a flat studio. Every Member of Technical Staff reports directly to the CEO, who is also the Chief Information Security Officer.',
+            'Every Member of Technical Staff holds the Security Engineer, DevOps, and Privacy Team roles. See roles and responsibilities for each job description.',
             'Product ownership: Caidan Williams leads Terminal Graph. The CEO owns the INTDEV API and Users Garden.',
             'Affiliates: Andrew Valantine, Hailey Elizabeth, Mitchell Ellero, Sah Pham, and Victoria Venturella are independent friends of the studio engaged case by case for photo, video, events, and ATProto work. They are not staff.',
             `Former team members: ${joinNames(FORMER_TEAM.map((person) => person.name))}.`,
@@ -288,12 +289,44 @@ export function OrganizationChart() {
   );
 }
 
+export function SecurityTeamStatement() {
+  return (
+    <Group>
+      <p>
+        Security and privacy at INTDEV are not a separate department. INTDEV is a small, flat studio, and every Member of Technical Staff is a founder in training who owns the security and privacy of what they build and run. Each one holds the Security Engineer, DevOps, and Privacy Team roles as part of the job. Jimmy Lee, the Chief Executive Officer, is also the Chief Information Security Officer and the Privacy Management Lead (Data Protection Officer), and reports on both to the board every year.
+      </p>
+      <Table columns={['Role', 'Held by', 'Reports to', 'Policy roles it covers']} rows={SECURITY_ROLES.map((role) => [role.title, role.holders, role.reportsTo, role.policyRoles])} />
+      <p>The policy roles are those of the Information Security Roles and Responsibilities Policy. Every person in these roles signs the confidentiality agreement, is background checked, and completes security awareness training within 30 days of hire and every year after.</p>
+    </Group>
+  );
+}
+
+export function SecurityJobDescriptions() {
+  return (
+    <>
+      {SECURITY_ROLES.map((role) => (
+        <Section key={role.title} title={`Job description: ${role.title}`}>
+          <Fields
+            items={[
+              ['Held by', role.holders],
+              ['Reports to', role.reportsTo],
+              ['Purpose', role.purpose],
+              ['Responsibilities', <List key="responsibilities" items={role.responsibilities} />],
+              ['Qualifications', <List key="qualifications" items={role.qualifications} />],
+            ]}
+          />
+        </Section>
+      ))}
+    </>
+  );
+}
+
 export function RolesAndResponsibilities() {
   return (
     <Document
       slug="roles-and-responsibilities"
       title="Information security roles and responsibilities"
-      summary="Who is responsible for designing, developing, implementing, operating, maintaining, and monitoring INTDEV’s information security controls, as the Information Security Roles and Responsibilities Policy assigns."
+      summary="Who is responsible for designing, developing, implementing, operating, maintaining, and monitoring INTDEV’s information security and privacy controls, as the Information Security Roles and Responsibilities Policy assigns, with a job description for every key security and privacy role: the CISO, Security Engineers, DevOps, the Privacy Management Lead (Data Protection Officer), and the Privacy Team."
       controls={['Roles and responsibilities specified']}
     >
       <Section title="Role assignments">
@@ -302,6 +335,9 @@ export function RolesAndResponsibilities() {
           rows={[
             ['Board of Directors', 'Oversight of cyber risk and internal control for security, privacy, and compliance; approves security spending', 'Jimmy Lee'],
             ['Executive Leadership', 'Oversees the risk management program; aligns security posture with mission and risk appetite; the communication path to the board', 'Jimmy Lee'],
+            ['Chief Information Security Officer (CISO)', 'Owns the information security program; holds the CTO and Security and Compliance Manager duties below', 'Jimmy Lee'],
+            ['Privacy Management Lead (Data Protection Officer)', 'Privacy law, the Privacy Policy, personal data inventory, data subject requests, and privacy incident notice', 'Jimmy Lee'],
+            ['Security Engineers, DevOps, and Privacy Team', 'Security in design, code, and review; production operations; protection of personal data. Job descriptions below', 'Every Member of Technical Staff'],
             ['Chief Technology Officer', 'Designs, implements, operates, maintains, and monitors IT security controls; runs IT risk assessments and the risk register; reports risk to leadership every year; owns identity and access management', 'Jimmy Lee (acting)'],
             ['Engineering Lead', 'Security in the software development process; security controls for development and cloud hosting; reviews and approves production changes', 'Jimmy Lee for the INTDEV API and Users Garden; Caidan Williams for Terminal Graph'],
             ['Security and Compliance Manager', 'Contractual commitments, privacy law (CCPA, GDPR), SOC 2 and ISO 27001 adherence, and security tooling in production', 'Jimmy Lee (acting)'],
@@ -313,6 +349,10 @@ export function RolesAndResponsibilities() {
           ]}
         />
       </Section>
+      <Section title="Who holds the security and privacy roles">
+        <SecurityTeamStatement />
+      </Section>
+      <SecurityJobDescriptions />
       <Section title="Job description: Member of Technical Staff">
         <List
           items={[
