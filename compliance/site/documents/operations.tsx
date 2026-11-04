@@ -256,7 +256,7 @@ export function Backups() {
           columns={['Data', 'System', 'Backup', 'Objective']}
           rows={[
             ['Accounts, organizations, credits, orders, licenses, posts, documents', 'Render PostgreSQL “INTDEV DATA” (Pro plan, Oregon, PostgreSQL 15)', 'Render point-in-time recovery, enabled and available, with about seven days of continuous history. Render manages the backups outside the primary instance.', 'RPO 1 hour, RTO 4 hours (BC/DR Appendix B, INTDEV API and INTDEV Auth)'],
-            ['User uploads and private attachments', 'Amazon S3, us-west-2', 'S3 stores every object redundantly across at least three availability zones (eleven nines of durability).', 'Inherited from the AWS S3 SLA'],
+            ['User uploads and private attachments', 'Amazon S3, us-west-2', 'S3 stores every object redundantly across at least three availability zones (eleven nines of durability). The intdev-global and txtdev buckets, which hold customer uploads, are versioned: an overwritten or deleted object can be restored for 7 days, after which S3 deletes the old version.', 'Inherited from the AWS S3 SLA; 7 days to restore an overwritten or deleted object'],
             ['Source code and infrastructure configuration', 'GitHub', 'Distributed: every maintainer holds a full clone, and Render can redeploy any recorded commit.', 'Inherited from the GitHub SLA'],
             ['Terminal Graph user content', 'The user’s Mac', 'Stays on the device. Terminal Graph keeps local workspace history (Restore Earlier Version).', 'Not held by INTDEV'],
           ]}
