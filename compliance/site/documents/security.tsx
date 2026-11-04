@@ -192,7 +192,7 @@ export function PenetrationTesting() {
       </Section>
       <Section title="2025 penetration test">
         <Group>
-          <p>{`During INTDEV’s Osprey engagement (${PENETRATION_TEST.window}), ROOST tried to break the INTDEV API, INTDEV’s purpose-built backend, guided by security professional Chenyu Huang. ${PENETRATION_TEST.result} The report is dated ${PENETRATION_TEST.reportedAt}. ${PENETRATION_TEST.followUp}`}</p>
+          <p>{`During INTDEV’s Osprey engagement (${PENETRATION_TEST.window}), ROOST tried to break the INTDEV API, INTDEV’s purpose-built backend, guided by Chenyu Huang, who had built its Apple and Bluesky sign-in. ${PENETRATION_TEST.result} The report is dated ${PENETRATION_TEST.reportedAt}. ${PENETRATION_TEST.followUp}`}</p>
           <Links items={[{ label: `Penetration test report ${PENETRATION_TEST.id}`, href: '/compliance/penetration-test-report' }]} />
         </Group>
       </Section>
@@ -208,13 +208,14 @@ export function PenetrationTestReport() {
     <Document
       slug="penetration-test-report"
       title={`Penetration test report ${PENETRATION_TEST.id}: INTDEV API`}
-      summary={`During INTDEV’s 2025 work for Discord and ROOST on Osprey, ROOST tried to break the INTDEV API, the backend INTDEV builds itself, with security professional Chenyu Huang guiding the testing. No attempt succeeded. This report, dated ${PENETRATION_TEST.reportedAt}, records the test’s scope, method, results, and recommendations.`}
+      summary={`During INTDEV’s 2025 work for Discord and ROOST on Osprey, ROOST tried to break the INTDEV API, the backend INTDEV builds itself, guided by Chenyu Huang, the engineer who had built its Apple and Bluesky sign-in. No attempt succeeded. This report, dated ${PENETRATION_TEST.reportedAt}, records why he led the test, and its scope, method, results, and recommendations.`}
       controls={['Penetration testing performed']}
       appliesTo="INTDEV API (api.internet.dev), INTDEV’s purpose-built, custom-developed backend"
       related={[
         { label: 'Osprey on GitHub', href: OSPREY.repository, detail: 'ROOST’s open-source safety rules engine, the engagement in which the test took place' },
         { label: 'INTDEV in the Osprey recognition', href: OSPREY.recognition.href, detail: OSPREY.recognition.detail },
         { label: 'INTDEV’s final Osprey commit', href: OSPREY.finalCommit.href, detail: OSPREY.finalCommit.detail },
+        { label: 'Chenyu Huang', href: PENETRATION_TEST.leadSite.href, detail: PENETRATION_TEST.leadSite.detail },
       ]}
     >
       <Section title="Report record">
@@ -235,6 +236,13 @@ export function PenetrationTestReport() {
           ]}
         />
       </Section>
+      <Section title="Why the builder was asked to break it">
+        <Group>
+          {PENETRATION_TEST.rationale.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </Group>
+      </Section>
       <Section title="Scope: purpose-built software">
         <Group>
           <p>The target was the INTDEV API, the universal backend behind Users Garden, Terminal Graph accounts, and every other INTDEV product. Its attack surface is INTDEV’s own code: the routes, the authentication, and the authorization rules INTDEV wrote, running on hosting INTDEV rents. The test aimed at that code, not at the infrastructure under it.</p>
@@ -242,7 +250,7 @@ export function PenetrationTestReport() {
             columns={['Component', 'What INTDEV built', 'In this test']}
             rows={[
               ['Public HTTP API', 'Every route on api.internet.dev is INTDEV’s own TypeScript code', 'In scope'],
-              ['Authentication', 'INTDEV’s own password sign-in and API key (x-api-key) handling', 'In scope'],
+              ['Authentication', 'INTDEV’s own password sign-in, API key (x-api-key) handling, and the Google, Apple, and Bluesky sign-in flows', 'In scope'],
               ['Authorization', 'User tiers and organization member and admin roles, checked on every request', 'In scope'],
               ['Separation between customers', 'Accounts, organizations, and products that share one backend', 'In scope'],
               ['Hosting and network (Render, Cloudflare, AWS)', 'Configured by INTDEV, operated by the vendors', 'Not the target. Covered by INTDEV’s vulnerability scans'],
@@ -254,7 +262,7 @@ export function PenetrationTestReport() {
         <List
           items={[
             'The testers attacked the INTDEV API the way an outside adversary would: by sending requests to it and trying to break it.',
-            'Chenyu Huang guided the testing.',
+            'Chenyu Huang guided the testing and directed it at the authentication he had helped build.',
             'A successful break would be any unauthorized access, any privilege gained beyond what the testers’ accounts were granted, any exposure of another customer’s data, or any disruption of the service.',
           ]}
         />
@@ -294,7 +302,8 @@ export function PenetrationTestReport() {
           items={[
             'The exact dates of the attempts were not recorded. The test window is the span of the engagement, taken from public records.',
             'INTDEV did not keep the testers’ notes or a log of each attempt. This report records the outcome as the CEO attests it.',
-            `Chenyu Huang was an INTDEV partner during the test, so the test was not independent of INTDEV. By the report date, ${PENETRATION_TEST.reportedAt}, he had joined Discord and was no longer part of INTDEV. The independent third-party test above addresses this.`,
+            `The knowledge that made Chenyu Huang the right adversary also means the test was not independent: he was an INTDEV partner during the test. By the report date, ${PENETRATION_TEST.reportedAt}, he had joined Discord and was no longer part of INTDEV. The independent third-party test above addresses this.`,
+            'The test asked whether knowledge of the design could defeat the authentication, not whether his own account could be misused. That account kept platform admin until the termination checklist lowered it on November 4, 2026, as the termination record shows.',
             'The test covered the INTDEV API as it was in 2025.',
           ]}
         />
