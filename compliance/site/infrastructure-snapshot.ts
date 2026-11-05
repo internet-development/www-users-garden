@@ -1,7 +1,7 @@
 import type { InfrastructureSnapshot } from '@root/compliance/site/types';
 
 export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
-  "captured_at": "2026-11-04T16:50:48Z",
+  "captured_at": "2026-11-05T00:52:06Z",
   "aws": {
     "regions": [
       {
@@ -190,7 +190,8 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
           "https_only": true,
           "owner_tagged": true,
           "versioning": "Enabled",
-          "noncurrent_days": 7,
+          "noncurrent_days": null,
+          "expires_current_versions": false,
           "malware_protection": "ACTIVE"
         },
         {
@@ -198,7 +199,8 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
           "https_only": true,
           "owner_tagged": true,
           "versioning": "Enabled",
-          "noncurrent_days": 7,
+          "noncurrent_days": null,
+          "expires_current_versions": false,
           "malware_protection": "ACTIVE"
         }
       ]
@@ -220,7 +222,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "mfa": true,
         "active_keys": 1,
         "unused_keys": 0,
-        "last_used": "2026-11-04",
+        "last_used": "2026-11-05",
         "last_used_service": "s3",
         "owner_tagged": true
       },
@@ -230,7 +232,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "mfa": false,
         "active_keys": 1,
         "unused_keys": 0,
-        "last_used": "2026-11-04",
+        "last_used": "2026-11-05",
         "last_used_service": "s3",
         "owner_tagged": true
       },

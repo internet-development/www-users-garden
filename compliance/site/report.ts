@@ -1,7 +1,7 @@
 import type { AccountState, CheckStatus, ComplianceReportData, InfrastructureSnapshot, ReportCheck, ReportInputs } from '@root/compliance/site/types';
 
 import { AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DATA_BUCKET_NONCURRENT_DAYS, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, OPEN_SECURITY_GROUP_FINDING, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, OPEN_SECURITY_GROUP_FINDING, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
 
 export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null, infrastructure: null, checkedAt: null };
 
@@ -95,9 +95,9 @@ export function infrastructureChecks(snapshot: InfrastructureSnapshot | null, ch
     return { status: ebs + rds === 0 ? 'pass' : 'open', result: ebs + rds === 0 ? `No unencrypted snapshot in ${value.regions.length} regions` : `${ebs} unencrypted EBS and ${rds} unencrypted RDS snapshots` };
   });
 
-  awsCheck('aws-data-buckets', `Customer data buckets are versioned and expire old versions after ${DATA_BUCKET_NONCURRENT_DAYS} days`, '/compliance/backups', (value) => {
-    const ok = value.buckets.data.filter((bucket) => bucket.versioning === 'Enabled' && bucket.noncurrent_days === DATA_BUCKET_NONCURRENT_DAYS);
-    return { status: value.buckets.data.length && ok.length === value.buckets.data.length ? 'pass' : 'open', result: `${ok.length} of ${value.buckets.data.length} data buckets (${value.buckets.data.map((bucket) => bucket.name).join(', ') || 'none found'}) versioned with ${DATA_BUCKET_NONCURRENT_DAYS}-day expiry of noncurrent versions` };
+  awsCheck('aws-data-buckets', 'Customer data buckets are versioned and keep every version, with no automatic expiry', '/compliance/backups', (value) => {
+    const ok = value.buckets.data.filter((bucket) => bucket.versioning === 'Enabled' && bucket.noncurrent_days === null && bucket.expires_current_versions === false);
+    return { status: value.buckets.data.length && ok.length === value.buckets.data.length ? 'pass' : 'open', result: `${ok.length} of ${value.buckets.data.length} data buckets (${value.buckets.data.map((bucket) => bucket.name).join(', ') || 'none found'}) versioned with no lifecycle expiry of current or old versions` };
   });
 
   awsCheck('aws-malware-protection', 'GuardDuty Malware Protection scans every customer upload bucket', '/compliance/anti-malware', (value) => {

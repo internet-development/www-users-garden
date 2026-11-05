@@ -4,7 +4,7 @@ import fileVaultEncryption from '@root/compliance/site/images/filevault-encrypti
 import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
 import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, NETWORK_EXPORTED_AT, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Figure, Group, Links, List, Mail, Member, Section, Table } from '@root/compliance/site/Blocks';
-import { DeviceEncryptionReport, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
+import { DeviceEncryptionReport, DeviceManagementRecord, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
@@ -488,8 +488,79 @@ export function MobileDeviceManagement() {
           items={[
             'Every device used for INTDEV work must be enrolled in central device management, which enforces the settings above and reports each device’s compliance before the device can reach company systems.',
             'Enrollment of every current device is due by December 4, 2026, tracked as an access review follow-up. When it is done, this page will name the management platform and the enrolled device count.',
-            'Until then, every laptop reports its disk encryption, removable media, and enrollment status to the INTDEV API through the device check, and the fleet report above is generated from those check-ins. Each team member also confirms the other settings when they acknowledge the security awareness training.',
+            <>
+              Until then, every laptop reports its disk encryption, removable media, and enrollment status to the INTDEV API through the device check, and the fleet report above is generated from those check-ins. Each team member also confirms the other settings when they acknowledge the security awareness training. The <a href="/compliance/mobile-device-management-system">mobile device management system</a> page describes that system and its live management status.
+            </>,
             'The fleet report publishes each laptop’s owner, model, macOS version, encryption, and last check-in. Serial numbers are kept in the device register, which is Confidential and available to auditors on request.',
+          ]}
+        />
+      </Section>
+    </Document>
+  );
+}
+
+export function MobileDeviceManagementSystem() {
+  const fleetRecord = `${API_HOST}${EVIDENCE_ENDPOINTS.devices}`;
+  return (
+    <Document
+      slug="mobile-device-management-system"
+      title="Mobile device management system"
+      updated="November 5, 2026"
+      summary={`INTDEV centrally manages every laptop that supports the service through its own device management system, built into the INTDEV API. Each laptop is enrolled under its team member’s account, reports its security configuration to one central register at least every ${DEVICE_CHECK_FRESH_DAYS} days, and is judged by the API against INTDEV’s required configuration. The live status of the whole fleet is below.`}
+      controls={['MDM system utilized']}
+    >
+      <Section title="The system">
+        <Fields
+          items={[
+            ['System', 'INTDEV device management, part of the INTDEV API at api.internet.dev'],
+            ['Owner', <Member key="owner" name="Jimmy Lee, Chief Executive Officer and Chief Information Security Officer" />],
+            ['Devices in scope', 'Every Mac laptop a current team member uses for INTDEV work. The Information Security Policy’s Mobile Device Policy applies to every end-user device, and the Data Management Policy forbids storing confidential data on personal phones.'],
+            ['Agent', <span key="agent">The INTDEV device check, <a href={DEVICE_CHECK_SCRIPT}>{DEVICE_CHECK_SCRIPT.replace('https://', '')}</a>. It runs on macOS without administrator rights and only reads the configuration.</span>],
+            ['Enrollment and check-ins', `${DEVICE_CHECK_IN}, under the team member’s own INTDEV API account, sent by the script or from Device check on users.garden`],
+            ['Central register', 'The INTDEV API’s production database keeps every check-in as an audit record. A laptop is identified only by a one-way hash of its hardware UUID; the register holds no serial number, hostname, user name, or IP address.'],
+            ['Fleet record', <a key="record" href={fleetRecord}>{fleetRecord.replace('https://', '')}</a>],
+            ['Compliance monitoring', <span key="report">The device checks in the <a href="/compliance">compliance report</a>, recomputed from the register on every request</span>],
+          ]}
+        />
+      </Section>
+      <Section title="Live management status">
+        <DeviceManagementRecord />
+      </Section>
+      <Section title="Managed laptops">
+        <FleetReport />
+      </Section>
+      <Section title="Device lifecycle">
+        <Table
+          columns={['Stage', 'What happens', 'Record']}
+          rows={[
+            ['Enroll', 'At onboarding, and whenever a team member sets up a new laptop, they run the device check, which sends the laptop’s configuration under their own account. The API refuses a laptop already enrolled under another current team member, so one Mac cannot count for several people.', 'The laptop’s first check-in in the central register'],
+            ['Monitor', `The laptop reports again at least every ${DEVICE_CHECK_FRESH_DAYS} days. The API checks each report’s seal, tool version, age, and model against its chip, then decides compliance itself from the raw macOS values: FileVault on and the data volume encrypted, the cipher Apple documents for the chip, and no unencrypted writable removable volume mounted.`, 'The fleet record and the tables above'],
+            ['Respond', `A laptop that fails, or a team member with no check-in in the last ${DEVICE_CHECK_FRESH_DAYS} days, shows as open on this page and opens the device checks in the compliance report until a passing check-in arrives. The team member corrects the laptop and runs the check again.`, 'The compliance report’s device checks'],
+            ['Remove', 'When a person leaves, the termination record removes them from the team register and their laptops drop out of the fleet record. The Information Security Policy requires them to return every company-owned device and delete all company information and accounts from personal devices.', <a key="termination" href="/compliance/access-termination">Access revoked upon termination</a>],
+          ]}
+        />
+      </Section>
+      <Section title="What it verifies">
+        <Table
+          columns={['Setting', 'Requirement', 'How the system manages it']}
+          rows={[
+            ['Disk encryption', 'FileVault on every laptop (Data Management Policy; Cryptography Policy)', 'Read and judged on every check-in'],
+            ['Removable media', 'No confidential data on removable media without an approved exception', `Unencrypted writable volumes are reported on every check-in. ${REMOVABLE_MEDIA_CONTROL.status}`],
+            ['Hardware and macOS', 'Recorded for every laptop', 'Model, chip, and macOS version are read on every check-in and published'],
+            ['Screen lock, firewall, anti-malware, and updates', 'Required by the Information Security Policy and the Data Management Policy', 'Acknowledged by each team member in security awareness training; not yet read by the device check'],
+          ]}
+        />
+        <p>
+          The full required configuration is on the <a href="/compliance/mobile-device-management">mobile device management</a> page.
+        </p>
+      </Section>
+      <Section title="What the system does not do">
+        <List
+          items={[
+            'It does not push configuration profiles, install software, or change settings. The device check only reads macOS, and the team member corrects a laptop that fails.',
+            'It cannot lock or erase a laptop remotely. A lost or stolen laptop is reported right away under the Information Security Policy, and FileVault keeps its data encrypted at rest.',
+            'It does not block a laptop from reaching company systems. It makes a gap visible on this page and in the compliance report until it is fixed.',
+            'No laptop depends on a third-party MDM server; the live status above shows how many are enrolled with one. The mobile device management page records the commitment to enroll every laptop in a configuration-enforcing platform by December 4, 2026, and this page will name that platform once it is in use.',
           ]}
         />
       </Section>

@@ -44,7 +44,7 @@ export function DataDeletion() {
             ['Organization memberships', 'Deleted with the account in the same transaction (from INTDEV API 2.0.9)', '—'],
             ['Analytics project memberships', 'Deleted with the account (cascade)', '—'],
             ['Slide decks and assets the user created', 'Detached from the user by the database, then tombstoned by the slide cleanup worker', 'Per the slide retention rules'],
-            ['Uploaded files in S3', 'Removed by support on request, or within 30 days of contract termination. The buckets that hold uploads are versioned, so a removed file stays in version history for 7 days, then S3 deletes it permanently', '30 days, then about 7 days in version history'],
+            ['Uploaded files in S3', 'Removed by support on request, or within 30 days of contract termination. The buckets that hold uploads are versioned and never expire old versions automatically, so a removal deletes every stored version of the file, not just the current one', '30 days'],
             ['Database backups (point-in-time recovery)', 'Age out of Render’s rolling recovery window', 'About 7 days'],
             ['API and security logs', 'Not deleted on request; kept for security', '90 days'],
             ['Financial records (invoices, credit ledger)', 'Kept to meet legal obligations, without a link to the deleted user', '7 years'],

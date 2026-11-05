@@ -50,6 +50,7 @@ const COMPONENTS: Record<ComplianceSlug, () => React.ReactElement> = {
   'incident-response-test': Operations.IncidentResponseTest,
   'incident-report': Operations.IncidentReport,
   'mobile-device-management': Security.MobileDeviceManagement,
+  'mobile-device-management-system': Security.MobileDeviceManagementSystem,
   'intrusion-detection': Security.IntrusionDetection,
   'encryption-in-transit': Security.EncryptionInTransit,
   'network-segmentation': Security.NetworkSegmentation,

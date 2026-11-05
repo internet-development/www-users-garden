@@ -368,6 +368,7 @@ export interface AwsDataBucket {
   https_only: boolean;
   versioning: 'Enabled' | 'Suspended' | null;
   noncurrent_days: number | null;
+  expires_current_versions: boolean;
   owner_tagged: boolean;
   malware_protection: string | null;
 }

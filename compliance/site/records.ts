@@ -445,8 +445,6 @@ export const VULNERABILITY_SCAN = {
 
 export const OPEN_SECURITY_GROUP_FINDING = 'INTDEV-2026-NET-02';
 
-export const DATA_BUCKET_NONCURRENT_DAYS = 7;
-
 const RECORD_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export function formatRecordDay(value: string): string {

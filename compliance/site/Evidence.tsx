@@ -701,6 +701,32 @@ export function DeviceEncryptionReport() {
   );
 }
 
+export function DeviceManagementRecord() {
+  const path = EVIDENCE_ENDPOINTS.devices;
+  const { data, source } = useEvidence<LiveDevices>(path);
+  const summary = data?.summary ?? null;
+  const pending = source === 'loading' ? 'Pending live check' : 'Unavailable';
+  const row = (label: string, ok: (fleet: DeviceFleetSummary) => boolean, detail: (fleet: DeviceFleetSummary) => string) => {
+    const checked = summary ? ok(summary) : null;
+    return { checked, cells: [label, <State key="result" ok={checked}>{summary ? detail(summary) : pending}</State>] };
+  };
+
+  return (
+    <div className={styles.group}>
+      <CheckTable
+        columns={['Management check', 'Result']}
+        rows={[
+          row('Every current team member has a laptop enrolled and reporting', (fleet) => fleet.members > 0 && fleet.members_reporting === fleet.members, (fleet) => `${fleet.members_reporting} of ${fleet.members} team members checked in within the last ${DEVICE_CHECK_FRESH_DAYS} days, with ${fleet.devices} current laptop${fleet.devices === 1 ? '' : 's'} under management`),
+          row('Every managed laptop is encrypted with FileVault', (fleet) => fleet.devices > 0 && fleet.devices_encrypted === fleet.devices, (fleet) => `${fleet.devices_encrypted} of ${fleet.devices} current laptops encrypted, ${fleet.devices_aes_256} with AES-256`),
+          row('No managed laptop has an unencrypted, writable removable volume mounted', (fleet) => fleet.devices > 0 && fleet.devices_removable_clear === fleet.devices, (fleet) => `${fleet.devices_removable_clear} of ${fleet.devices} current laptops clear at their last check-in`),
+        ]}
+      />
+      {summary ? <p>{`${summary.devices_mdm_enrolled} of ${summary.devices} current laptops are also enrolled with a third-party MDM server, as macOS reports it (profiles status). INTDEV’s device management does not depend on one.`}</p> : null}
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
 interface LiveEncryption {
   laptops: { standards: LaptopEncryptionStandard[] };
   evidence: EvidenceMeta;
