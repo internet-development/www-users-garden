@@ -5,7 +5,7 @@ import internalCommunication1 from '@root/compliance/site/images/internal-commun
 import internalCommunication2 from '@root/compliance/site/images/internal-communication-2.webp';
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
-import { ReleaseChecks } from '@root/compliance/site/Evidence';
+import { InfrastructureChecks, ReleaseChecks, VersionHistory } from '@root/compliance/site/Evidence';
 import { CheckTable, Fields, Figure, Group, Links, List, Mail, Member, People, Section, Table } from '@root/compliance/site/Blocks';
 import { CONTACTS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
 import { ALL_TERMINATIONS_VERIFIED_AT, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMINS_SETTLED_AT, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
@@ -219,6 +219,12 @@ export function Changelog() {
           <ReleaseChecks />
         </Group>
       </Section>
+      <Section title="What each INTDEV API version changed">
+        <Group>
+          <p>Every INTDEV API version is built on a maintainer machine that records what it ships in the version ledger: each route with its method, rate-limit category, and token cost; declared and installed dependencies; the compliance registers; and the AWS, TLS, and Render configuration read for that build. Each entry lists what changed since the version before it, and every build, Render’s included, checks the committed entry against what it is building.</p>
+          <VersionHistory limit={8} />
+        </Group>
+      </Section>
       <Section title="Users Garden releases">
         <DeployFeed service="www-users-garden" limit={6} />
       </Section>
@@ -261,6 +267,9 @@ export function Backups() {
             ['Terminal Graph user content', 'The user’s Mac', 'Stays on the device. Terminal Graph keeps local workspace history (Restore Earlier Version).', 'Not held by INTDEV'],
           ]}
         />
+      </Section>
+      <Section title="Read with this release">
+        <InfrastructureChecks ids={['aws-data-buckets', 'aws-snapshots-encrypted']} />
       </Section>
       <Section title="Restore procedure">
         <List

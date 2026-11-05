@@ -1,6 +1,7 @@
 import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, SystemAccount, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
 
 import { FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
+import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
 
 export const RECORDED_AT = '2026-11-04T03:05:23.589Z';
 
@@ -22,11 +23,13 @@ export const EVIDENCE_ENDPOINTS = {
   network: '/api/compliance/network',
   penetrationTest: '/api/compliance/penetration-test',
   bugBounty: '/api/compliance/bug-bounty',
+  infrastructure: '/api/compliance/infrastructure',
+  versions: '/api/compliance/versions',
 } as const;
 
 export type EvidenceKey = keyof typeof EVIDENCE_ENDPOINTS;
 
-export const COMPILED_EVIDENCE: readonly EvidenceKey[] = ['pages', 'team', 'policies', 'vendors', 'network', 'penetrationTest', 'bugBounty'];
+export const COMPILED_EVIDENCE: readonly EvidenceKey[] = ['pages', 'team', 'policies', 'vendors', 'network', 'penetrationTest', 'bugBounty', 'infrastructure', 'versions'];
 
 export function isCompiledEvidence(key: EvidenceKey): boolean {
   return COMPILED_EVIDENCE.includes(key);
@@ -440,16 +443,47 @@ export const VULNERABILITY_SCAN = {
   ],
 };
 
-export const NETWORK_EXPORTED_AT = '2026-11-04';
+export const OPEN_SECURITY_GROUP_FINDING = 'INTDEV-2026-NET-02';
 
-export const SECURITY_GROUP_EXPORT = [
-  { region: 'us-east-1', group: 'default', inbound: 'All traffic from members of the same group only', outbound: 'All', attached: 'Nothing (no network interfaces)' },
-  { region: 'us-east-2', group: 'default', inbound: 'All traffic from members of the same group only', outbound: 'All', attached: 'Nothing (no network interfaces)' },
-  { region: 'us-west-1', group: 'default', inbound: 'All traffic from members of the same group only', outbound: 'All', attached: 'Nothing (no network interfaces)' },
-  { region: 'us-west-2', group: 'default', inbound: 'All traffic from any IPv4 address (INTDEV-2026-NET-02)', outbound: 'All', attached: 'One stopped legacy t2.micro instance' },
-  { region: 'us-west-2', group: 'cantaloupe-app', inbound: 'TCP 80 from any IPv4 address and one named address; TCP 22 from any IPv4 address (INTDEV-2026-NET-02)', outbound: 'All', attached: 'Three stopped legacy t2.micro instances' },
-  { region: 'us-west-2', group: 'rds-launch-wizard', inbound: 'TCP 5432 from two named addresses only', outbound: 'All', attached: 'Nothing (no database instance exists)' },
-];
+export const DATA_BUCKET_NONCURRENT_DAYS = 7;
+
+const RECORD_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+export function formatRecordDay(value: string): string {
+  const [year, month, day] = value.slice(0, 10).split('-').map((part) => Number(part));
+  return `${RECORD_MONTHS[(month ?? 1) - 1] ?? ''} ${day ?? ''}, ${year ?? ''}`;
+}
+
+export const NETWORK_EXPORTED_AT = (INFRASTRUCTURE_SNAPSHOT?.captured_at ?? '2026-11-04').slice(0, 10);
+
+function instancesText(running: number, stopped: number): string {
+  const parts = [running ? `${running} running` : '', stopped ? `${stopped} stopped` : ''].filter(Boolean);
+  return parts.length ? `${parts.join(' and ')} legacy ${running + stopped === 1 ? 'instance' : 'instances'}` : '';
+}
+
+export const SECURITY_GROUP_EXPORT = (INFRASTRUCTURE_SNAPSHOT?.aws?.regions ?? []).flatMap((region) =>
+  region.security_groups.map((group) => ({
+    region: region.region,
+    group: group.group,
+    inbound: `${group.inbound.join('; ') || 'None'}${group.open_to_internet ? ` (${OPEN_SECURITY_GROUP_FINDING})` : ''}`,
+    outbound: group.outbound.every((rule) => rule === 'All traffic to any IPv4 address') && group.outbound.length ? 'All' : group.outbound.join('; ') || 'None',
+    attached: instancesText(group.instances.running, group.instances.stopped) || (group.attached ? `${group.attached} network ${group.attached === 1 ? 'interface' : 'interfaces'}` : 'Nothing (no network interfaces)'),
+    open_to_internet: group.open_to_internet,
+  }))
+);
+
+const AWS_KEEP = 'Keep: stores images, such as those for blog posts';
+
+export const AWS_IAM_REVIEW: Record<string, { purpose: string; outcome: string }> = {
+  admin: { purpose: 'Human administrator, local-only console and CLI use', outcome: 'Keep' },
+  intdev: { purpose: 'Programmatic service user for application S3 access', outcome: AWS_KEEP },
+  nexts3: { purpose: 'Programmatic service user for application S3 access', outcome: AWS_KEEP },
+  nicole: { purpose: 'Programmatic service user for a client site', outcome: AWS_KEEP },
+  readingsupply: { purpose: 'Programmatic service user created in 2018', outcome: AWS_KEEP },
+  txtdev: { purpose: 'Programmatic service user for txt.dev uploads', outcome: AWS_KEEP },
+};
+
+export const AWS_IAM_REVIEWED_AT = '2026-11-04';
 
 export const RENDER_NETWORK_EXPORT = [
   { resource: 'internet-apis (web service)', region: 'Oregon', exposure: 'Public HTTPS only, through Cloudflare; Render private network address internet-apis:10001 for same-region services', redundancy: '2 instances behind Render’s load balancer; zero-downtime deploys', previews: 'Off' },

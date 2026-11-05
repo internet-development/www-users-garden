@@ -1,5 +1,5 @@
 import * as Constants from '@common/constants';
-import * as DeviceCheck from '@common/device-check';
+import * as DeviceCheck from '@root/compliance/site/client';
 import * as Server from '@common/server';
 import * as Sms from '@common/sms';
 import * as Utilities from '@common/utilities';
@@ -232,38 +232,9 @@ export async function onRequestSmsConsent({ key, phone, requestId }: { key: stri
 export async function onRemoveSmsPhone({ key }: { key: string }) { return requestSmsSettings(key, 'remove'); }
 
 export async function onDeviceCheckIn({ key, device }: { key: string; device: DeviceCheck.DeviceCheckInput }): Promise<DeviceCheck.DeviceCheckInResult> {
-  try {
-    const response = await fetch(`${Constants.HOST}/api/compliance/devices/check-in`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device }),
-      signal: AbortSignal.timeout(25000),
-      cache: 'no-store',
-    });
-    const result = await response.json().catch(() => null);
-    if (!response.ok || result?.success !== true || !result.data?.assessment) {
-      const message = result?.error === true && typeof result.message === 'string' ? result.message : '';
-      if (response.status === 400 && message) return { success: false, message: `The API rejected this report: ${message} Run the command again and paste the new report.` };
-      if (response.status === 401) return { success: false, message: 'Your session has expired. Sign in again, then send the report.' };
-      if (response.status === 403) return { success: false, message: 'Device check-ins are limited to current INTDEV team members.' };
-      if (response.status === 409) return { success: false, message: 'This laptop is already reported by another team member. Run the check on your own laptop and paste that report.' };
-      if (response.status === 429) return { success: false, message: 'Too many reports in a short time. Wait a minute, then send it again.' };
-      return { success: false, message: 'The report could not be sent. Please try again.' };
-    }
-    return { success: true, data: result.data };
-  } catch {
-    return { success: false, message: 'We could not reach the API, so we cannot tell whether the report was recorded. Check Your laptops below before sending it again.' };
-  }
+  return DeviceCheck.sendDeviceCheckIn({ host: Constants.HOST, key, device });
 }
 
 export async function onGetDeviceFleet({ id }: { id: string }): Promise<DeviceCheck.DeviceFleetResult> {
-  try {
-    const response = await fetch(`${Constants.HOST}/api/compliance/devices`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(25000), cache: 'no-store' });
-    const result = await response.json().catch(() => null);
-    if (!response.ok || result?.success !== true || !Array.isArray(result.data?.members)) return { success: false, message: 'The fleet record is unavailable right now.' };
-    if (result.data.live_check !== 'verified') return { success: false, message: 'The fleet record could not be read from the database right now.' };
-    return { success: true, freshDays: result.data.fresh_days, member: result.data.members.find((member) => member.user_id === id) ?? null };
-  } catch {
-    return { success: false, message: 'The fleet record is unavailable right now.' };
-  }
+  return DeviceCheck.readDeviceFleetMember({ host: Constants.HOST, id });
 }

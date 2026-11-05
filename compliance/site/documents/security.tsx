@@ -2,9 +2,9 @@ import Document from '@root/compliance/site/Document';
 import fileVaultEncryption from '@root/compliance/site/images/filevault-encryption.png';
 
 import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
-import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES } from '@root/compliance/site/records';
+import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, NETWORK_EXPORTED_AT, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Figure, Group, Links, List, Mail, Member, Section, Table } from '@root/compliance/site/Blocks';
-import { DeviceEncryptionReport, FileVaultStandardReport, RemediationRecords, SoftwareInventoryRecord } from '@root/compliance/site/Evidence';
+import { DeviceEncryptionReport, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
@@ -27,13 +27,6 @@ function ScanRecord() {
     </Group>
   );
 }
-
-const TLS_RESULTS = [
-  ['api.internet.dev', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 26, 2026'],
-  ['users.garden', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 8, 2026'],
-  ['internet.dev', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 21, 2026'],
-  ['terminalgraph.com', '301 to HTTPS', 'TLS 1.3, TLS_AES_256_GCM_SHA384', 'Refused', 'Google Trust Services WE1, valid to December 6, 2026'],
-];
 
 function FileVaultEvidence() {
   return <Figure image={fileVaultEncryption} alt="macOS System Settings, signed in to the Apple Account of Jimmy Lee, Privacy and Security, FileVault: the FileVault switch is on, and a recovery key is set for password reset. The key itself is hidden." caption="A sample of what the device check reads: FileVault on the CEO’s MacBook, with a recovery key for password reset. Captured November 4, 2026. The fleet report above, not this screenshot, is the evidence for every laptop." />;
@@ -202,6 +195,9 @@ export function AntiMalware() {
             ['Production application hosts', 'Render-managed platform. INTDEV runs no self-managed servers in production.', 'Managed by Render', 'Render platform security'],
           ]}
         />
+      </Section>
+      <Section title="Read with this release">
+        <InfrastructureChecks ids={['aws-malware-protection', 'aws-guardduty']} />
       </Section>
       <Section title="Rules">
         <List
@@ -521,8 +517,11 @@ export function IntrusionDetection() {
           ]}
         />
       </Section>
+      <Section title="Read with this release">
+        <InfrastructureChecks ids={['aws-guardduty', 'aws-finding-alerts', 'aws-flow-logs', 'aws-cloudtrail', 'aws-malware-protection']} />
+      </Section>
       <Section title="Verification">
-        <p>A sample-finding test in all four regions produced one rule invocation per region and one email delivered to eng@internet.dev per topic, with zero failed notifications. A read-only control check is run whenever Vanta reports a change.</p>
+        <p>A sample-finding test in all four regions produced one rule invocation per region and one email delivered to eng@internet.dev per topic, with zero failed notifications. The checks above are read again on the maintainer machine that builds each INTDEV API release, and a read-only control check is also run whenever Vanta reports a change.</p>
       </Section>
       <Section title="Response">
         <p>Findings are triaged under the Incident Response Plan. Unauthorized intrusions and access attempts are investigated and remediated. AWS root account compromise follows the plan’s Appendix D playbook.</p>
@@ -540,8 +539,9 @@ export function EncryptionInTransit() {
       controls={['Data transmission encrypted']}
       related={[ENCRYPTION_LINK]}
     >
-      <Section title="External test, November 4, 2026">
-        <Table columns={['Hostname', 'HTTP', 'Negotiated', 'TLS 1.1', 'Certificate']} rows={TLS_RESULTS} />
+      <Section title="External test">
+        <TlsRecord />
+        <InfrastructureChecks ids={['tls-hosts', 'tls-certificates', 'aws-https-only']} />
       </Section>
       <Section title="Every hop">
         <Table
@@ -596,8 +596,9 @@ export function NetworkSegmentation() {
       </Section>
       <Section title="Configuration export: AWS VPC security groups">
         <Group>
-          <p>Every security group in the four monitored US regions, read with the AWS EC2 API on November 4, 2026. Group IDs and named addresses are omitted. Every VPC is the default 172.31.0.0/16 network with one /20 subnet per availability zone.</p>
+          <p>Every security group in the four monitored US regions, read with the AWS EC2 API on {formatRecordDay(NETWORK_EXPORTED_AT)} on the maintainer machine that built the INTDEV API release, and compiled into it. Group IDs and named addresses are omitted. Every VPC is the default 172.31.0.0/16 network with one /20 subnet per availability zone.</p>
           <Table columns={['Region', 'Security group', 'Inbound', 'Outbound', 'Attached to']} rows={SECURITY_GROUP_EXPORT.map((row) => [row.region, row.group, row.inbound, row.outbound, row.attached])} />
+          <InfrastructureChecks ids={['aws-security-groups']} />
         </Group>
       </Section>
       <Section title="Open items">

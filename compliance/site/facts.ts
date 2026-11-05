@@ -1,4 +1,4 @@
-import type { Person, SecurityRole, SoftwarePackage, Vendor, Vulnerability } from '@root/compliance/site/types';
+import type { Person, PolicyDocument, SecurityRole, SoftwarePackage, Vendor, Vulnerability } from '@root/compliance/site/types';
 
 export const COMPANY = {
   name: 'Internet Development Studio Company',
@@ -91,22 +91,22 @@ export function countWord(count: number): string {
   return NUMBER_WORDS[count] ?? String(count);
 }
 
-export const POLICIES = [
-  { name: 'Information Security Policy (including Acceptable Use)', owner: 'CEO' },
-  { name: 'Access Control Policy', owner: 'CEO' },
-  { name: 'Asset Management Policy', owner: 'Chief Technology Officer' },
-  { name: 'Business Continuity and Disaster Recovery Plan', owner: 'Chief Technology Officer' },
-  { name: 'Code of Conduct', owner: 'CEO' },
-  { name: 'Cryptography Policy', owner: 'CEO' },
-  { name: 'Data Management Policy', owner: 'CEO' },
-  { name: 'Human Resource Security Policy', owner: 'Chief Executive Officer' },
-  { name: 'Incident Response Plan', owner: 'CEO' },
-  { name: 'Information Security Roles and Responsibilities Policy', owner: 'CEO' },
-  { name: 'Operations Security Policy', owner: 'CEO' },
-  { name: 'Physical Security Policy', owner: 'CEO' },
-  { name: 'Risk Management Policy', owner: 'Chief Executive Officer' },
-  { name: 'Secure Development Policy', owner: 'CEO' },
-  { name: 'Third-Party Management Policy', owner: 'CEO' },
+export const POLICIES: PolicyDocument[] = [
+  { name: 'Information Security Policy (including Acceptable Use)', owner: 'CEO', file: 'information-security-policy-aup.pdf' },
+  { name: 'Access Control Policy', owner: 'CEO', file: 'access-control-policy.pdf' },
+  { name: 'Asset Management Policy', owner: 'Chief Technology Officer', file: 'asset-management-policy.pdf' },
+  { name: 'Business Continuity and Disaster Recovery Plan', owner: 'Chief Technology Officer', file: 'business-continuity-and-disaster-recovery-plan.pdf' },
+  { name: 'Code of Conduct', owner: 'CEO', file: 'code-of-conduct.pdf' },
+  { name: 'Cryptography Policy', owner: 'CEO', file: 'cryptography-policy.pdf' },
+  { name: 'Data Management Policy', owner: 'CEO', file: 'data-management-policy.pdf' },
+  { name: 'Human Resource Security Policy', owner: 'Chief Executive Officer', file: 'human-resource-security-policy.pdf' },
+  { name: 'Incident Response Plan', owner: 'CEO', file: 'incident-response-plan.pdf' },
+  { name: 'Information Security Roles and Responsibilities Policy', owner: 'CEO', file: 'information-security-roles-and-responsibilities.pdf' },
+  { name: 'Operations Security Policy', owner: 'CEO', file: 'operations-security-policy.pdf' },
+  { name: 'Physical Security Policy', owner: 'CEO', file: 'physical-security-policy.pdf' },
+  { name: 'Risk Management Policy', owner: 'Chief Executive Officer', file: 'risk-management-policy.pdf' },
+  { name: 'Secure Development Policy', owner: 'CEO', file: 'secure-development-policy.pdf' },
+  { name: 'Third-Party Management Policy', owner: 'CEO', file: 'third-party-management-policy.pdf' },
 ];
 
 export const POLICY_COUNT = countWord(POLICIES.length);

@@ -4,15 +4,17 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, SoftwareInventory, TerminationRecord, TrainingCompletion, TrainingCourse, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, AwsControls, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, ReleaseVersion, ReportCheck, SoftwareInventory, TerminationRecord, TlsHostRead, TrainingCompletion, TrainingCourse, Vulnerability } from '@root/compliance/site/types';
 
 import { CheckItem, CheckTable, Member, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
-import { EMPTY_REPORT_INPUTS, buildComplianceReport } from '@root/compliance/site/report';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, AWS_IAM_REVIEW, AWS_IAM_REVIEWED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { EMPTY_REPORT_INPUTS, buildComplianceReport, infrastructureChecks } from '@root/compliance/site/report';
+import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
 import { KIT_REGISTERS } from '@root/compliance/site/kit';
+import { readEvidence } from '@root/compliance/site/client';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -37,21 +39,15 @@ function useEvidence<T extends { evidence: EvidenceMeta }>(path: string) {
 
   React.useEffect(() => {
     let active = true;
-    fetch(`${API_HOST}${path}`, { cache: 'no-store' })
-      .then(async (response) => {
-        const body: unknown = response.ok ? await response.json() : null;
-        const next = body && typeof body === 'object' ? (body as { data?: unknown }).data : null;
-        if (!active) return;
-        if (next && typeof next === 'object' && 'evidence' in next) {
-          setData(next as T);
-          setSource('live');
-        } else {
-          setSource('snapshot');
-        }
-      })
-      .catch(() => {
-        if (active) setSource('snapshot');
-      });
+    readEvidence<T>(path).then((read) => {
+      if (!active) return;
+      if (read.ok) {
+        setData(read.data);
+        setSource('live');
+      } else {
+        setSource('snapshot');
+      }
+    });
     return () => {
       active = false;
     };
@@ -528,7 +524,7 @@ export function DeletionRecord() {
   );
 }
 
-const PUBLISHED_REPORT = buildComplianceReport(EMPTY_REPORT_INPUTS);
+const PUBLISHED_REPORT = buildComplianceReport({ ...EMPTY_REPORT_INPUTS, infrastructure: INFRASTRUCTURE_SNAPSHOT });
 
 export function ComplianceReport() {
   const path = EVIDENCE_ENDPOINTS.report;
@@ -755,6 +751,160 @@ export function FileVaultStandardReport() {
           ];
         })}
       />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+interface LiveInfrastructure {
+  captured_at: string | null;
+  aws: AwsControls | null;
+  tls: TlsHostRead[];
+  checks: ReportCheck[];
+  evidence: EvidenceMeta;
+  live_check: string;
+}
+
+const COMPILED_INFRASTRUCTURE_CHECKS = infrastructureChecks(INFRASTRUCTURE_SNAPSHOT);
+
+function useInfrastructure() {
+  const path = EVIDENCE_ENDPOINTS.infrastructure;
+  const { data, source } = useEvidence<LiveInfrastructure>(path);
+  const live = data && data.captured_at ? data : null;
+  return {
+    path,
+    source,
+    data,
+    capturedAt: live?.captured_at ?? INFRASTRUCTURE_SNAPSHOT?.captured_at ?? null,
+    aws: live ? live.aws : (INFRASTRUCTURE_SNAPSHOT?.aws ?? null),
+    tls: live ? live.tls : (INFRASTRUCTURE_SNAPSHOT?.tls ?? []),
+    checks: live ? live.checks : COMPILED_INFRASTRUCTURE_CHECKS,
+  };
+}
+
+function ReadLine(props: { capturedAt: string | null; what: string }) {
+  return <p className={styles.muted}>{props.capturedAt ? `${props.what} read on a maintainer machine at ${formatUtc(props.capturedAt)}, when the INTDEV API release serving this record was built, and compiled into it.` : `This release carries no ${props.what} read.`}</p>;
+}
+
+export function InfrastructureChecks(props: { ids: string[] }) {
+  const { path, source, data, capturedAt, checks } = useInfrastructure();
+  const shown = props.ids.map((id) => checks.find((item) => item.id === id)).filter((item): item is ReportCheck => !!item);
+  return (
+    <div className={styles.group}>
+      <CheckTable
+        columns={['Check', 'Result']}
+        rows={shown.map((item) => ({
+          checked: statusChecked(item.status),
+          cells: [
+            item.title,
+            <State key="result" ok={statusChecked(item.status)}>
+              {item.result}
+            </State>,
+          ],
+        }))}
+      />
+      <ReadLine capturedAt={capturedAt} what="AWS and TLS configuration" />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+export function TlsRecord() {
+  const { path, source, data, capturedAt, tls } = useInfrastructure();
+  return (
+    <div className={styles.group}>
+      <Table
+        columns={['Hostname', 'HTTP', 'Negotiated', 'TLS 1.1', 'Certificate']}
+        rows={tls.map((host) => [
+          host.host,
+          host.http,
+          host.error ? <State key="error" ok={false}>{`Unreachable: ${host.error}`}</State> : `${host.protocol ?? 'Unknown'}, ${host.cipher ?? 'unknown cipher'}`,
+          host.tls_1_1 === 'refused' ? 'Refused' : host.tls_1_1 === 'accepted' ? <State key="legacy" ok={false}>Accepted</State> : 'Not tested',
+          `${host.issuer ?? 'Unknown issuer'}${host.valid_to ? `, valid to ${formatDay(host.valid_to.slice(0, 10))}` : ''}`,
+        ])}
+      />
+      <ReadLine capturedAt={capturedAt} what="TLS configuration" />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+function keyUse(user: AwsControls['iam_users'][number]): string {
+  if (!user.last_used) return user.active_keys ? 'Never used' : 'No access key';
+  const used = `${formatDay(user.last_used)}${user.last_used_service ? ` (${user.last_used_service === 'console' ? 'console' : user.last_used_service.toUpperCase()})` : ''}`;
+  return user.unused_keys ? `${used}; ${user.unused_keys === 1 ? 'one key has' : `${user.unused_keys} keys have`} never been used` : used;
+}
+
+export function AwsIdentityRecord() {
+  const { path, source, data, capturedAt, aws } = useInfrastructure();
+  const users = aws?.iam_users ?? [];
+  return (
+    <div className={styles.group}>
+      <Table
+        columns={['AWS identity', 'Purpose', 'MFA', 'Access last used', 'Owner', 'Review outcome']}
+        rows={[
+          ...users.map((user) => {
+            const review = AWS_IAM_REVIEW[user.name];
+            return [
+              user.name,
+              review ? review.purpose : <State key="purpose" ok={false}>Not in the review register</State>,
+              user.console ? <State key="mfa" ok={user.mfa}>{user.mfa ? 'Yes' : 'No'}</State> : 'Not applicable (no console password)',
+              keyUse(user),
+              <State key="owner" ok={user.owner_tagged}>{user.owner_tagged ? 'j@internet.dev (VantaOwner tag)' : 'No VantaOwner tag'}</State>,
+              review ? `${review.outcome} (${formatDay(AWS_IAM_REVIEWED_AT)})` : <State key="outcome" ok={false}>Review needed</State>,
+            ];
+          }),
+          ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', 'Not applicable (role)', aws ? `${aws.roles.owner_tagged} of ${aws.roles.total} customer-managed roles carry the VantaOwner tag` : '—', `Keep (${formatDay(AWS_IAM_REVIEWED_AT)})`],
+        ]}
+      />
+      <ReadLine capturedAt={capturedAt} what="AWS IAM configuration" />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+interface LiveVersions {
+  serving: { release: string | null; recorded: boolean; entry: ReleaseVersion | null };
+  versions: ReleaseVersion[];
+  evidence: EvidenceMeta;
+  live_check: string;
+}
+
+function changeLine(change: ReleaseVersion['changes'][number]): string {
+  if (change.from === null) return `Added ${change.subject}: ${change.to ?? ''}`;
+  if (change.to === null) return `Removed ${change.subject} (was ${change.from})`;
+  return `${change.subject}: ${change.from} → ${change.to}`;
+}
+
+export function VersionHistory(props: { limit?: number }) {
+  const path = EVIDENCE_ENDPOINTS.versions;
+  const { data, source } = useEvidence<LiveVersions>(path);
+  const versions = (data?.versions ?? []).slice(0, props.limit ?? 10);
+  return (
+    <div className={styles.group}>
+      {data ? (
+        <>
+          <p>
+            <CheckItem checked={data.serving.recorded}>
+              {data.serving.recorded ? `Release ${data.serving.release ?? 'unknown'} is in the version ledger.` : `Release ${data.serving.release ?? 'unknown'} has no entry in the version ledger.`}
+            </CheckItem>
+          </p>
+          {versions.map((entry) => (
+            <div key={entry.version} className={styles.group}>
+              <h3 className={styles.recordTitle}>
+                {entry.version}, recorded {formatUtc(entry.recorded_at)}
+              </h3>
+              <p className={styles.muted}>
+                {entry.summary.routes ?? 0} routes, {entry.summary.dependencies ?? 0} dependencies, {entry.summary.controls ?? 0} infrastructure controls, {entry.summary.pages ?? 0} compliance pages, registers {entry.registers ?? 'unknown'}.
+                {entry.previous ? ` ${entry.changes.length ? `${entry.changes.length} changes` : 'No changes'} since ${entry.previous}.` : ' The first version in the ledger.'}
+              </p>
+              {entry.changes.length ? <Table columns={['Area', 'Change']} rows={entry.changes.map((change) => [change.area, changeLine(change)])} /> : null}
+            </div>
+          ))}
+        </>
+      ) : (
+        <p className={styles.muted}>{source === 'loading' ? 'Loading the version ledger from the INTDEV API.' : 'The version ledger is unavailable right now.'}</p>
+      )}
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );

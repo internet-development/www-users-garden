@@ -1,8 +1,8 @@
 import type { DeployStatus } from '@root/compliance/site/types';
 
-export const DEPLOY_SNAPSHOT_CAPTURED_AT = '2026-11-04T12:10:04Z';
+export const DEPLOY_SNAPSHOT_CAPTURED_AT = '2026-11-04T12:13:36Z';
 
-export const RENDER_MEMBERSHIP_CHECKED_AT: string | null = '2026-11-04T12:10:04Z';
+export const RENDER_MEMBERSHIP_CHECKED_AT: string | null = '2026-11-04T12:13:36Z';
 
 export const RENDER_MEMBERSHIP_SNAPSHOT: Record<string, boolean | null> = {
   '3b1bda59-6474-4cb4-9883-63772d575992': false,
@@ -16,7 +16,7 @@ export const DEPLOY_SNAPSHOT: Record<string, DeployStatus> = {
     service: { name: 'internet-apis', label: 'INTDEV API', url: 'https://api.internet.dev', provider: 'render', type: 'web_service', region: 'oregon', branch: 'main', auto_deploy: true, auto_deploy_trigger: 'commit', suspended: false },
     state: 'operational',
     live_deploy_id: 'dep-dblh4dnavr4c73crvrkg',
-    fetched_at: '2026-11-04T12:10:04Z',
+    fetched_at: '2026-11-04T12:13:36Z',
     deploys: [
       { id: 'dep-dblh4dnavr4c73crvrkg', status: 'live', trigger: 'new_commit', commit: { id: null, short_id: '908bd00', message: '2.0.20' }, created_at: '2026-11-04T11:08:39.020989Z', started_at: '2026-11-04T11:08:38.983436Z', finished_at: '2026-11-04T11:12:36.816111Z', duration_seconds: 238 },
       { id: 'dep-dblgdv17lnhs739mn1dg', status: 'deactivated', trigger: 'new_commit', commit: { id: null, short_id: '42939b7', message: '2.0.19' }, created_at: '2026-11-04T10:20:44.734154Z', started_at: '2026-11-04T10:20:44.702986Z', finished_at: '2026-11-04T10:24:17.453617Z', duration_seconds: 213 },
@@ -34,7 +34,7 @@ export const DEPLOY_SNAPSHOT: Record<string, DeployStatus> = {
     service: { name: 'www-users-garden', label: 'Users Garden', url: 'https://users.garden', provider: 'render', type: 'web_service', region: 'ohio', branch: 'main', auto_deploy: true, auto_deploy_trigger: 'commit', suspended: false },
     state: 'operational',
     live_deploy_id: 'dep-dblh4g67bikc73amaceg',
-    fetched_at: '2026-11-04T12:10:04Z',
+    fetched_at: '2026-11-04T12:13:36Z',
     deploys: [
       { id: 'dep-dblh4g67bikc73amaceg', status: 'live', trigger: 'new_commit', commit: { id: null, short_id: 'ebe67e4', message: '1.1.14' }, created_at: '2026-11-04T11:08:48.938386Z', started_at: '2026-11-04T11:08:48.911006Z', finished_at: '2026-11-04T11:09:56.228037Z', duration_seconds: 67 },
       { id: 'dep-dblfj7flk1mc73et63pg', status: 'deactivated', trigger: 'new_commit', commit: { id: null, short_id: '721cd60', message: '1.1.12' }, created_at: '2026-11-04T09:23:41.743162Z', started_at: '2026-11-04T09:23:41.71657Z', finished_at: '2026-11-04T09:24:57.376755Z', duration_seconds: 76 },
@@ -52,7 +52,7 @@ export const DEPLOY_SNAPSHOT: Record<string, DeployStatus> = {
     service: { name: 'terminalgraph', label: 'Terminal Graph', url: 'https://terminalgraph.com', provider: 'render', type: 'web_service', region: 'oregon', branch: 'main', auto_deploy: true, auto_deploy_trigger: 'commit', suspended: false },
     state: 'operational',
     live_deploy_id: 'dep-db456fjbc2fs73bdi7ag',
-    fetched_at: '2026-11-04T12:10:04Z',
+    fetched_at: '2026-11-04T12:13:36Z',
     deploys: [
       { id: 'dep-db456fjbc2fs73bdi7ag', status: 'live', trigger: 'new_commit', commit: { id: null, short_id: 'c736a16', message: 'chore(release): update beta appcast for v0.16.0-beta' }, created_at: '2026-10-09T02:36:46.809088Z', started_at: '2026-10-09T02:36:46.781831Z', finished_at: '2026-10-09T02:37:57.311141Z', duration_seconds: 71 },
       { id: 'dep-db3f2hbl550s73aemk5g', status: 'deactivated', trigger: 'new_commit', commit: { id: null, short_id: '1398546', message: 'chore(release): update beta appcast for v0.15.0-beta' }, created_at: '2026-10-08T01:26:29.372272Z', started_at: '2026-10-08T01:26:29.341818Z', finished_at: '2026-10-08T01:27:38.93284Z', duration_seconds: 70 },
@@ -70,7 +70,7 @@ export const DEPLOY_SNAPSHOT: Record<string, DeployStatus> = {
     service: { name: 'www-internet-v3', label: 'INTDEV', url: 'https://internet.dev', provider: 'render', type: 'web_service', region: 'ohio', branch: 'main', auto_deploy: true, auto_deploy_trigger: 'commit', suspended: false },
     state: 'operational',
     live_deploy_id: 'dep-dblhe02vcj2c738oad2g',
-    fetched_at: '2026-11-04T12:10:04Z',
+    fetched_at: '2026-11-04T12:13:36Z',
     deploys: [
       { id: 'dep-dblhe02vcj2c738oad2g', status: 'live', trigger: 'new_commit', commit: { id: null, short_id: '6a21f52', message: '0.0.34' }, created_at: '2026-11-04T11:29:04.683965Z', started_at: '2026-11-04T11:29:04.661296Z', finished_at: '2026-11-04T11:30:12.364439Z', duration_seconds: 68 },
       { id: 'dep-dblgfd7lk1mc73eu5k50', status: 'deactivated', trigger: 'new_commit', commit: { id: null, short_id: '1cab8ed', message: '0.0.33' }, created_at: '2026-11-04T10:23:48.937725Z', started_at: '2026-11-04T10:23:48.913714Z', finished_at: '2026-11-04T10:24:56.483987Z', duration_seconds: 68 },

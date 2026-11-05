@@ -316,6 +316,8 @@ export interface ReportInputs {
   deletions: { evidenced: number; logged: number } | null;
   releaseScan: ReleaseScan | null;
   devices: DeviceFleetSummary | null;
+  infrastructure: InfrastructureSnapshot | null;
+  checkedAt: string | null;
 }
 
 export interface SoftwarePackage {
@@ -333,4 +335,103 @@ export interface SoftwareInventory {
   node: { declared: string | null; running: string };
   packages: LiveSoftwarePackage[];
   undocumented: string[];
+}
+
+export interface PolicyDocument {
+  name: string;
+  owner: string;
+  file: string;
+}
+
+export interface AwsSecurityGroup {
+  group: string;
+  inbound: string[];
+  outbound: string[];
+  open_to_internet: boolean;
+  attached: number;
+  instances: { running: number; stopped: number };
+}
+
+export interface AwsRegionControls {
+  region: string;
+  guardduty: 'enabled' | 'disabled' | 'missing';
+  alerts: { rule: 'enabled' | 'disabled' | 'missing'; targets_topic: boolean; confirmed: string[]; pending: number };
+  flow_logs: { vpcs: number; logged: number };
+  ebs_encryption_by_default: boolean;
+  unencrypted_ebs_snapshots: number;
+  unencrypted_rds_snapshots: number;
+  security_groups: AwsSecurityGroup[];
+}
+
+export interface AwsDataBucket {
+  name: string;
+  https_only: boolean;
+  versioning: 'Enabled' | 'Suspended' | null;
+  noncurrent_days: number | null;
+  owner_tagged: boolean;
+  malware_protection: string | null;
+}
+
+export interface AwsTrail {
+  name: string;
+  multi_region: boolean;
+  logging: boolean;
+  delivery_error: boolean;
+  bucket_versioning: boolean;
+  bucket_object_lock: boolean;
+}
+
+export interface AwsIamUser {
+  name: string;
+  console: boolean;
+  mfa: boolean;
+  active_keys: number;
+  unused_keys: number;
+  last_used: string | null;
+  last_used_service: string | null;
+  owner_tagged: boolean;
+}
+
+export interface AwsControls {
+  regions: AwsRegionControls[];
+  buckets: { total: number; https_only: number; owner_tagged: number; data: AwsDataBucket[] };
+  trails: AwsTrail[];
+  iam_users: AwsIamUser[];
+  roles: { total: number; owner_tagged: number };
+}
+
+export interface TlsHostRead {
+  host: string;
+  http: string;
+  protocol: string | null;
+  cipher: string | null;
+  tls_1_1: 'refused' | 'accepted' | 'untested';
+  issuer: string | null;
+  valid_to: string | null;
+  error: string | null;
+}
+
+export interface InfrastructureSnapshot {
+  captured_at: string;
+  aws: AwsControls | null;
+  tls: TlsHostRead[];
+}
+
+export interface ReleaseChange {
+  area: string;
+  subject: string;
+  from: string | null;
+  to: string | null;
+}
+
+export interface ReleaseVersion {
+  version: string;
+  recorded_at: string;
+  commit: string | null;
+  registers: string | null;
+  digests: Record<string, string>;
+  summary: Record<string, number>;
+  snapshots: { render: string | null; infrastructure: string | null };
+  previous: string | null;
+  changes: ReleaseChange[];
 }

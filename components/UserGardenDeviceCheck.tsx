@@ -1,6 +1,6 @@
 import styles from '@components/UserGardenDeviceCheck.module.css';
 
-import * as DeviceCheck from '@common/device-check';
+import * as DeviceCheck from '@root/compliance/site/client';
 import * as React from 'react';
 
 import Button from '@system/Button';

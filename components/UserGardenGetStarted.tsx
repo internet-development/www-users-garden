@@ -1,7 +1,7 @@
 import styles from '@components/UserGardenGetStarted.module.css';
 
 import * as Constants from '@common/constants';
-import * as DeviceCheck from '@common/device-check';
+import * as DeviceCheck from '@root/compliance/site/client';
 import * as React from 'react';
 
 import Button from '@system/Button';

@@ -1,7 +1,7 @@
 import Document from '@root/compliance/site/Document';
 
 import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
-import { AccessRequestRecords, SystemAccountRecords, TerminationRecords } from '@root/compliance/site/Evidence';
+import { AccessRequestRecords, AwsIdentityRecord, InfrastructureChecks, SystemAccountRecords, TerminationRecords } from '@root/compliance/site/Evidence';
 import { EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
 import { Fields, Group, List, Member, Members, Section, Table } from '@root/compliance/site/Blocks';
 
@@ -16,22 +16,6 @@ const MATRIX = [
   ['Member of Technical Staff (engineering)', 'Yes', 'Yes', 'By request', 'Yes', 'By request', 'By request', '—', 'Yes'],
   ['Product owner', 'Yes', 'Yes', 'By request', 'Yes', 'By request', 'Yes, own services', 'By request', 'Yes'],
   ['Management (CEO)', 'Yes', 'Yes', 'Yes (admin, MFA)', 'Yes (owner)', 'Yes', 'Yes (owner)', 'Yes (owner)', 'Yes (admin)'],
-];
-
-const AWS_OWNER = 'j@internet.dev (VantaOwner tag)';
-
-const NO_CONSOLE = 'Not applicable (no console password)';
-
-const KEEP = 'Keep: stores images, such as those for blog posts';
-
-const AWS_IDENTITIES = [
-  ['admin', 'Human administrator, local-only console and CLI use', 'Yes', 'November 4, 2026 (this review)', AWS_OWNER, 'Keep'],
-  ['intdev', 'Programmatic service user for application S3 access', NO_CONSOLE, 'November 4, 2026 (S3)', AWS_OWNER, KEEP],
-  ['nexts3', 'Programmatic service user for application S3 access', NO_CONSOLE, 'October 10, 2020 (S3); its second key has never been used', AWS_OWNER, KEEP],
-  ['nicole', 'Programmatic service user for a client site', NO_CONSOLE, 'March 31, 2025 (S3)', AWS_OWNER, KEEP],
-  ['readingsupply', 'Programmatic service user created in 2018', NO_CONSOLE, 'August 24, 2025 (STS)', AWS_OWNER, KEEP],
-  ['txtdev', 'Programmatic service user for txt.dev uploads', NO_CONSOLE, 'August 26, 2023 (S3)', AWS_OWNER, KEEP],
-  ['vanta-auditor (role)', 'Read-only role assumed by Vanta', 'Not applicable (role)', 'Not applicable (role)', AWS_OWNER, 'Keep'],
 ];
 
 export function AccessControlProcedures() {
@@ -121,12 +105,13 @@ export function AccessReviews() {
             ['Access register', endpointLink(EVIDENCE_ENDPOINTS.accessRequests)],
           ]}
         />
-        <Table columns={['AWS identity', 'Purpose', 'MFA', 'Access key last used', 'Owner', 'Review outcome']} rows={AWS_IDENTITIES} />
+        <AwsIdentityRecord />
+        <InfrastructureChecks ids={['aws-console-mfa', 'aws-owners']} />
         <List
           items={[
             'Result: one human administrator account, with MFA, and five programmatic service users that have never signed in to the console. The root account has MFA. The IAM password policy requires at least 14 characters including symbols.',
             'Ownership: every IAM user, the vanta-auditor role, and all seven S3 buckets carry the VantaOwner tag naming j@internet.dev, the account owner, so Vanta assigns each one to a person. The service users and buckets were tagged on November 4, 2026, and a read-only IAM and S3 listing confirmed every tag the same day.',
-            'Follow-up 1, closed November 4, 2026: a read-only IAM read recorded when each access key was last used (the table above), and the CEO reviewed every identity and kept all of them. The service users store images, such as those for blog posts, and none can sign in to the console.',
+            'Follow-up 1, closed November 4, 2026: a read-only IAM read recorded when each access key was last used, and the CEO reviewed every identity and kept all of them. The table above is regenerated from the AWS read compiled into each INTDEV API release, so a new identity, a removed MFA device, or a missing owner tag shows up as an open item. The service users store images, such as those for blog posts, and none can sign in to the console.',
             'Follow-up 2: record GitHub, Google Workspace, Stripe, and Vanta memberships against the current roster, and remove former team members. Owner: Jimmy Lee. Due: December 4, 2026.',
             'INTDEV API: two former team members still held platform admin. Both were lowered to level 20 on November 4, 2026. A third never held admin and stays at level 10, the level the account had before the review. All three are verified live in the access register and the termination records.',
             'INTDEV API organizations: re-checking termination found one former team member still an organization admin of internet.dev and events.internet.dev, and another still a member of internet.dev. Those three memberships were removed at 03:58 UTC on November 4, 2026. On the CEO’s instruction, four more memberships of former team members in organizations outside INTDEV’s domains (three shared with current team members, one not) were removed at 04:29 UTC. The termination checklist now includes this step, and the live termination record checks it on every load.',

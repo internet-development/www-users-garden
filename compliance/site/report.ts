@@ -1,9 +1,11 @@
-import type { AccountState, CheckStatus, ComplianceReportData, ReportCheck, ReportInputs } from '@root/compliance/site/types';
+import type { AccountState, CheckStatus, ComplianceReportData, InfrastructureSnapshot, ReportCheck, ReportInputs } from '@root/compliance/site/types';
 
-import { VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DATA_BUCKET_NONCURRENT_DAYS, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, OPEN_SECURITY_GROUP_FINDING, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
 
-export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null };
+export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null, infrastructure: null, checkedAt: null };
+
+export const CERTIFICATE_MARGIN_DAYS = 14;
 
 export function compareVersions(a: string, b: string): number {
   const left = a.split('.').map((part) => Number.parseInt(part, 10) || 0);
@@ -43,6 +45,112 @@ function counted(ok: number, total: number): CheckStatus {
 
 function counting(count: number, singular: string, plural: string): string {
   return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function regionList(regions: string[]): string {
+  return regions.length ? regions.join(', ') : 'none';
+}
+
+export function infrastructureChecks(snapshot: InfrastructureSnapshot | null, checkedAt: string | null = null): ReportCheck[] {
+  const endpoint = EVIDENCE_ENDPOINTS.infrastructure;
+  const aws = snapshot?.aws ?? null;
+  const read = snapshot ? `when it was read at ${utcMoment(snapshot.captured_at)}, before this release was built` : '';
+  const none = 'This release carries no AWS read. Each release carries the AWS and TLS read made on a maintainer machine when it was built';
+  const checks: ReportCheck[] = [];
+  const awsCheck = (id: string, title: string, page: string, judge: (value: NonNullable<typeof aws>) => { status: CheckStatus; result: string }) => {
+    if (!aws) return checks.push(check(id, 'Infrastructure', title, page, endpoint, 'unavailable', none));
+    const verdict = judge(aws);
+    return checks.push(check(id, 'Infrastructure', title, page, endpoint, verdict.status, `${verdict.result} ${read}`));
+  };
+
+  awsCheck('aws-guardduty', `GuardDuty is enabled in every monitored AWS region (${AWS_REGIONS.join(', ')})`, '/compliance/intrusion-detection', (value) => {
+    const enabled = AWS_REGIONS.filter((region) => value.regions.find((item) => item.region === region)?.guardduty === 'enabled');
+    const missing = AWS_REGIONS.filter((region) => !enabled.includes(region));
+    return { status: missing.length ? 'open' : 'pass', result: `${enabled.length} of ${AWS_REGIONS.length} regions had an enabled detector${missing.length ? `; not enabled in ${regionList(missing)}` : ''}` };
+  });
+
+  awsCheck('aws-finding-alerts', `Every GuardDuty finding is emailed to ${CONTACTS.support}`, '/compliance/intrusion-detection', (value) => {
+    const alerting = AWS_REGIONS.filter((region) => {
+      const item = value.regions.find((entry) => entry.region === region);
+      return !!item && item.alerts.rule === 'enabled' && item.alerts.targets_topic && item.alerts.confirmed.includes(CONTACTS.support);
+    });
+    const missing = AWS_REGIONS.filter((region) => !alerting.includes(region));
+    return { status: missing.length ? 'open' : 'pass', result: `${alerting.length} of ${AWS_REGIONS.length} regions routed findings to a confirmed ${CONTACTS.support} subscription${missing.length ? `; missing in ${regionList(missing)}` : ''}` };
+  });
+
+  awsCheck('aws-flow-logs', 'Every VPC records all traffic in VPC Flow Logs', '/compliance/intrusion-detection', (value) => {
+    const vpcs = value.regions.reduce((sum, item) => sum + item.flow_logs.vpcs, 0);
+    const logged = value.regions.reduce((sum, item) => sum + item.flow_logs.logged, 0);
+    return { status: counted(logged, vpcs), result: `${logged} of ${vpcs} VPCs had an active flow log` };
+  });
+
+  awsCheck('aws-cloudtrail', 'CloudTrail is logging across regions to a versioned, Object Lock bucket', '/compliance/intrusion-detection', (value) => {
+    const healthy = value.trails.filter((trail) => trail.logging && trail.multi_region && !trail.delivery_error && trail.bucket_versioning && trail.bucket_object_lock).length;
+    return { status: value.trails.length && healthy === value.trails.length ? 'pass' : 'open', result: value.trails.length ? `${healthy} of ${counting(value.trails.length, 'trail', 'trails')} logging with no delivery error to a versioned, Object Lock bucket` : 'No trail was found' };
+  });
+
+  awsCheck('aws-snapshots-encrypted', 'No EBS or RDS snapshot is unencrypted', '/compliance/backups', (value) => {
+    const ebs = value.regions.reduce((sum, item) => sum + item.unencrypted_ebs_snapshots, 0);
+    const rds = value.regions.reduce((sum, item) => sum + item.unencrypted_rds_snapshots, 0);
+    return { status: ebs + rds === 0 ? 'pass' : 'open', result: ebs + rds === 0 ? `No unencrypted snapshot in ${value.regions.length} regions` : `${ebs} unencrypted EBS and ${rds} unencrypted RDS snapshots` };
+  });
+
+  awsCheck('aws-data-buckets', `Customer data buckets are versioned and expire old versions after ${DATA_BUCKET_NONCURRENT_DAYS} days`, '/compliance/backups', (value) => {
+    const ok = value.buckets.data.filter((bucket) => bucket.versioning === 'Enabled' && bucket.noncurrent_days === DATA_BUCKET_NONCURRENT_DAYS);
+    return { status: value.buckets.data.length && ok.length === value.buckets.data.length ? 'pass' : 'open', result: `${ok.length} of ${value.buckets.data.length} data buckets (${value.buckets.data.map((bucket) => bucket.name).join(', ') || 'none found'}) versioned with ${DATA_BUCKET_NONCURRENT_DAYS}-day expiry of noncurrent versions` };
+  });
+
+  awsCheck('aws-malware-protection', 'GuardDuty Malware Protection scans every customer upload bucket', '/compliance/anti-malware', (value) => {
+    const active = value.buckets.data.filter((bucket) => bucket.malware_protection === 'ACTIVE');
+    return { status: value.buckets.data.length && active.length === value.buckets.data.length ? 'pass' : 'open', result: `${active.length} of ${value.buckets.data.length} data buckets had an active protection plan` };
+  });
+
+  awsCheck('aws-https-only', 'Every S3 bucket refuses requests that are not HTTPS', '/compliance/encryption-in-transit', (value) => ({ status: counted(value.buckets.https_only, value.buckets.total), result: `${value.buckets.https_only} of ${value.buckets.total} buckets deny requests without TLS` }));
+
+  awsCheck('aws-console-mfa', 'Every AWS user who can sign in to the console has MFA', '/compliance/access-control', (value) => {
+    const consoleUsers = value.iam_users.filter((user) => user.console);
+    const mfa = consoleUsers.filter((user) => user.mfa).length;
+    return { status: counted(mfa, consoleUsers.length), result: `${mfa} of ${counting(consoleUsers.length, 'console user has', 'console users have')} MFA; ${value.iam_users.length - consoleUsers.length} programmatic users have no console password` };
+  });
+
+  awsCheck('aws-owners', 'Every IAM user, customer-managed role, and S3 bucket has a named owner', '/compliance/access-reviews', (value) => {
+    const owned = value.iam_users.filter((user) => user.owner_tagged).length + value.roles.owner_tagged + value.buckets.owner_tagged;
+    const total = value.iam_users.length + value.roles.total + value.buckets.total;
+    return { status: counted(owned, total), result: `${owned} of ${total} carry the VantaOwner tag` };
+  });
+
+  awsCheck('aws-security-groups', 'No AWS security group admits traffic from any address', '/compliance/network-segmentation', (value) => {
+    const open = value.regions.flatMap((item) => item.security_groups.filter((group) => group.open_to_internet).map((group) => `${item.region} ${group.group}`));
+    const running = value.regions.flatMap((item) => item.security_groups.filter((group) => group.open_to_internet && group.instances.running > 0)).length;
+    return { status: open.length ? 'open' : 'pass', result: open.length ? `${counting(open.length, 'group admits', 'groups admit')} any address (${open.join(', ')}), tracked as ${OPEN_SECURITY_GROUP_FINDING}; ${running ? `${running} with a running instance` : 'none is attached to a running instance'}` : 'No group admits any address' };
+  });
+
+  const hosts = snapshot?.tls ?? [];
+  if (!hosts.length) {
+    checks.push(check('tls-hosts', 'Infrastructure', 'Every public hostname is HTTPS-only, negotiates TLS 1.2 or later, and refuses TLS 1.1', '/compliance/encryption-in-transit', endpoint, 'unavailable', 'This release carries no TLS read'));
+    checks.push(check('tls-certificates', 'Infrastructure', `Every public certificate is valid for at least ${CERTIFICATE_MARGIN_DAYS} more days`, '/compliance/encryption-in-transit', endpoint, 'unavailable', 'This release carries no TLS read'));
+    return checks;
+  }
+  const secure = hosts.filter((host) => !host.error && host.http.endsWith('to HTTPS') && (host.protocol === 'TLSv1.3' || host.protocol === 'TLSv1.2') && host.tls_1_1 === 'refused');
+  const insecure = hosts.filter((host) => !secure.includes(host)).map((host) => host.host);
+  checks.push(check('tls-hosts', 'Infrastructure', 'Every public hostname is HTTPS-only, negotiates TLS 1.2 or later, and refuses TLS 1.1', '/compliance/encryption-in-transit', endpoint, insecure.length ? 'open' : 'pass', `${secure.length} of ${hosts.length} hostnames redirect HTTP to HTTPS, negotiate ${[...new Set(secure.map((host) => host.protocol))].join(' or ') || 'TLS'}, and refuse TLS 1.1${insecure.length ? `; check ${insecure.join(', ')}` : ''} ${read}`));
+
+  const reference = checkedAt ?? snapshot?.captured_at ?? null;
+  const margin = CERTIFICATE_MARGIN_DAYS * 24 * 60 * 60 * 1000;
+  const valid = hosts.filter((host) => host.valid_to && reference && new Date(host.valid_to).getTime() - new Date(reference).getTime() >= margin);
+  const soonest = hosts.map((host) => host.valid_to).filter((value): value is string => !!value).sort()[0] ?? null;
+  checks.push(
+    check(
+      'tls-certificates',
+      'Infrastructure',
+      `Every public certificate is valid for at least ${CERTIFICATE_MARGIN_DAYS} more days`,
+      '/compliance/encryption-in-transit',
+      endpoint,
+      counted(valid.length, hosts.length),
+      `${valid.length} of ${hosts.length} certificates valid ${CERTIFICATE_MARGIN_DAYS} days past ${checkedAt ? 'this check' : 'the read'}; the first expires ${soonest ? utcMoment(soonest) : 'at an unknown time'}. Cloudflare renews them automatically`
+    )
+  );
+  return checks;
 }
 
 export function buildComplianceReport(inputs: ReportInputs): ComplianceReportData {
@@ -194,6 +302,8 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
       scan ? `${scan.passed} of ${scan.total} checks passed on release ${scan.version ?? 'unknown'}${scan.commit ? ` (${scan.commit.slice(0, 7)})` : ''}` : 'No launch scan has been recorded for the serving release yet'
     )
   );
+
+  checks.push(...infrastructureChecks(inputs.infrastructure, inputs.checkedAt));
 
   return {
     summary: {
