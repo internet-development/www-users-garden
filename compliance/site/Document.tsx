@@ -6,8 +6,8 @@ import type { ComplianceSlug } from '@root/compliance/site/catalog';
 
 import { geistSerif } from '@root/compliance/site/fonts';
 import { Member, Section, Table } from '@root/compliance/site/Blocks';
-import { findCatalogEntry, relatedEntries } from '@root/compliance/site/catalog';
-import { API_HOST, COMPANY, CONTACTS, PUBLISHED } from '@root/compliance/site/facts';
+import { findCatalogEntry, relatedEntries, trustCenterCategoryUrl, trustCenterControlsFor } from '@root/compliance/site/catalog';
+import { API_HOST, COMPANY, CONTACTS, PUBLISHED, TRUST_CENTER } from '@root/compliance/site/facts';
 import { EVIDENCE_ENDPOINTS, isCompiledEvidence } from '@root/compliance/site/records';
 import { KIT_REGISTERS, KIT_RELEASE } from '@root/compliance/site/kit';
 
@@ -38,7 +38,10 @@ function Related(props: { slug: ComplianceSlug; extra: RelatedLink[] }) {
   const evidence = entry?.evidence ? EVIDENCE_ENDPOINTS[entry.evidence] : null;
   const label = entry?.evidence && isCompiledEvidence(entry.evidence) ? 'Record from the INTDEV API (JSON)' : 'Live record from the INTDEV API (JSON)';
   const records = evidence ? [{ label, href: `${API_HOST}${evidence}`, detail: `${API_HOST.replace('https://', '')}${evidence}` }] : [];
-  const links = [...pages, ...records, ...props.extra];
+  const monitored = trustCenterControlsFor(props.slug);
+  const first = monitored[0];
+  const trustCenter = first ? [{ label: `${TRUST_CENTER.name} (${TRUST_CENTER.operator})`, href: trustCenterCategoryUrl(first.category), detail: `Monitored continuously by ${TRUST_CENTER.operator}: ${monitored.map((control) => control.name).join('; ')}` }] : [];
+  const links = [...pages, ...records, ...trustCenter, ...props.extra];
   if (!links.length) return null;
   return (
     <Section title="Related">
@@ -64,6 +67,7 @@ export default function Document(props: DocumentProps) {
             <a href="/compliance">Compliance</a>
             <a href="/compliance/status">Status</a>
             <a href="/compliance/support">Support</a>
+            <a href={TRUST_CENTER.url}>Trust Center</a>
           </div>
         </nav>
         <header className={styles.heading}>
@@ -87,7 +91,7 @@ export default function Document(props: DocumentProps) {
           <div className={styles.footerCopy}>
             <p className={styles.footerParagraph}>Public compliance record</p>
             <p className={styles.footerParagraph}>
-              This page is published by {COMPANY.name} (&ldquo;INTDEV&rdquo;) for customers, partners, and auditors. It summarizes controls defined in INTDEV&rsquo;s information security policies, which are version controlled and maintained in Vanta. Where a page shows live data, it is read from the system named on the page at the time you load it. Policies are classified Restricted; this summary is classified Public.
+              This page is published by {COMPANY.name} (&ldquo;INTDEV&rdquo;) for customers, partners, and auditors. It summarizes controls defined in INTDEV&rsquo;s information security policies, which are version controlled and maintained in Vanta. Vanta monitors these controls continuously and publishes them on the <a href={TRUST_CENTER.url}>{TRUST_CENTER.name}</a>. Where a page shows live data, it is read from the system named on the page at the time you load it. Policies are classified Restricted; this summary is classified Public.
             </p>
             <p className={styles.footerParagraph}>
               Questions about this record: {CONTACTS.support}. Security reports: {CONTACTS.security}.

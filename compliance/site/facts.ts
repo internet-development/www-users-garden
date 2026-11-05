@@ -20,6 +20,18 @@ export const COMPLIANCE_HOSTS = ['https://internet.dev', 'https://users.garden']
 
 export const API_HOST = 'https://api.internet.dev';
 
+const TRUST_CENTER_URL = 'https://app.vanta.com/internet.dev/trust/xltqhb9ptbz0kvdqz27d';
+
+export const TRUST_CENTER = {
+  name: 'INTDEV Trust Center',
+  operator: 'Vanta',
+  url: TRUST_CENTER_URL,
+  controls: `${TRUST_CENTER_URL}/controls`,
+  resources: `${TRUST_CENTER_URL}/resources`,
+  readAt: 'November 5, 2026',
+  publicResources: ['Engagement Letter'],
+};
+
 export const PRODUCTS = [
   {
     name: 'INTDEV API',
@@ -49,15 +61,17 @@ export const PRODUCTS = [
 
 const AVATAR = 'https://pbs.twimg.com/profile_images';
 
+export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
+
 export const TEAM: Person[] = [
-  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer and Chief Information Security Officer (CISO); Director; Privacy Management Lead (Data Protection Officer); acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', joined: 'November 11, 2023', type: 'Founder', userId: 'b997a0b4-abb6-4d05-9d53-d12d4c69ab6d' },
-  { name: 'Andrew Alimbuyuguen', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1958569334726668288/GFE8mhKI_400x400.jpg`, href: 'https://x.com/aalimbuyuguen', joined: 'November 11, 2023', type: 'Co-founder, Partner', userId: '52f9fbc7-67c3-41df-8178-15671d3f92e7' },
-  { name: 'Elijah Seed Arita', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1890125319224598528/ZILr9OGp_400x400.jpg`, href: 'https://x.com/elijaharita', joined: 'March 6, 2024', type: 'Partner', userId: '82fdbce2-8e8a-4875-ab8c-6880387c4259' },
-  { name: 'Caidan Williams', title: 'Webmaster', role: 'Member of Technical Staff; Terminal Graph product lead', avatar: `${AVATAR}/1989080994687991809/CoUHUW0A_400x400.jpg`, href: 'https://x.com/caidanwilliams', joined: 'June 24, 2025', type: 'Partner', userId: '0f419e87-dbac-4fca-bb5d-42562c8a0825' },
-  { name: 'Hannah Suh', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2111650312314638336/qsx-UDAb_400x400.jpg`, href: 'https://x.com/hellohsuh', joined: 'June 24, 2025', type: 'Partner', userId: '9832d912-5afc-4f44-8a49-85028eefadb3' },
-  { name: 'Sol Ruck', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2090924616269414400/q7qc0FcP_400x400.jpg`, href: 'https://x.com/solruck', joined: null, type: 'Member of Technical Staff', userId: '28769d62-01a0-4e2b-8cf4-5c31e5e407f5' },
-  { name: 'Vani Agarwal', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1953144649725431808/fbHIGXnV_400x400.jpg`, href: 'https://x.com/vaniagrwall', joined: 'September 16, 2026', type: 'Employee', userId: 'f9548b4b-281d-4052-9d3c-f4a369bef6c2' },
-  { name: 'Rishav Kundu', title: 'Webmaster', role: 'Member of Technical Staff', avatar: 'https://osoi4zg5m42do5ig.public.blob.vercel-storage.com/rishav.avif', href: 'https://github.com/rishavkundu', joined: 'October 5, 2026', type: 'Employee', userId: '9eecc6aa-0e96-4388-abab-63b787142634' },
+  { name: 'Jimmy Lee', title: 'Staff Janitor', role: 'Chief Executive Officer and Chief Information Security Officer (CISO); Director; Privacy Management Lead (Data Protection Officer); acting CTO, COO, and Security & Compliance Manager', avatar: `${AVATAR}/2086911496098070528/eV9UzyBw_400x400.jpg`, href: 'https://x.com/wwwjim', linkedin: JIMMY_LEE_CV, joined: 'November 11, 2023', type: 'Founder', userId: 'b997a0b4-abb6-4d05-9d53-d12d4c69ab6d' },
+  { name: 'Andrew Alimbuyuguen', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1958569334726668288/GFE8mhKI_400x400.jpg`, href: 'https://x.com/aalimbuyuguen', linkedin: 'https://www.linkedin.com/in/andrew-alimbuyuguen-aa31a3a6/', joined: 'November 11, 2023', type: 'Co-founder, Partner', userId: '52f9fbc7-67c3-41df-8178-15671d3f92e7' },
+  { name: 'Elijah Seed Arita', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1890125319224598528/ZILr9OGp_400x400.jpg`, href: 'https://x.com/elijaharita', linkedin: 'https://www.linkedin.com/in/elijah-seed-arita-386a12251/', joined: 'March 6, 2024', type: 'Partner', userId: '82fdbce2-8e8a-4875-ab8c-6880387c4259' },
+  { name: 'Caidan Williams', title: 'Webmaster', role: 'Member of Technical Staff; Terminal Graph product lead', avatar: `${AVATAR}/1989080994687991809/CoUHUW0A_400x400.jpg`, href: 'https://x.com/caidanwilliams', linkedin: 'https://www.linkedin.com/in/caidan-williams/', joined: 'June 24, 2025', type: 'Partner', userId: '0f419e87-dbac-4fca-bb5d-42562c8a0825' },
+  { name: 'Hannah Suh', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2111650312314638336/qsx-UDAb_400x400.jpg`, href: 'https://x.com/hellohsuh', linkedin: 'https://www.linkedin.com/in/hhsuh/', joined: 'June 24, 2025', type: 'Partner', userId: '9832d912-5afc-4f44-8a49-85028eefadb3' },
+  { name: 'Sol Ruck', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/2090924616269414400/q7qc0FcP_400x400.jpg`, href: 'https://x.com/solruck', linkedin: 'https://www.linkedin.com/in/solruck/', joined: null, type: 'Member of Technical Staff', userId: '28769d62-01a0-4e2b-8cf4-5c31e5e407f5' },
+  { name: 'Vani Agarwal', title: 'Webmaster', role: 'Member of Technical Staff', avatar: `${AVATAR}/1953144649725431808/fbHIGXnV_400x400.jpg`, href: 'https://x.com/vaniagrwall', linkedin: 'https://www.linkedin.com/in/vaniagarwal-/', joined: 'September 16, 2026', type: 'Employee', userId: 'f9548b4b-281d-4052-9d3c-f4a369bef6c2' },
+  { name: 'Rishav Kundu', title: 'Webmaster', role: 'Member of Technical Staff', avatar: 'https://osoi4zg5m42do5ig.public.blob.vercel-storage.com/rishav.avif', href: 'https://github.com/rishavkundu', linkedin: 'https://www.linkedin.com/in/riskun/', joined: 'October 5, 2026', type: 'Employee', userId: '9eecc6aa-0e96-4388-abab-63b787142634' },
 ];
 
 export const FORMER_TEAM = [
@@ -74,8 +88,6 @@ export function teamMember(text: string): Person | null {
   if (exact) return exact;
   return TEAM.find((person) => text.startsWith(`${person.name},`) || text.startsWith(`${person.name} (`) || text.startsWith(`${person.name} `)) ?? null;
 }
-
-export const JIMMY_LEE_CV = 'https://www.linkedin.com/in/jimmyylee/';
 
 export const EXECUTIVE = 'Jimmy Lee';
 

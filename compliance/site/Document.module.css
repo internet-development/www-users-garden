@@ -90,7 +90,9 @@
 
 .navLinks {
   display: flex;
-  gap: var(--compliance-space-paragraph);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--compliance-space-list) var(--compliance-space-paragraph);
 }
 
 .heading > * + * {

@@ -36,6 +36,7 @@ export interface Person {
   role: string;
   avatar: string;
   href: string;
+  linkedin: string;
   joined: string | null;
   type: string;
   userId: string;

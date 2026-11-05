@@ -1,6 +1,6 @@
 import Document from '@root/compliance/site/Document';
 
-import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, TRUST_CENTER, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
@@ -28,7 +28,9 @@ export function DataDeletion() {
         <List
           ordered
           items={[
-            'Sign in at users.garden and open the account danger zone.',
+            <>
+              Sign in at <a href="https://users.garden">users.garden</a> and open the account danger zone.
+            </>,
             'Cancel any active subscription first. Users Garden won’t delete an account that still has a live subscription, so nothing keeps billing after the account is gone.',
             'Choose Delete my account and type DELETE-THIS-ACCOUNT-NOW to confirm.',
             'Users Garden calls the INTDEV API’s POST /api/users/delete with the user’s own API key. The API accepts the request only from the account owner or a platform admin.',
@@ -147,7 +149,9 @@ export function Documentation() {
         <List
           ordered
           items={[
-            'Sign in at users.garden with email and password, or with Google, Apple, or Bluesky. Password accounts verify their email first.',
+            <>
+              Sign in at <a href="https://users.garden">users.garden</a> with email and password, or with Google, Apple, or Bluesky. Password accounts verify their email first.
+            </>,
             'Copy your API key from the dashboard and send it as the x-api-key header to https://api.internet.dev/api.',
             'Every response includes _usage, which reports the token cost, your remaining balance, and your rate limit. The same values come back in X-Tokens-* and X-RateLimit-* headers.',
             'Regenerate your key whenever it may have been exposed. The old key stops working immediately.',
@@ -158,7 +162,17 @@ export function Documentation() {
       <Section title="API reference">
         <Group>
           <p>The complete, current contract for every route, including inputs, permission levels, rate-limit categories, token costs, and response shapes, is published for developers and agents at api.internet.dev/SKILL.md. Focused guides cover the marketplace, guest checkout, licenses, slides, and external vendors.</p>
-          <Links items={[{ label: 'api.internet.dev/SKILL.md', href: 'https://api.internet.dev/SKILL.md' }, { label: 'Pricing and rate limits (api.internet.dev/api/credits/pricing)', href: 'https://api.internet.dev/api/credits/pricing' }]} />
+          <Links
+            items={[
+              { label: 'api.internet.dev/SKILL.md', href: `${API_HOST}/SKILL.md` },
+              { label: 'Marketplace guide', href: `${API_HOST}/skills/marketplace/SKILL.md` },
+              { label: 'Guest checkout guide', href: `${API_HOST}/skills/marketplace-guest/SKILL.md` },
+              { label: 'Licenses guide', href: `${API_HOST}/skills/licenses/SKILL.md` },
+              { label: 'Slides guide', href: `${API_HOST}/skills/slides/SKILL.md` },
+              { label: 'External vendor guide', href: `${API_HOST}/skills/use-as-external-vendor/SKILL.md` },
+              { label: 'Pricing and rate limits (api.internet.dev/api/credits/pricing)', href: `${API_HOST}/api/credits/pricing` },
+            ]}
+          />
         </Group>
       </Section>
     </Document>
@@ -311,6 +325,7 @@ export function SecurityInformation() {
             { label: 'Vendor management', href: '/compliance/vendor-management' },
             { label: 'Roles and responsibilities', href: '/compliance/roles-and-responsibilities' },
             { label: 'Fleet disk encryption report', href: '/compliance/removable-media' },
+            { label: `${TRUST_CENTER.name}, where ${TRUST_CENTER.operator} publishes every control it monitors`, href: TRUST_CENTER.url },
             { label: 'All compliance records', href: '/compliance' },
           ]}
         />

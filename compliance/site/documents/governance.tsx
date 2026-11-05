@@ -4,7 +4,8 @@ import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 import type { SecurityRole } from '@root/compliance/site/types';
 
 import { Fields, Group, Links, List, Member, Members, People, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, COMPANY, CONTACTS, EVERY_MEMBER, EVERY_MEMBER_LABEL, EXECUTIVE, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_COUNT, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, VENDORS } from '@root/compliance/site/facts';
+import { AWS_REGIONS, COMPANY, CONTACTS, countWord, EVERY_MEMBER, EVERY_MEMBER_LABEL, EXECUTIVE, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_COUNT, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, TRUST_CENTER, VENDORS } from '@root/compliance/site/facts';
+import { findCatalogEntry, TRUST_CENTER_CATEGORIES, TRUST_CENTER_CONTROLS, trustCenterCategoryUrl } from '@root/compliance/site/catalog';
 
 const STAFF = TEAM.filter((person) => person.name !== EXECUTIVE);
 
@@ -56,7 +57,9 @@ export function SystemDescription() {
             'Security. Customer data is reachable only by the customer’s own API key, their organization’s members within their role, and authorized INTDEV administrators. Passwords are stored only as bcrypt hashes. All public traffic is HTTPS (TLS 1.3 at the Cloudflare edge).',
             'Availability. Production runs on managed infrastructure with recovery objectives of four hours (RTO) and one hour (RPO) for the INTDEV API and its authentication, as defined in the BC/DR plan.',
             'Confidentiality. Customer data is classified Confidential. It is never used in non-production environments, and it is deleted when the customer deletes their account or within 30 days after a contract ends.',
-            'Commitments are made to customers in the Terms of Service, the Privacy Policy, the Master Services Agreement, and the public API contract at api.internet.dev/SKILL.md.',
+            <>
+              Commitments are made to customers in the <a href="https://txt.dev/wwwjim/intdev-terms-of-service">Terms of Service</a>, the <a href="https://txt.dev/wwwjim/intdev-privacy-policy">Privacy Policy</a>, the <a href="/compliance/master-services-agreement">Master Services Agreement</a>, and the public API contract at <a href="https://api.internet.dev/SKILL.md">api.internet.dev/SKILL.md</a>.
+            </>,
             `System requirements come from INTDEV’s ${POLICY_COUNT} information security policies, regulatory obligations including CCPA, and contracts with customers and vendors.`,
           ]}
         />
@@ -93,6 +96,9 @@ export function SystemDescription() {
           <p>Risk assessment follows the Risk Management Policy, which is based on ISO 27005 and NIST SP 800-30. Risks are scored by likelihood and impact on a 1 to 5 scale, kept in the Vanta risk register, and reviewed at least once a year.</p>
           <p>Monitoring includes GuardDuty findings emailed to {CONTACTS.support} from {AWS_REGIONS.length} AWS regions, VPC Flow Logs kept for 365 days, Render deploy and service logs, an annual penetration test, and dependency vulnerability scans.</p>
           <p>Information and communication run through the public compliance pages, the status page, the changelog, {CONTACTS.support} for support, {CONTACTS.security} for security reports, and the published API contract.</p>
+          <p>
+            {TRUST_CENTER.operator} tests these controls continuously and publishes them on the <a href={TRUST_CENTER.url}>{TRUST_CENTER.name}</a>. The <a href="/compliance/trust-center">control map</a> links each of its controls to the page that documents it.
+          </p>
         </Group>
       </Section>
 
@@ -288,13 +294,14 @@ export function OrganizationChart() {
     >
       <Section title="Reporting lines">
         <Table
-          columns={['Level', 'Role', 'Person', 'Reports to']}
+          columns={['Level', 'Role', 'Person', 'Reports to', 'Profile']}
           rows={[
-            ['Governance', 'Board of Directors', <Member key="chair" name="Jimmy Lee (Chair)" />, 'Stockholders'],
-            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', DIRECTOR, 'Board of Directors'],
-            ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, <Member key="person" name={person.name} />, DIRECTOR]),
+            ['Governance', 'Board of Directors', <Member key="chair" name="Jimmy Lee (Chair)" />, 'Stockholders', CV_LINK],
+            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', DIRECTOR, 'Board of Directors', CV_LINK],
+            ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, <Member key="person" name={person.name} />, DIRECTOR, <a key="profile" href={person.linkedin}>LinkedIn</a>]),
           ]}
         />
+        <p>Each profile is the person’s public LinkedIn page, the same one the team page at <a href="https://internet.dev">internet.dev</a> links to.</p>
       </Section>
       <Section title="Structure">
         <List
@@ -439,6 +446,63 @@ export function BoardMeetings() {
         <p>The charter calls for at least one director independent of management. The current composition is listed in the charter, and any independent director is added there when seated.</p>
         <Links items={[{ label: 'Board of directors charter', href: '/compliance/board-charter' }, { label: 'Board oversight briefings', href: '/compliance/board-oversight' }]} />
       </Section>
+    </Document>
+  );
+}
+
+export function TrustCenter() {
+  const documented = TRUST_CENTER_CONTROLS.filter((control) => control.page).length;
+  const only = TRUST_CENTER_CONTROLS.length - documented;
+  return (
+    <Document
+      slug="trust-center"
+      title="Trust Center and control map"
+      updated={TRUST_CENTER.readAt}
+      summary={`INTDEV’s Trust Center is published by ${TRUST_CENTER.operator}, which monitors INTDEV’s security controls continuously. This page maps each control the Trust Center lists to the compliance page that documents it, and names the controls whose only public record is the Trust Center.`}
+      controls={[]}
+    >
+      <Section title="The Trust Center">
+        <Group>
+          <p>
+            The <a href={TRUST_CENTER.url}>{TRUST_CENTER.name}</a> is hosted by {TRUST_CENTER.operator}, the compliance platform that keeps INTDEV’s policies and risk register. {TRUST_CENTER.operator} reads the AWS account through the read-only vanta-auditor role and GitHub’s vulnerability alerts, tests INTDEV’s controls against them continuously, and publishes each control with its current status. It is public and needs no account.
+          </p>
+          <p>
+            On {TRUST_CENTER.readAt} it listed {TRUST_CENTER_CONTROLS.length} controls in {countWord(TRUST_CENTER_CATEGORIES.length)} categories, every one shown as passing, and one public resource: the {TRUST_CENTER.publicResources.join(', ')}. The Trust Center shows the status as of the moment you open it, so read it there rather than from this page.
+          </p>
+          <Links
+            items={[
+              { label: 'Trust Center overview', href: TRUST_CENTER.url },
+              { label: 'Trust Center controls', href: TRUST_CENTER.controls },
+              { label: 'Trust Center resources', href: TRUST_CENTER.resources },
+            ]}
+          />
+        </Group>
+      </Section>
+      <Section title="How it relates to these pages">
+        <Group>
+          <p>These pages are the evidence INTDEV publishes itself: policies, procedures, signed records, and live records read from production by the INTDEV API. The Trust Center is {TRUST_CENTER.operator}’s view of the same program. Each page whose control appears on the Trust Center links to it in its Related table.</p>
+          <p>
+            Of the {TRUST_CENTER_CONTROLS.length} Trust Center controls, {documented} are documented on a page here. For the other {only}, the Trust Center is the public record, and the policies behind them are available to customers and auditors under NDA from {CONTACTS.support}.
+          </p>
+        </Group>
+      </Section>
+      {TRUST_CENTER_CATEGORIES.map((category) => {
+        const controls = TRUST_CENTER_CONTROLS.filter((control) => control.category === category.id);
+        return (
+          <Section key={category.id} title={`${category.name} (${controls.length})`}>
+            <Table
+              columns={['Trust Center control', 'INTDEV record']}
+              rows={controls.map((control) => {
+                const page = findCatalogEntry(control.page);
+                return [
+                  <a key="control" href={trustCenterCategoryUrl(category.id)}>{control.name}</a>,
+                  page ? <a key="page" href={`/compliance/${page.slug}`}>{page.title}</a> : <a key="page" href={trustCenterCategoryUrl(category.id)}>Trust Center only</a>,
+                ];
+              })}
+            />
+          </Section>
+        );
+      })}
     </Document>
   );
 }

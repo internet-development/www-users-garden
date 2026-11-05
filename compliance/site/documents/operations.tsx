@@ -180,10 +180,16 @@ export function StatusPage() {
       <Section title="How we communicate changes and incidents">
         <List
           items={[
-            'Incidents that affect customers are posted here and on the changelog, and the CEO emails affected customers directly, as the BC/DR plan’s customer communication procedure requires.',
+            <>
+              Incidents that affect customers are posted here and on the <a href="/compliance/changelog">changelog</a>, and the CEO emails affected customers directly, as the BC/DR plan’s customer communication procedure requires.
+            </>,
             'Critical changes that may affect how customers process data, such as API contract changes, authentication changes, deprecations, or a planned maintenance window, are announced at least 14 days in advance by email from eng@internet.dev and on the changelog. Emergency security fixes may ship immediately and are announced after release.',
-            'Response shapes, permission levels, and rate-limit categories of the INTDEV API are published contracts in api.internet.dev/SKILL.md. Any change to them is documented there in the same release.',
-            'Terminal Graph release notes are published for every beta at terminalgraph.com/changelog.',
+            <>
+              Response shapes, permission levels, and rate-limit categories of the INTDEV API are published contracts in <a href="https://api.internet.dev/SKILL.md">api.internet.dev/SKILL.md</a>. Any change to them is documented there in the same release.
+            </>,
+            <>
+              Terminal Graph release notes are published for every beta at <a href="https://terminalgraph.com/changelog">terminalgraph.com/changelog</a>.
+            </>,
           ]}
         />
       </Section>
@@ -221,7 +227,7 @@ export function Changelog() {
       </Section>
       <Section title="What each INTDEV API version changed">
         <Group>
-          <p>Every INTDEV API version is built on a maintainer machine that records what it ships in the version ledger: each route with its method, rate-limit category, and token cost; declared and installed dependencies; the compliance registers; and the AWS, TLS, and Render configuration read for that build. Each entry lists what changed since the version before it, and every build, Render’s included, checks the committed entry against what it is building.</p>
+          <p>Every build of the INTDEV API records what its version ships in the version ledger: each route with its method, rate-limit category, and token cost; declared and installed dependencies; the compliance registers; and the AWS, TLS, and Render configuration compiled into the release. Each entry lists what changed since the version before it. The production build records the entry for the release it serves, and the ledger committed with each version keeps the history of earlier versions.</p>
           <VersionHistory limit={8} />
         </Group>
       </Section>

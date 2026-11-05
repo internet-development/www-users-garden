@@ -1,5 +1,7 @@
 import type { EVIDENCE_ENDPOINTS } from '@root/compliance/site/records';
 
+import { TRUST_CENTER } from '@root/compliance/site/facts';
+
 export interface CatalogEntry {
   slug: string;
   title: string;
@@ -59,11 +61,112 @@ export const COMPLIANCE_CATALOG = [
   { slug: 'infrastructure-maintenance', title: 'Service infrastructure maintenance', description: 'Patching responsibilities, the INTDEV API software inventory with the versions in production, and a sample of remediated vulnerabilities.', controls: [42], related: ['remediated-vulnerabilities', 'vulnerability-scans', 'ci-cd', 'penetration-testing', 'system-description'], evidence: 'vulnerabilities' },
   { slug: 'remediated-vulnerabilities', title: 'Sample of remediated vulnerabilities', description: 'Proof of the most recent periodic scan, its high-severity findings, and the remediation evidence or approved risk treatment plan for each.', controls: [42, 43], related: ['vulnerability-scans', 'penetration-testing', 'infrastructure-maintenance', 'ci-cd'], evidence: 'vulnerabilities' },
   { slug: 'vulnerability-scans', title: 'Vulnerability scanning and remediation', description: 'The Q4 2026 scan and the vulnerability register.', controls: [42, 43], related: ['remediated-vulnerabilities', 'penetration-testing', 'infrastructure-maintenance', 'firewall-review'], evidence: 'vulnerabilities' },
+  { slug: 'trust-center', title: 'Trust Center and control map', description: 'INTDEV’s Trust Center, where Vanta publishes the controls it monitors continuously, and a map of each of its controls to the compliance page that documents it, or to the Trust Center where no page does.', controls: [], related: ['security', 'system-description', 'access-control', 'status', 'support'], evidence: 'pages' },
 ] as const satisfies readonly CatalogEntry[];
 
 export type ComplianceSlug = (typeof COMPLIANCE_CATALOG)[number]['slug'];
 
 const ENTRIES: readonly CatalogEntry[] = COMPLIANCE_CATALOG;
+
+export const TRUST_CENTER_CATEGORIES = [
+  { id: 'infrastructure-security', name: 'Infrastructure security' },
+  { id: 'organizational-security', name: 'Organizational security' },
+  { id: 'product-security', name: 'Product security' },
+  { id: 'internal-security-procedures', name: 'Internal security procedures' },
+  { id: 'data-and-privacy', name: 'Data and privacy' },
+] as const;
+
+export type TrustCenterCategory = (typeof TRUST_CENTER_CATEGORIES)[number]['id'];
+
+export interface TrustCenterControl {
+  name: string;
+  category: TrustCenterCategory;
+  page: ComplianceSlug | null;
+}
+
+export const TRUST_CENTER_CONTROLS: readonly TrustCenterControl[] = [
+  { name: 'Production application access restricted', category: 'infrastructure-security', page: 'access-control' },
+  { name: 'Access control procedures established', category: 'infrastructure-security', page: 'access-control' },
+  { name: 'Production database access restricted', category: 'infrastructure-security', page: null },
+  { name: 'Unique production database authentication enforced', category: 'infrastructure-security', page: null },
+  { name: 'Encryption key access restricted', category: 'infrastructure-security', page: null },
+  { name: 'Firewall access restricted', category: 'infrastructure-security', page: null },
+  { name: 'Production OS access restricted', category: 'infrastructure-security', page: null },
+  { name: 'Production network access restricted', category: 'infrastructure-security', page: null },
+  { name: 'Access revoked upon termination', category: 'infrastructure-security', page: 'access-termination' },
+  { name: 'Unique network system authentication enforced', category: 'infrastructure-security', page: null },
+  { name: 'Network segmentation implemented', category: 'infrastructure-security', page: 'network-segmentation' },
+  { name: 'Intrusion detection system utilized', category: 'infrastructure-security', page: 'intrusion-detection' },
+  { name: 'Log management utilized', category: 'infrastructure-security', page: 'intrusion-detection' },
+  { name: 'Network firewalls reviewed', category: 'infrastructure-security', page: 'firewall-review' },
+  { name: 'Network firewalls utilized', category: 'infrastructure-security', page: 'network-segmentation' },
+  { name: 'Remote access MFA enforced', category: 'infrastructure-security', page: 'access-control' },
+  { name: 'Remote access encrypted enforced', category: 'infrastructure-security', page: null },
+  { name: 'Service infrastructure maintained', category: 'infrastructure-security', page: 'infrastructure-maintenance' },
+  { name: 'Network and system hardening standards maintained', category: 'infrastructure-security', page: null },
+  { name: 'Infrastructure performance monitored', category: 'infrastructure-security', page: 'status' },
+  { name: 'Unique account authentication enforced', category: 'infrastructure-security', page: 'access-control' },
+  { name: 'MDM system utilized', category: 'organizational-security', page: 'mobile-device-management-system' },
+  { name: 'Visitor procedures enforced', category: 'organizational-security', page: null },
+  { name: 'Asset disposal procedures utilized', category: 'organizational-security', page: null },
+  { name: 'Anti-malware technology utilized', category: 'organizational-security', page: 'anti-malware' },
+  { name: 'Employee background checks performed', category: 'organizational-security', page: 'background-checks' },
+  { name: 'Code of Conduct acknowledged by employees and enforced', category: 'organizational-security', page: 'contractor-code-of-conduct' },
+  { name: 'Confidentiality Agreement acknowledged by employees', category: 'organizational-security', page: 'employee-confidentiality' },
+  { name: 'Performance evaluations conducted', category: 'organizational-security', page: 'performance-evaluations' },
+  { name: 'Password policy enforced', category: 'organizational-security', page: null },
+  { name: 'Production inventory maintained', category: 'organizational-security', page: 'infrastructure-maintenance' },
+  { name: 'Security awareness training implemented', category: 'organizational-security', page: 'security-awareness-training' },
+  { name: 'Control self-assessments conducted', category: 'product-security', page: null },
+  { name: 'Data encryption utilized', category: 'product-security', page: 'service-description' },
+  { name: 'Data transmission encrypted', category: 'product-security', page: 'encryption-in-transit' },
+  { name: 'Vulnerability and system monitoring procedures established', category: 'product-security', page: 'vulnerability-scans' },
+  { name: 'Data center access reviewed', category: 'internal-security-procedures', page: null },
+  { name: 'Access reviews conducted', category: 'internal-security-procedures', page: 'access-reviews' },
+  { name: 'Access requests required', category: 'internal-security-procedures', page: 'access-requests' },
+  { name: 'Board oversight briefings conducted', category: 'internal-security-procedures', page: 'board-oversight' },
+  { name: 'Board charter documented', category: 'internal-security-procedures', page: 'board-charter' },
+  { name: 'Board expertise developed', category: 'internal-security-procedures', page: 'board-expertise' },
+  { name: 'Board meetings conducted', category: 'internal-security-procedures', page: 'board-meetings' },
+  { name: 'Change management procedures enforced', category: 'internal-security-procedures', page: 'ci-cd' },
+  { name: 'Production deployment access restricted', category: 'internal-security-procedures', page: 'ci-cd' },
+  { name: 'Company commitments externally communicated', category: 'internal-security-procedures', page: 'security' },
+  { name: 'Configuration management system established', category: 'internal-security-procedures', page: null },
+  { name: 'Continuity and Disaster Recovery plans established', category: 'internal-security-procedures', page: null },
+  { name: 'Continuity and Disaster Recovery plans tested', category: 'internal-security-procedures', page: 'tabletop-exercise' },
+  { name: 'Backup processes established', category: 'internal-security-procedures', page: 'backups' },
+  { name: 'Development lifecycle established', category: 'internal-security-procedures', page: null },
+  { name: 'System changes externally communicated', category: 'internal-security-procedures', page: 'status' },
+  { name: 'External support resources available', category: 'internal-security-procedures', page: 'support' },
+  { name: 'Incident response plan tested', category: 'internal-security-procedures', page: 'incident-response-test' },
+  { name: 'Incident response policies established', category: 'internal-security-procedures', page: 'incident-response-test' },
+  { name: 'Management roles and responsibilities defined', category: 'internal-security-procedures', page: 'roles-and-responsibilities' },
+  { name: 'Organization structure documented', category: 'internal-security-procedures', page: 'organization-chart' },
+  { name: 'Incident management procedures followed', category: 'internal-security-procedures', page: 'incident-report' },
+  { name: 'Risk assessment objectives specified', category: 'internal-security-procedures', page: null },
+  { name: 'Risks assessments performed', category: 'internal-security-procedures', page: null },
+  { name: 'Risk management program established', category: 'internal-security-procedures', page: null },
+  { name: 'Roles and responsibilities specified', category: 'internal-security-procedures', page: 'roles-and-responsibilities' },
+  { name: 'Security policies established and reviewed', category: 'internal-security-procedures', page: 'system-description' },
+  { name: 'Service description communicated', category: 'internal-security-procedures', page: 'service-description' },
+  { name: 'System changes communicated', category: 'internal-security-procedures', page: 'internal-change-communication' },
+  { name: 'SOC 2 - System Description', category: 'internal-security-procedures', page: 'system-description' },
+  { name: 'Third-party agreements established', category: 'internal-security-procedures', page: 'third-party-agreements' },
+  { name: 'Vendor management program established', category: 'internal-security-procedures', page: 'vendor-management' },
+  { name: 'Vulnerabilities scanned and remediated', category: 'internal-security-procedures', page: 'vulnerability-scans' },
+  { name: 'Whistleblower policy established', category: 'internal-security-procedures', page: 'whistleblower' },
+  { name: 'Customer data deleted upon leaving', category: 'data-and-privacy', page: 'data-deletion' },
+  { name: 'Data classification policy established', category: 'data-and-privacy', page: null },
+  { name: 'Data retention procedures established', category: 'data-and-privacy', page: 'data-deletion' },
+];
+
+export function trustCenterCategoryUrl(category: TrustCenterCategory): string {
+  return `${TRUST_CENTER.controls}#${category}`;
+}
+
+export function trustCenterControlsFor(slug: string): TrustCenterControl[] {
+  return TRUST_CENTER_CONTROLS.filter((control) => control.page === slug);
+}
 
 export function findCatalogEntry(slug: string | undefined | null): CatalogEntry | null {
   return ENTRIES.find((entry) => entry.slug === slug) ?? null;

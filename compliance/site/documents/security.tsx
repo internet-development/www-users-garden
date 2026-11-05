@@ -103,8 +103,12 @@ function ApplicationEncryption() {
   );
 }
 
+function advisory(id: string) {
+  return id.startsWith('GHSA-') ? <a key="id" href={`https://github.com/advisories/${id}`}>{id}</a> : id;
+}
+
 function Register() {
-  return <Table columns={['ID', 'Component', 'Severity', 'Status', 'Action']} rows={VULNERABILITIES.map((item) => [item.id, item.component, item.severity, item.status, item.action])} />;
+  return <Table columns={['ID', 'Component', 'Severity', 'Status', 'Action']} rows={VULNERABILITIES.map((item) => [advisory(item.id), item.component, item.severity, item.status, item.action])} />;
 }
 
 export function RemovableMedia() {
@@ -728,6 +732,7 @@ export function InfrastructureMaintenance() {
             ['Host operating systems, container runtime, and PostgreSQL engine', 'Render (managed platform)', 'Continuous platform maintenance; minor PostgreSQL updates applied by Render'],
             ['Node.js runtime and frameworks (Next.js, React)', 'INTDEV', 'Framework upgrades shipped as tagged releases through CI/CD. Render selects the Node.js version from the service’s NODE_VERSION setting when one is set, and otherwise from the engines range in package.json, which resolves to the newest Node.js release that satisfies it.'],
             ['Application dependencies', 'INTDEV', 'Dependency audit every quarter and whenever an advisory is published, fixed within SLA. No lockfile is committed, so every Render build installs a fresh resolution of package.json, the same resolution the dependency scan audits. A package pinned to an exact version changes only when package.json does.'],
+            ['Vulnerability alerts', 'GitHub and Vanta', 'GitHub Dependabot vulnerability alerts are on for INTDEV’s repositories. Vanta reads them and tests that critical, high, medium, and low findings are addressed within their SLAs; all four tests passed on November 5, 2026.'],
             ['Edge TLS and certificates', 'Cloudflare', 'Automatic certificate issuance and renewal'],
           ]}
         />

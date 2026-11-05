@@ -35,6 +35,27 @@ export function isCompiledEvidence(key: EvidenceKey): boolean {
   return COMPILED_EVIDENCE.includes(key);
 }
 
+export const EVIDENCE_RECORDS: readonly { key: Exclude<EvidenceKey, 'index'>; name: string; page: string }[] = [
+  { key: 'report', name: 'Compliance report: every automated check, with its live result', page: '/compliance' },
+  { key: 'accessRequests', name: 'Access requests and approvals, and the system account register', page: '/compliance/access-requests' },
+  { key: 'terminations', name: 'Termination checklists, with live access checks', page: '/compliance/access-termination' },
+  { key: 'training', name: 'Security awareness and business continuity training completions', page: '/compliance/security-awareness-training' },
+  { key: 'vulnerabilities', name: 'Vulnerability scan, findings, remediation, risk treatment plans, and the software inventory', page: '/compliance/remediated-vulnerabilities' },
+  { key: 'dataDeletions', name: 'Customer data deletion record', page: '/compliance/data-deletion' },
+  { key: 'releases', name: 'Release scans: the build and launch checks of every production release', page: '/compliance/changelog' },
+  { key: 'versions', name: 'Version history: what each INTDEV API version ships and what changed since the one before it', page: '/compliance/changelog' },
+  { key: 'devices', name: 'Fleet disk encryption and removable media report: every team member’s laptops', page: '/compliance/removable-media' },
+  { key: 'encryption', name: 'Encryption standard: FileVault per Mac, removable media, and the API’s separate application-layer AES', page: '/compliance/removable-media' },
+  { key: 'infrastructure', name: 'Infrastructure controls: GuardDuty, alerting, flow logs, CloudTrail, S3, IAM, and security groups in AWS, and TLS on every public hostname, read when this release was built', page: '/compliance/intrusion-detection' },
+  { key: 'network', name: 'Network configuration exports: Render and AWS security groups, with their open findings', page: '/compliance/network-segmentation' },
+  { key: 'team', name: 'Team, former team, and the security and privacy roles with their job descriptions', page: '/compliance/organization-chart' },
+  { key: 'policies', name: 'Information security policies, their approval, products, and public terms', page: '/compliance/system-description' },
+  { key: 'vendors', name: 'Vendor inventory, annual review, and agreements', page: '/compliance/vendor-management' },
+  { key: 'penetrationTest', name: 'Penetration test report PT-2025-001', page: '/compliance/penetration-test-report' },
+  { key: 'bugBounty', name: 'Bug bounty program: scope and terms', page: '/compliance/bug-bounty' },
+  { key: 'pages', name: 'Compliance pages: every page with its controls, URLs on both sites, and its record', page: '/compliance' },
+];
+
 export const DEVICE_CHECK_IN = '/api/compliance/devices/check-in';
 
 export const DEVICE_CHECK_SCRIPT = 'https://api.internet.dev/compliance/device-check.sh';

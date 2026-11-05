@@ -65,6 +65,7 @@ const COMPONENTS: Record<ComplianceSlug, () => React.ReactElement> = {
   'infrastructure-maintenance': Security.InfrastructureMaintenance,
   'remediated-vulnerabilities': Security.RemediatedVulnerabilities,
   'vulnerability-scans': Security.VulnerabilityScans,
+  'trust-center': Governance.TrustCenter,
 };
 
 export const COMPLIANCE_DOCUMENTS: ComplianceDocument[] = COMPLIANCE_CATALOG.map((entry) => ({ ...entry, Component: COMPONENTS[entry.slug] }));

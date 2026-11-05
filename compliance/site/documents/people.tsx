@@ -42,6 +42,12 @@ export function Whistleblower() {
       <Section title="What to report">
         <List items={['Fraud, theft, or misuse of company or customer funds', 'Violations of the Code of Conduct, including harassment and discrimination', 'Suspected violations of law or regulation, including privacy and data protection', 'Misuse of customer data, or a cover-up of a security incident', 'Retaliation against anyone who reported a concern']} />
       </Section>
+      <Section title="Policy">
+        <Group>
+          <p>INTDEV’s Whistleblower Policy is the Whistleblower Anonymous Fraud Reporting section of the Information Security Policy: it asks employees and others to raise serious concerns internally, makes reporting violations of the code of ethics or of law everyone’s responsibility, prohibits retaliation, and names direct outreach to the CEO as the channel for anonymous reports. The Code of Conduct’s Reporting Violations section points to the same policy and channel. Both policies are Restricted and available to auditors under NDA.</p>
+          <Links items={[{ label: 'Code of Conduct for contractors', href: '/compliance/contractor-code-of-conduct' }, { label: 'Board of directors charter (ethical management survey)', href: '/compliance/board-charter' }]} />
+        </Group>
+      </Section>
       <Section title="Our commitments">
         <List
           items={[
