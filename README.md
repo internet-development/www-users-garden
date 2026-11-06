@@ -31,7 +31,7 @@ Next.js 16 does not provide `next lint`; this repository has no configured linte
 
 `next.config.js` disables automatic framework edits to the repository’s `AGENTS.md`.
 
-The YAML files directly under `.github/` are inactive workflow templates; GitHub Actions only runs workflows under `.github/workflows/`.
+The YAML files directly under `.github/` are inactive workflow templates; GitHub Actions only runs workflows under `.github/workflows/`. CodeQL code scanning, Copilot code review, and Dependabot alerts are GitHub repository settings, not files here, and they act only on pull requests; changes pushed straight to `main` bypass them.
 
 ## Environment Variables
 

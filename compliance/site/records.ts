@@ -1,6 +1,6 @@
 import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, SystemAccount, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
 
-import { FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
+import { FORMER_TEAM, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
 import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
 
 export const RECORDED_AT = '2026-11-04T03:05:23.589Z';
@@ -66,6 +66,30 @@ export const REMOVABLE_MEDIA_CONTROL = {
   enforced_by: 'conduct',
   requirement: 'Team members do not write company or customer data to removable media. INTDEV’s rules of conduct prohibit it: the Information Security Policy’s acceptable use rules and the Data Management Policy forbid storing confidential information on USB drives or other removable media, and the Cryptography Policy allows it only with a documented exception approved by the CEO.',
   status: 'Enforced by conduct, not by device configuration. Each team member uses their own judgement to make sure company data never reaches removable media, and acknowledges the rule in security awareness training. INTDEV does not require device management to block writes to removable media. The device check reports any unencrypted writable removable volume mounted on a laptop, and the compliance report opens an item when it finds one.',
+};
+
+const LAPTOP_LOCATIONS: Record<string, string> = {
+  'Jimmy Lee': 'Seattle, WA',
+  'Andrew Alimbuyuguen': 'Seattle, WA',
+  'Elijah Seed Arita': 'Seattle, WA',
+  'Caidan Williams': 'Seattle, WA',
+  'Hannah Suh': 'Seattle, WA',
+  'Sol Ruck': 'Seattle, WA',
+  'Vani Agarwal': 'Seattle, WA',
+  'Rishav Kundu': 'Seattle, WA',
+};
+
+export function laptopLocation(person: string): string | null {
+  return LAPTOP_LOCATIONS[person] ?? null;
+}
+
+export const DEVICE_INVENTORY = {
+  recorded_at: '2026-11-06',
+  classification: 'Confidential',
+  classification_basis: 'The Data Management Policy classifies each system by the highest classification of data it stores or processes. A laptop used for INTDEV work holds source code and can hold client and customer data, all Confidential, so every work laptop is Confidential.',
+  location: 'The city where the team member keeps and uses their work laptops, recorded by the CEO. Every work laptop was in Seattle, WA on November 6, 2026. A new laptop or a move is recorded in the register in the same change.',
+  recovery: 'Recorded in the equipment step of each termination record: company equipment is collected, or company data is confirmed deleted from a personal device.',
+  disposal: 'A laptop is securely erased before it is re-provisioned. One that cannot be erased is destroyed by a service that issues a certificate of destruction, kept for one year (Data Management Policy, Appendix A).',
 };
 
 export const ENCRYPTION_RECORDED_AT = '2026-11-04';
@@ -200,7 +224,7 @@ export function levelName(level: number | null): string {
 
 const SYSTEM_ACCOUNT_RECORDS = [
   { account: 'treasury', user_id: '7da03287-2f60-4903-ad68-b9f8f27b2103', level: 100, purpose: 'Platform credit treasury. The credit system requires this account at level 100 for double-entry bookkeeping.' },
-  { account: 'blogs', user_id: '78a22648-0922-4abc-8d00-93b7271b21e0', level: 100, purpose: 'Shared account of the eng@internet.dev engineering mailbox, which also receives the GuardDuty alerts. Used for INTDEV engineering posts.' },
+  { account: 'blogs', user_id: '78a22648-0922-4abc-8d00-93b7271b21e0', level: 100, purpose: 'Account registered to the eng@internet.dev address, which delivers to the engineering team and also receives the GuardDuty alerts; the address is a mailing alias, not a login. Used for INTDEV engineering posts. Only Jimmy Lee signs in to it, and its password is not shared (owner confirmation, November 6, 2026).' },
   { account: 'caladbolg (no username; named for its internet.dev mailbox)', user_id: '83a2ea7a-9773-4e47-a44a-2e40ef54c66e', level: 100, purpose: 'Systems account for INTDEV experiments.' },
   { account: 'intdev_vendors', user_id: 'f3835b7f-28cb-4632-8b98-efe6c1b39279', level: 100, purpose: 'Service account for vendor credit distribution. POST /api/credits/vendor-distribution-to-email accepts only a platform admin with this username, so lowering it would turn that route off.' },
   { account: 'southparkcommons', user_id: 'b7dbed26-e735-4bc7-aef6-79c96743336f', level: 30, purpose: 'Example account that shows a venture capital firm what its posts could look like. Lowered from platform admin to level 30 on November 4, 2026, so it holds no administrative rights.' },
@@ -436,19 +460,22 @@ export function isTerminatedAccount(user: { id?: string | null } | null | undefi
 }
 
 export const TRAINING_COURSES: TrainingCourse[] = [
-  { id: 'security-awareness-2026', title: 'Security awareness training', version: 'November 4, 2026', covers: 'Credentials and secrets, phishing, data handling, devices (FileVault, screen lock, updates), secure development, and incident reporting' },
-  { id: 'business-continuity-2026', title: 'Business continuity and disaster recovery training', version: 'BC/DR Plan v1.0 and the November 4, 2026 tabletop exercise', covers: 'Roles in a disaster, the restore procedure, RTO and RPO targets, customer communication, and the tabletop action items' },
+  { id: 'security-awareness-2026', title: 'Security awareness training', version: 'November 4, 2026', covers: 'Credentials and secrets, phishing, data handling, devices (FileVault, screen lock, updates), secure development, and incident reporting', due: null },
+  { id: 'business-continuity-2026', title: 'Business continuity and disaster recovery training', version: 'BC/DR Plan v1.0 and the November 4, 2026 tabletop exercise', covers: 'Roles in a disaster, the restore procedure, RTO and RPO targets, customer communication, and the tabletop action items', due: null },
+  { id: 'security-awareness-2026-update', title: 'Security awareness update training', version: 'Version 2, November 6, 2026', covers: 'Log-in monitoring, the risks of downloading malicious software, privacy law (the CCPA and the GDPR), contract obligations and the Microsoft engagement rules, and AI systems', due: '2026-11-12' },
 ];
+
+const SIGNED_NOVEMBER_4 = ['security-awareness-2026', 'business-continuity-2026'];
 
 export const TRAINING_COMPLETIONS: TrainingCompletion[] = TEAM.map((person) => ({
   person: person.name,
   role: person.role,
   avatar: person.avatar,
   user_id: person.userId,
-  courses: TRAINING_COURSES.map((course) => course.id),
+  courses: SIGNED_NOVEMBER_4,
   signed_at: CONFIRMED_AT,
-  method: 'Signed acknowledgement of both courses',
-  confirmation: { by: APPROVER, at: CONFIRMED_AT, detail: 'Confirmed this team member signed both courses' },
+  method: 'Signed acknowledgement of the security awareness and business continuity courses',
+  confirmation: { by: APPROVER, at: CONFIRMED_AT, detail: 'Confirmed this team member signed the security awareness and business continuity courses' },
 }));
 
 export const VULNERABILITY_SCAN = {
@@ -464,7 +491,9 @@ export const VULNERABILITY_SCAN = {
   ],
 };
 
-export const OPEN_SECURITY_GROUP_FINDING = 'INTDEV-2026-NET-02';
+const SECURITY_GROUP_FINDING = 'INTDEV-2026-NET-02';
+
+export const OPEN_SECURITY_GROUP_FINDING: string | null = VULNERABILITIES.some((finding) => finding.id === SECURITY_GROUP_FINDING && finding.state === 'open') ? SECURITY_GROUP_FINDING : null;
 
 const RECORD_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -484,7 +513,7 @@ export const SECURITY_GROUP_EXPORT = (INFRASTRUCTURE_SNAPSHOT?.aws?.regions ?? [
   region.security_groups.map((group) => ({
     region: region.region,
     group: group.group,
-    inbound: `${group.inbound.join('; ') || 'None'}${group.open_to_internet ? ` (${OPEN_SECURITY_GROUP_FINDING})` : ''}`,
+    inbound: `${group.inbound.join('; ') || 'None'}${group.open_to_internet && OPEN_SECURITY_GROUP_FINDING ? ` (${OPEN_SECURITY_GROUP_FINDING})` : ''}`,
     outbound: group.outbound.every((rule) => rule === 'All traffic to any IPv4 address') && group.outbound.length ? 'All' : group.outbound.join('; ') || 'None',
     attached: instancesText(group.instances.running, group.instances.stopped) || (group.attached ? `${group.attached} network ${group.attached === 1 ? 'interface' : 'interfaces'}` : 'Nothing (no network interfaces)'),
     open_to_internet: group.open_to_internet,

@@ -3,7 +3,7 @@ import Document from '@root/compliance/site/Document';
 import type { Person } from '@root/compliance/site/types';
 
 import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, EXECUTIVE, TEAM } from '@root/compliance/site/facts';
-import { EVIDENCE_ENDPOINTS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { EVIDENCE_ENDPOINTS, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 import { TrainingRoster } from '@root/compliance/site/Evidence';
 
@@ -219,18 +219,78 @@ const TRAINING_MODULES: [string, string[]][] = [
   ['7. Reporting incidents', [`Email ${CONTACTS.security} with what you saw, when, and where. Act as a good witness and preserve the evidence.`, 'Do not discuss a possible breach outside the response team. The CEO and counsel decide on any notice.']],
 ];
 
+const UPDATE_COURSE = TRAINING_COURSES.find((course) => course.id === 'security-awareness-2026-update');
+
+const UPDATE_MODULES: [string, string[]][] = [
+  [
+    '8. Log-in monitoring',
+    [
+      'Read every new sign-in alert from Google, GitHub, Render, AWS, Stripe, and Slack. Each one names the device and place of the sign-in.',
+      'Once a month, and whenever an alert surprises you, review the signed-in devices and sessions of your Google account and your GitHub security log, and sign out any you do not recognize.',
+      `A sign-in you did not make is a security incident. Report it to ${CONTACTS.security} at once, sign out every session, change the password, and check that your MFA methods are still yours.`,
+      'Repeated MFA prompts you did not ask for mean someone has your password. Never approve one; report it.',
+    ],
+  ],
+  [
+    '9. Downloading malicious software',
+    [
+      'Install software only from the Mac App Store, from identified developers that Gatekeeper accepts, or from the publisher’s own site. Never turn off Gatekeeper or XProtect, and never approve an app macOS warns you about without checking it first.',
+      'Open unexpected attachments in a preview, not on your Mac, and never enable macros or run an installer that arrived by email or chat.',
+      'Treat code as software you download: check a new npm package’s name, publisher, and install scripts before adding it, because typosquatted and hijacked packages are a common route in. Never run a script piped from the internet unless you have read it.',
+      'Install only the browser extensions your work needs. An extension can read every page you open, including Microsoft’s systems.',
+      `A known or suspected malware infection is a security incident. Disconnect from the network and report it to ${CONTACTS.security}.`,
+    ],
+  ],
+  [
+    '10. Privacy law',
+    [
+      'The CCPA gives California residents the right to know, delete, and correct the personal information a business holds about them, and to opt out of its sale or sharing. INTDEV never sells or shares personal information.',
+      'The GDPR, and its United Kingdom equivalent, protect people in the European Union and the United Kingdom: collect only the personal data a purpose needs, keep it only as long as that purpose lasts, and honor access, correction, and deletion requests.',
+      `Send every privacy or deletion request to ${CONTACTS.support}. It is acknowledged within five business days and completed within 30 days, and a security incident that affects personal data is reported to the CEO at once, because customers must hear from INTDEV within 72 hours of confirming it.`,
+      'Personal data includes a client’s staff names, emails, and photos in designs and research. It is Confidential and handled like any other client data.',
+    ],
+  ],
+  [
+    '11. Contract obligations',
+    [
+      'Each client agreement says what INTDEV may do with the client’s data. Use it only to perform that engagement, never sell it, and never use it for anything else.',
+      'Share client data outside INTDEV only under a contract and with the client’s written permission, and only with the vendors listed in the vendor inventory.',
+      'For Microsoft, follow the Microsoft engagement rules on the client data protection page: Microsoft data stays in Microsoft’s systems, arrives only through them over TLS, and enters no AI system without Microsoft’s written permission.',
+      'Confidentiality survives the end of an engagement and of your work with INTDEV. When an engagement ends, delete every copy you hold and confirm it in writing under the engagement closeout.',
+    ],
+  ],
+  [
+    '12. AI systems',
+    [
+      'Never enter client or customer Confidential data, personal data, or any secret into an AI system, coding assistants included, unless the client has permitted it in writing. Microsoft data enters only an AI system Microsoft provides and manages, reached through access Microsoft issues.',
+      'Anyone who will process Microsoft data in an AI system first completes AI training for their role. Microsoft’s AI Literacy Resources (aka.ms/EUAIAct-AILiteracy) may be used for it.',
+      'You are accountable for what an AI system produces. Review generated code in a pull request like any other change, and check generated facts before they reach a client.',
+      'AI output can repeat what it was given. Do not paste one client’s material into a tool where another client’s work could see it.',
+    ],
+  ],
+];
+
 export function SecurityAwarenessTraining() {
   return (
     <Document
       slug="security-awareness-training"
       title="Security awareness training"
-      summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Every employee and every contractor with privileged access completes both within 30 days of hire and every year after, as the Human Resource Security Policy requires."
+      summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Every employee and every contractor with privileged access completes each course within 30 days of hire and every year after, as the Human Resource Security Policy requires."
       controls={['Security awareness training implemented']}
+      updated="November 6, 2026"
     >
       <Section title="Completion record">
         <TrainingRoster />
       </Section>
       {TRAINING_MODULES.map(([title, points]) => (
+        <Section key={title} title={title}>
+          <List items={points} />
+        </Section>
+      ))}
+      <Section title="Security awareness update">
+        <p>{`Modules 8 to 12 are the ${UPDATE_COURSE?.title.toLowerCase() ?? 'security awareness update'} (${UPDATE_COURSE?.version ?? 'version 2'}). They add the topics Microsoft’s Supplier Data Protection Requirements name for annual training. The CEO approves the course as its owner, and every team member signs it by ${UPDATE_COURSE?.due ? formatRecordDay(UPDATE_COURSE.due) : 'the date the CEO sets'}. A signature is recorded only when the CEO confirms it.`}</p>
+      </Section>
+      {UPDATE_MODULES.map(([title, points]) => (
         <Section key={title} title={title}>
           <List items={points} />
         </Section>
@@ -263,7 +323,8 @@ export function SecurityAwarenessTraining() {
             ['When', 'Within 30 days of hire, then every year'],
             ['Courses', TRAINING_COURSES.map((course) => `${course.title} (version: ${course.version})`).join('; ')],
             ['Evidence', <a key="evidence" href={`${API_HOST}${EVIDENCE_ENDPOINTS.training}`}>{`${API_HOST.replace('https://', '')}${EVIDENCE_ENDPOINTS.training}`}</a>],
-            ['How it is recorded', 'Each person signs an acknowledgement of both courses. The record is published by the INTDEV API with each person’s user_id and live account level, so it can be checked against the production system.'],
+            ['How it is recorded', 'Each person signs an acknowledgement of each course, and the CEO confirms the signature before it is recorded. The record is published by the INTDEV API with each person’s user_id and live account level, so it can be checked against the production system.'],
+            ['Sanctions', 'A team member or contractor who violates INTDEV’s security or privacy policies goes through the progressive disciplinary process of the Human Resource Security Policy, up to and including termination of employment or contract, and can lose system and network privileges immediately.'],
           ]}
         />
       </Section>

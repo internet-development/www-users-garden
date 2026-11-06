@@ -13,9 +13,13 @@ import TextArea from '@system/TextArea';
 import { P } from '@system/typography';
 import { DEVICE_CHECK_FRESH_DAYS } from '@root/compliance/site/records';
 
-import type { DeviceMember } from '@root/compliance/site/types';
+import type { DeviceAntiMalware, DeviceMember } from '@root/compliance/site/types';
 
 const CHIP_LABELS = { apple_silicon: 'Apple silicon', t2: 'Intel with T2', intel: 'Intel' };
+
+const BEFORE_CHECK_3 = 'reported before device check 3; rerun the check';
+
+const NOT_IN_REPORT = 'Not in this report, which is from before device check 3; rerun the check';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -23,6 +27,35 @@ function formatDate(value: string): string {
 
 function dueDate(checkedAt: string, freshDays: number): string {
   return new Date(new Date(checkedAt).getTime() + freshDays * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { dateStyle: 'medium' });
+}
+
+function sentence(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function automatic(on: boolean): string {
+  return on ? 'Installed automatically' : 'Not installed automatically';
+}
+
+function xprotectLabel(version: string | null, installedAt: string | null): string {
+  if (!version) return 'Definitions not found';
+  return installedAt ? `Version ${version}, installed ${formatDate(installedAt)}` : `Version ${version}`;
+}
+
+function antiMalwareText(active: boolean | null, malware: DeviceAntiMalware | undefined): string {
+  if (active === null || !malware) return BEFORE_CHECK_3;
+  if (active) return `active (Gatekeeper on, XProtect ${malware.xprotect.version}, security responses installed automatically)`;
+  const failing = [
+    malware.gatekeeper.on ? null : 'Gatekeeper is off',
+    malware.xprotect.version ? null : 'XProtect definitions were not found',
+    malware.automatic_updates.xprotect ? null : 'security responses are not installed automatically',
+  ].filter(Boolean);
+  return failing.length ? `not active (${failing.join(', ')})` : 'not active';
+}
+
+function firewallText(on: boolean | null): string {
+  if (on === null) return BEFORE_CHECK_3;
+  return on ? 'on' : 'off';
 }
 
 function Rows(props: { rows: [string, React.ReactNode][] }) {
@@ -91,11 +124,11 @@ export default function UserGardenDeviceCheck(props) {
   return (
     <StandardLayout>
       <StandardHeader title="Device check">
-        Report a Mac’s disk encryption and removable media to the INTDEV API. Anyone signed in can run the check. INTDEV team members report every Mac they use for INTDEV work at least every {freshDays} days and whenever they set up a new one, and the fleet record on the compliance pages is built only from their reports.
+        Report a Mac’s disk encryption, removable media, anti-malware, and firewall to the INTDEV API. Anyone signed in can run the check. INTDEV team members report every Mac they use for INTDEV work at least every {freshDays} days and whenever they set up a new one, and the fleet record on the compliance pages is built only from their reports.
       </StandardHeader>
 
       <StandardLayoutSection title="1. Run the check on your Mac">
-        <P style={{ marginTop: 6 }}>Open Terminal on the laptop you are reporting and run this command. It reads FileVault, the data volume, the chip, MDM enrollment, and any mounted external drives from macOS, then copies the report to your clipboard. It changes nothing, needs no administrator password, and never asks for your API key.</P>
+        <P style={{ marginTop: 6 }}>Open Terminal on the laptop you are reporting and run this command. It reads FileVault, the data volume, the chip, MDM enrollment, and any mounted external drives from macOS, along with Gatekeeper, the installed XProtect definitions, whether security responses and security updates install automatically, and the application firewall, then copies the report to your clipboard. It changes nothing, needs no administrator password, and never asks for your API key.</P>
         <pre className={styles.command}>{DeviceCheck.DEVICE_CHECK_COMMAND}</pre>
         <div className={styles.actions}>
           <Button onClick={onCopyCommand}>{copied ? 'Copied' : 'Copy command'}</Button>
@@ -126,6 +159,15 @@ export default function UserGardenDeviceCheck(props) {
               ['Data volume', device.data_volume.encrypted && device.data_volume.filevault ? 'Encrypted with FileVault' : 'Not reported as encrypted'],
               ['External drives', `${device.removable_media.mounted} mounted, ${device.removable_media.unencrypted_writable} unencrypted and writable`],
               ['MDM enrolled', device.mdm_enrolled ? 'Yes' : 'No'],
+              ...((device.anti_malware
+                ? [
+                    ['Gatekeeper', device.anti_malware.gatekeeper_status || 'Not reported'],
+                    ['XProtect', xprotectLabel(device.anti_malware.xprotect_version || null, device.anti_malware.xprotect_installed_at || null)],
+                    ['Security responses', automatic(device.anti_malware.xprotect_updates)],
+                    ['Security updates', automatic(device.anti_malware.security_updates)],
+                    ['Firewall', device.firewall_status || 'Not reported'],
+                  ]
+                : [['Anti-malware', NOT_IN_REPORT]]) as [string, string][]),
               ['Reference', device.device_ref],
               ...(device.generated_at ? [['Checked on this Mac', formatDate(device.generated_at)] as [string, string]] : []),
             ]}
@@ -143,7 +185,7 @@ export default function UserGardenDeviceCheck(props) {
         ) : null}
         {result && result.success ? (
           <div className={styles.status} role="status">
-            Recorded {formatDate(result.data.checked_at)}. {result.data.assessment.disk_encrypted ? `Disk encrypted: ${result.data.assessment.cipher}.` : 'This laptop does not pass: FileVault must be on and finished encrypting.'} {result.data.assessment.removable_media_clear ? 'No unencrypted writable external drive is mounted.' : 'An unencrypted writable external drive is mounted; eject it or encrypt it.'} {isTeamMember ? (
+            Recorded {formatDate(result.data.checked_at)}. {result.data.assessment.disk_encrypted ? `Disk encrypted: ${result.data.assessment.cipher}.` : 'This laptop does not pass: FileVault must be on and finished encrypting.'} {result.data.assessment.removable_media_clear ? 'No unencrypted writable external drive is mounted.' : 'An unencrypted writable external drive is mounted; eject it or encrypt it.'} Anti-malware: {antiMalwareText(result.data.assessment.anti_malware_active, result.data.device.anti_malware)}. Firewall: {firewallText(result.data.assessment.firewall_on)}. {isTeamMember ? (
               <>
                 Next check due by {dueDate(result.data.checked_at, freshDays)}.{' '}
                 <a href={DeviceCheck.DEVICE_CHECK_RECORD_URL} target="_blank">
@@ -167,6 +209,8 @@ export default function UserGardenDeviceCheck(props) {
                   ['Laptop', `${each.model} (${CHIP_LABELS[each.chip] ?? each.chip}), macOS ${each.os_version}`],
                   ['Encrypted', each.assessment.disk_encrypted ? `Yes, ${each.assessment.cipher}` : 'No'],
                   ['External drives', each.assessment.removable_media_clear ? 'None unencrypted and writable' : 'An unencrypted writable drive was mounted'],
+                  ['Anti-malware', sentence(antiMalwareText(each.assessment.anti_malware_active, each.anti_malware))],
+                  ['Firewall', sentence(firewallText(each.assessment.firewall_on))],
                   ['Last check', `${formatDate(each.checked_at)}${each.current ? '' : ', out of date'}`],
                   ['Next due', each.current ? dueDate(each.checked_at, freshDays) : 'Now'],
                   ['Reference', each.device_ref],

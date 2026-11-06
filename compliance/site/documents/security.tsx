@@ -1,10 +1,10 @@
 import Document from '@root/compliance/site/Document';
 import fileVaultEncryption from '@root/compliance/site/images/filevault-encryption.png';
 
-import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, VULNERABILITIES } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, SEVERITY_ASSESSMENT, SEVERITY_DEFINITIONS, SOFTWARE_RETIREMENT, VULNERABILITIES } from '@root/compliance/site/facts';
 import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, NETWORK_EXPORTED_AT, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Figure, Group, Links, List, Mail, Member, Section, Table } from '@root/compliance/site/Blocks';
-import { DeviceEncryptionReport, DeviceManagementRecord, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
+import { DeviceAntiMalwareReport, DeviceEncryptionReport, DeviceManagementRecord, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
@@ -50,7 +50,7 @@ function DeviceCheckProcess() {
         <>
           Each team member runs the INTDEV device check, <a href={DEVICE_CHECK_SCRIPT}>{DEVICE_CHECK_SCRIPT.replace('https://', '')}</a>, on every Mac they use for INTDEV work: at onboarding, whenever they set up a new laptop, and at least every {DEVICE_CHECK_FRESH_DAYS} days. It needs no administrator rights and changes nothing on the Mac.
         </>,
-        'It reads the configuration from macOS itself: fdesetup status for FileVault, diskutil for the data volume’s encryption, the chip (Apple silicon, T2, or Intel), the MDM enrollment status, and every mounted external volume with whether it is encrypted and writable. Disk images are not removable media and are skipped.',
+        'It reads the configuration from macOS itself: fdesetup status for FileVault, diskutil for the data volume’s encryption, the chip (Apple silicon, T2, or Intel), the MDM enrollment status, every mounted external volume with whether it is encrypted and writable, and the anti-malware state: Gatekeeper, the installed XProtect definitions, the automatic security update settings, and the application firewall. Disk images are not removable media and are skipped.',
         `The raw values reach ${DEVICE_CHECK_IN} under the team member’s own account: either the script posts them with their API key, or it copies the report and they send it from Device check on users.garden while signed in. Any signed-in account can report its own laptops, so a new team member can report before joining, but this report lists only current team members. The API refuses a laptop that another current team member has already reported, so one Mac cannot stand in for several people. The API decides compliance from the raw values, so a Mac that is still encrypting, or whose data volume does not report encryption, does not pass.`,
         'The script seals each report with a SHA-256 hash of every value it read and the time it ran. The API recomputes the seal and refuses a report that was edited after the check made it, one more than a day old, one from an older version of the check, and one whose Mac model contradicts its chip. The seal shows a report was not changed by hand on its way to the API; it is not a signature, and the script that computes it is public.',
         'Every laptop row on this record names the team member it is reported under. A team member with more than one current laptop has one named row for each.',
@@ -195,10 +195,16 @@ export function AntiMalware() {
             ['Customer uploads in Amazon S3', 'GuardDuty Malware Protection for S3. The protection plans are ACTIVE on the intdev-global and txtdev buckets, and they scan new objects and tag the result.', 'Managed by AWS, continuous', 'Findings flow through EventBridge to the intdev-guardduty-alerts SNS topic, which emails eng@internet.dev'],
             ['AWS account workloads', `GuardDuty threat detection in ${AWS_REGIONS.join(', ')}`, 'Managed by AWS, continuous', 'Same EventBridge, SNS, and email path; findings kept in GuardDuty'],
             ['Company email', 'Google Workspace (Gmail) built-in malware and phishing scanning of attachments and links', 'Managed by Google, continuous', 'Google Workspace security reports'],
-            ['Company laptops (macOS)', 'XProtect and Gatekeeper built into macOS, with the macOS application firewall on', 'Automatic XProtect definition updates; automatic security updates turned on', 'macOS unified log; detections reported as security incidents'],
-            ['Production application hosts', 'Render-managed platform. INTDEV runs no self-managed servers in production.', 'Managed by Render', 'Render platform security'],
+            ['Company laptops (macOS)', 'XProtect and Gatekeeper built into macOS, and the macOS application firewall. Each laptop reports their state through the device check, below.', 'XProtect definitions arrive with Apple’s automatic security responses, as Apple directs; each laptop reports that setting and its installed definitions', 'macOS unified log; detections reported as security incidents'],
+            ['Production application hosts', 'Render-managed platform. INTDEV runs no self-managed servers in production, and production holds no client data from engagements such as Microsoft’s.', 'Managed by Render', 'Render platform security'],
           ]}
         />
+      </Section>
+      <Section title="Company laptops">
+        <Group>
+          <p>{`Every laptop used for INTDEV work reports its anti-malware state with the device check, at least every ${DEVICE_CHECK_FRESH_DAYS} days: whether Gatekeeper is assessing apps (spctl), the installed XProtect definitions and when they arrived (xprotect), whether macOS installs Apple’s security responses and security updates automatically, and the application firewall. A laptop passes when Gatekeeper is on, XProtect definitions are installed, and automatic security responses are on. This table is read live from that record.`}</p>
+          <DeviceAntiMalwareReport />
+        </Group>
       </Section>
       <Section title="Read with this release">
         <InfrastructureChecks ids={['aws-malware-protection', 'aws-guardduty']} />
@@ -493,7 +499,7 @@ export function MobileDeviceManagement() {
             'Every device used for INTDEV work must be enrolled in central device management, which enforces the settings above and reports each device’s compliance before the device can reach company systems.',
             'Enrollment of every current device is due by December 4, 2026, tracked as an access review follow-up. When it is done, this page will name the management platform and the enrolled device count.',
             <>
-              Until then, every laptop reports its disk encryption, removable media, and enrollment status to the INTDEV API through the device check, and the fleet report above is generated from those check-ins. Each team member also confirms the other settings when they acknowledge the security awareness training. The <a href="/compliance/mobile-device-management-system">mobile device management system</a> page describes that system and its live management status.
+              Until then, every laptop reports its disk encryption, removable media, anti-malware, firewall, and enrollment status to the INTDEV API through the device check, and the fleet report above is generated from those check-ins. Each team member also confirms the other settings when they acknowledge the security awareness training. The <a href="/compliance/mobile-device-management-system">mobile device management system</a> page describes that system and its live management status.
             </>,
             'The fleet report publishes each laptop’s owner, model, macOS version, encryption, and last check-in. Serial numbers are kept in the device register, which is Confidential and available to auditors on request.',
           ]}
@@ -509,7 +515,7 @@ export function MobileDeviceManagementSystem() {
     <Document
       slug="mobile-device-management-system"
       title="Mobile device management system"
-      updated="November 5, 2026"
+      updated="November 6, 2026"
       summary={`INTDEV centrally manages every laptop that supports the service through its own device management system, built into the INTDEV API. Each laptop is enrolled under its team member’s account, reports its security configuration to one central register at least every ${DEVICE_CHECK_FRESH_DAYS} days, and is judged by the API against INTDEV’s required configuration. The live status of the whole fleet is below.`}
       controls={['MDM system utilized']}
     >
@@ -538,7 +544,7 @@ export function MobileDeviceManagementSystem() {
           columns={['Stage', 'What happens', 'Record']}
           rows={[
             ['Enroll', 'At onboarding, and whenever a team member sets up a new laptop, they run the device check, which sends the laptop’s configuration under their own account. The API refuses a laptop already enrolled under another current team member, so one Mac cannot count for several people.', 'The laptop’s first check-in in the central register'],
-            ['Monitor', `The laptop reports again at least every ${DEVICE_CHECK_FRESH_DAYS} days. The API checks each report’s seal, tool version, age, and model against its chip, then decides compliance itself from the raw macOS values: FileVault on and the data volume encrypted, the cipher Apple documents for the chip, and no unencrypted writable removable volume mounted.`, 'The fleet record and the tables above'],
+            ['Monitor', `The laptop reports again at least every ${DEVICE_CHECK_FRESH_DAYS} days. The API checks each report’s seal, tool version, age, and model against its chip, then decides compliance itself from the raw macOS values: FileVault on and the data volume encrypted, the cipher Apple documents for the chip, no unencrypted writable removable volume mounted, and, from device check 3, anti-malware active.`, 'The fleet record and the tables above'],
             ['Respond', `A laptop that fails, or a team member with no check-in in the last ${DEVICE_CHECK_FRESH_DAYS} days, shows as open on this page and opens the device checks in the compliance report until a passing check-in arrives. The team member corrects the laptop and runs the check again.`, 'The compliance report’s device checks'],
             ['Remove', 'When a person leaves, the termination record removes them from the team register and their laptops drop out of the fleet record. The Information Security Policy requires them to return every company-owned device and delete all company information and accounts from personal devices.', <a key="termination" href="/compliance/access-termination">Access revoked upon termination</a>],
           ]}
@@ -551,7 +557,9 @@ export function MobileDeviceManagementSystem() {
             ['Disk encryption', 'FileVault on every laptop (Data Management Policy; Cryptography Policy)', 'Read and judged on every check-in'],
             ['Removable media', 'No confidential data on removable media without an approved exception', `Unencrypted writable volumes are reported on every check-in. ${REMOVABLE_MEDIA_CONTROL.status}`],
             ['Hardware and macOS', 'Recorded for every laptop', 'Model, chip, and macOS version are read on every check-in and published'],
-            ['Screen lock, firewall, anti-malware, and updates', 'Required by the Information Security Policy and the Data Management Policy', 'Acknowledged by each team member in security awareness training; not yet read by the device check'],
+            ['Anti-malware', 'XProtect and Gatekeeper on, with definitions installed automatically (Information Security Policy; Operations Security Policy)', 'Read and judged on every check-in from device check 3: Gatekeeper on, XProtect definitions installed, and automatic security responses on'],
+            ['Application firewall and security updates', 'Firewall on and automatic security updates on (Information Security Policy; Operations Security Policy)', 'Read on every check-in from device check 3 and published beside anti-malware; not part of the pass or fail decision'],
+            ['Screen lock', 'Locks after 5 minutes on devices with confidential data, 10 minutes at most on any device (Data Management Policy; Information Security Policy)', 'Acknowledged by each team member in security awareness training; not read by the device check'],
           ]}
         />
         <p>
@@ -658,7 +666,7 @@ export function NetworkSegmentation() {
             ['Production services', 'Render web services for the INTDEV API, Users Garden, Terminal Graph, and internet.dev', 'Each service is an isolated container with its own environment secrets. Only the HTTP port is exposed. Pull request previews are off, so no unreviewed copy of a service runs.'],
             ['Production data', 'Render PostgreSQL (INTDEV DATA) in Oregon', 'Separate managed instance. Every connection needs TLS and the database credential, which only the API environment and administrators hold.'],
             ['Object storage', 'S3 buckets for uploads, private attachments, and public assets in us-west-2', 'Separate buckets and prefixes. Private objects are reached only through short-lived presigned URLs. All buckets encrypt at rest (SSE AES-256).'],
-            ['AWS account', 'Monitoring and stopped legacy resources', 'No production workload. One default VPC per region, each with flow logs and GuardDuty.'],
+            ['AWS account', 'Monitoring only', 'No production workload and no EC2 instances. One default VPC per region, each with flow logs and GuardDuty.'],
             ['Development', 'Engineers’ machines and local databases', 'Policy forbids customer data here. Integration tests use embedded PostgreSQL with synthetic accounts only.'],
           ]}
         />
@@ -680,8 +688,7 @@ export function NetworkSegmentation() {
         <List
           items={[
             'INTDEV-2026-NET-01: restrict the database allow list to the Render private network and named maintainer addresses (due January 3, 2027).',
-            'INTDEV-2026-NET-02: remove the legacy us-west-2 security groups, or restrict them to named sources, before any legacy instance is started again (due January 3, 2027).',
-            'Review S3 Block Public Access at the account level, keeping exceptions only for the buckets that serve public assets. Tracked with INTDEV-2026-NET-02.',
+            'Review S3 Block Public Access at the account level, keeping exceptions only for the buckets that serve public assets (due January 3, 2027). Tracked with INTDEV-2026-NET-02 until that finding was remediated on November 5, 2026.',
           ]}
         />
         <Links items={[{ label: 'Network firewall review', href: '/compliance/firewall-review' }, { label: 'Service description and network diagram', href: '/compliance/service-description' }]} />
@@ -706,7 +713,7 @@ export function FirewallReview() {
             ['Cloudflare edge', 'HTTPS only, HTTP redirects, TLS 1.3, legacy TLS refused', 'Add HSTS (INTDEV-2026-HSTS)'],
             ['Render web services', 'Only the service’s HTTP port is exposed, behind Cloudflare', 'None'],
             ['Render PostgreSQL allow list', 'TLS and a credential required; allow list broader than needed', 'INTDEV-2026-NET-01'],
-            ['AWS security groups (us-west-2)', 'Legacy groups on stopped instances have rules broader than needed', 'INTDEV-2026-NET-02'],
+            ['AWS security groups (us-west-2)', 'Legacy groups on stopped instances had rules broader than needed', 'INTDEV-2026-NET-02, remediated November 5, 2026'],
           ]}
         />
       </Section>
@@ -731,11 +738,15 @@ export function InfrastructureMaintenance() {
           rows={[
             ['Host operating systems, container runtime, and PostgreSQL engine', 'Render (managed platform)', 'Continuous platform maintenance; minor PostgreSQL updates applied by Render'],
             ['Node.js runtime and frameworks (Next.js, React)', 'INTDEV', 'Framework upgrades shipped as tagged releases through CI/CD. Render selects the Node.js version from the service’s NODE_VERSION setting when one is set, and otherwise from the engines range in package.json, which resolves to the newest Node.js release that satisfies it.'],
-            ['Application dependencies', 'INTDEV', 'Dependency audit every quarter and whenever an advisory is published, fixed within SLA. No lockfile is committed, so every Render build installs a fresh resolution of package.json, the same resolution the dependency scan audits. A package pinned to an exact version changes only when package.json does.'],
-            ['Vulnerability alerts', 'GitHub and Vanta', 'GitHub Dependabot vulnerability alerts are on for INTDEV’s repositories. Vanta reads them and tests that critical, high, medium, and low findings are addressed within their SLAs; all four tests passed on November 5, 2026.'],
+            ['Application dependencies', 'INTDEV', 'Dependency audit every month and whenever an advisory is published, fixed within SLA. No lockfile is committed, so every Render build installs a fresh resolution of package.json, the same resolution the dependency scan audits. A package pinned to an exact version changes only when package.json does.'],
+            ['Vulnerability alerts', 'GitHub and Vanta', 'GitHub Dependabot vulnerability alerts are on for every one of INTDEV’s own repositories. Vanta reads them and tests that critical, high, medium, and low findings are addressed within their SLAs; all four tests passed on November 5, 2026. The INTDEV API repository had no Dependabot alert, open or closed, when read through the GitHub API on November 6, 2026.'],
+            ['Application code', 'INTDEV, with GitHub', 'GitHub CodeQL code scanning analyzes every pull request in INTDEV’s own repositories, and GitHub Copilot code review reviews it beside the teammate who approves it, as the owner confirmed on November 6, 2026. Its findings take the same severity deadlines as every other finding. In the INTDEV API repository a ruleset blocks a merge that leaves a high or critical CodeQL alert; CodeQL’s first analysis there, on November 6, 2026, found eight, recorded as INTDEV-2026-CODE-01 and INTDEV-2026-CODE-02.'],
             ['Edge TLS and certificates', 'Cloudflare', 'Automatic certificate issuance and renewal'],
           ]}
         />
+      </Section>
+      <Section title="Retiring unsupported software">
+        <List items={SOFTWARE_RETIREMENT} />
       </Section>
       <Section title="INTDEV API software inventory">
         <Group>
@@ -763,7 +774,7 @@ export function VulnerabilityScans() {
     <Document
       slug="vulnerability-scans"
       title="Vulnerability scanning and remediation"
-      summary="INTDEV scans its external-facing systems at least once a quarter, and tracks every critical and high vulnerability to remediation."
+      summary="INTDEV scans its external-facing systems, dependencies, and cloud configuration every month, defines each severity in writing, and tracks every critical and high vulnerability to remediation."
       controls={['Vulnerabilities scanned and remediated', 'Service infrastructure maintained']}
     >
       <Section title="Q4 2026 scan">
@@ -772,8 +783,14 @@ export function VulnerabilityScans() {
       <Section title="Vulnerability register">
         <Register />
       </Section>
+      <Section title="Severity definitions">
+        <Group>
+          <Table columns={['Severity', 'CVSS base score', 'Definition', 'Deadline']} rows={SEVERITY_DEFINITIONS.map((level) => [level.severity, level.cvss, level.definition, level.deadline])} />
+          <p>{SEVERITY_ASSESSMENT}</p>
+        </Group>
+      </Section>
       <Section title="SLAs and schedule">
-        <List items={['Critical and high: 30 days. Medium: 60 days. Low: 90 days. Informational: as needed.', 'A finding that can’t meet its SLA needs a risk treatment plan and a new date.', 'Scans run every quarter (Q1 2027 by March 31) and after every major change.']} />
+        <List items={['Critical and high: 30 days. Medium: 60 days. Low: 90 days. Informational: as needed.', 'A finding that can’t meet its SLA needs a risk treatment plan and a new date.', 'Scans run every month and after every major change. The scan of November 4, 2026 was the first under this schedule, so the next is due by December 4, 2026. Each scan is added to this record, which becomes the 12-month history of monthly scans.', 'Between scans, GitHub watches every change to INTDEV’s own repositories: CodeQL code scanning analyzes every pull request, GitHub Copilot code review reviews it, and Dependabot alerts when a dependency has a published advisory. These settings cover INTDEV’s own repositories only; a client’s repositories follow the client’s own setup.']} />
       </Section>
     </Document>
   );

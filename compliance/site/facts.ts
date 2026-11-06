@@ -97,7 +97,7 @@ export const EVERY_MEMBER_LABEL = 'Every Member of Technical Staff';
 
 export const EVERY_MEMBER = `${EVERY_MEMBER_LABEL}: ${TECHNICAL_STAFF.join(', ')}`;
 
-const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty'];
 
 export function countWord(count: number): string {
   return NUMBER_WORDS[count] ?? String(count);
@@ -123,6 +123,25 @@ export const POLICIES: PolicyDocument[] = [
 
 export const POLICY_COUNT = countWord(POLICIES.length);
 
+export const NETWORK_ADMINISTRATORS = [EXECUTIVE];
+
+export const SEVERITY_DEFINITIONS = [
+  { severity: 'Critical', cvss: '9.0 to 10.0', definition: 'Exploitable remotely with no credentials or user interaction, giving code execution, an authentication bypass, or access to confidential or customer data.', deadline: '30 days. Ships as an emergency patch at once when the flaw is exploited in the wild or a public exploit exists.' },
+  { severity: 'High', cvss: '7.0 to 8.9', definition: 'Gives privilege escalation, access to another user’s data with valid credentials, or a denial of service of a production system.', deadline: '30 days' },
+  { severity: 'Medium', cvss: '4.0 to 6.9', definition: 'Exploitable only under unusual conditions, with local access or significant user interaction, or with limited exposure. Software its vendor no longer supports is at least Medium.', deadline: '60 days' },
+  { severity: 'Low', cvss: '0.1 to 3.9', definition: 'A hardening gap or defense-in-depth measure with minimal direct impact, such as a missing security header.', deadline: '90 days' },
+  { severity: 'Informational', cvss: '0.0', definition: 'No direct security impact; a best practice to consider.', deadline: 'As needed' },
+];
+
+export const SEVERITY_ASSESSMENT = 'A finding starts at its CVSS base score (version 3.1 or 4.0), from the advisory or the scanner. INTDEV may raise or lower it for real-world impact: whether the vulnerable code is reachable in INTDEV’s use, whether it is exploited in the wild, and what data the affected system holds. The reason for any change is recorded with the finding in the vulnerability register, and the deadline follows the assessed severity.';
+
+export const SOFTWARE_RETIREMENT = [
+  'INTDEV runs only software its authoring company or project still supports with security fixes: operating systems, runtimes such as Node.js, frameworks, packages, and the macOS version on every laptop used for INTDEV work.',
+  'Software is retired before its published end-of-life date. When support ends without notice, such as a package that is deprecated or archived, INTDEV records it in the vulnerability register at Medium severity or higher and replaces or removes it within that deadline.',
+  'Software that cannot be retired in time stays only under a risk treatment plan with compensating controls and management sign-off, like any other finding that cannot meet its deadline.',
+  'Retirement is checked with every monthly scan against the software inventory, the Node.js release schedule, and the macOS versions the device check reports.',
+];
+
 export const SECURITY_ROLES: SecurityRole[] = [
   {
     title: 'Chief Information Security Officer (CISO)',
@@ -137,7 +156,7 @@ export const SECURITY_ROLES: SecurityRole[] = [
       'Sets the security architecture and control requirements for the INTDEV API, Users Garden, Terminal Graph, AWS, Render, and Cloudflare, and monitors them through GuardDuty alerts, VPC Flow Logs, release scans, the device check, and Vanta.',
       'Approves privileged access, runs the quarterly access review, and closes every termination checklist.',
       'Serves as Incident Manager under the Incident Response Plan, makes breach determinations with counsel, and approves customer and regulator notices.',
-      'Owns vulnerability management (SLAs, quarterly scans, and the annual penetration test) and the security review of critical vendors.',
+      'Owns vulnerability management (SLAs, monthly scans, and the annual penetration test) and the security review of critical vendors.',
       'Runs security awareness training and keeps its completion records, and is the contact for auditors, law enforcement, and counsel.',
     ],
     qualifications: [
@@ -178,13 +197,31 @@ export const SECURITY_ROLES: SecurityRole[] = [
       'Deploys only through GitHub pull requests and Render CI/CD, and never changes production by hand outside an approved change.',
       'Keeps environment secrets only in Render and in git-ignored local files, and rotates any secret that may have been exposed.',
       `Monitors deploys, the status page, release scans, and the GuardDuty alerts sent to ${CONTACTS.support}, and serves on the incident response team when engaged.`,
-      'Patches the Node.js runtime, frameworks, and dependencies, and keeps network rules in Cloudflare, Render, and AWS under change management.',
+      'Patches the Node.js runtime, frameworks, and dependencies. Network rules in Cloudflare, Render, and AWS are changed only by the Network Administrator, so DevOps asks him for any network change.',
       'Verifies backups, and takes part in the restore test and the business continuity tabletop exercise.',
       'Keeps every laptop used for INTDEV work encrypted with FileVault, and reports it through the device check at least every 30 days.',
     ],
     qualifications: [
       'Experience operating Render, PostgreSQL, Amazon S3, and Cloudflare, or equivalent platforms',
       'Business continuity and disaster recovery training',
+      'Access granted through the access request process, at the least privilege the work needs',
+    ],
+  },
+  {
+    title: 'Network Administrator',
+    holders: `${EXECUTIVE}, who is also CISO, and no one else`,
+    members: NETWORK_ADMINISTRATORS,
+    reportsTo: 'Chief Information Security Officer',
+    policyRoles: 'Network administration, kept separate from general IT operations (DevOps)',
+    purpose: 'Administers INTDEV’s networks, separately from general IT operations: the Cloudflare edge, Render network settings, and AWS network controls.',
+    responsibilities: [
+      'Approves and applies every change to network rules: Cloudflare DNS, TLS, and proxy settings; which Render service ports are exposed and the PostgreSQL allow list; and AWS security groups, VPCs, and flow logs. He is the only person with permission to change Cloudflare, Render network settings, or the AWS account, which he changes through the administrator account he holds with MFA.',
+      'Records each network change with its reason and approver, keeps the network diagrams and the configuration baselines compiled into each INTDEV API release current, and reviews the firewall rules every year.',
+      'Watches the network security signals, GuardDuty findings and VPC Flow Logs, and leads the network side of incident response.',
+    ],
+    qualifications: [
+      'Experience operating Cloudflare, Render, and AWS networking, or equivalent platforms',
+      'MFA on every account used for network administration',
       'Access granted through the access request process, at the least privilege the work needs',
     ],
   },
@@ -235,7 +272,7 @@ export const VENDORS: Vendor[] = [
   { name: 'Render', service: 'Application hosting, CI/CD, and managed PostgreSQL for the INTDEV API, Users Garden, and the Terminal Graph site', criticality: 'Critical', data: 'All customer data at rest in PostgreSQL; application logs', owner: 'Jimmy Lee', terms: 'https://render.com/terms', privacy: 'https://render.com/privacy', security: 'https://render.com/security' },
   { name: 'Amazon Web Services', service: 'S3 file storage (us-west-2), GuardDuty, VPC Flow Logs, CloudWatch, SNS', criticality: 'Critical', data: 'User uploads, private slide and analytics attachments, security logs', owner: 'Jimmy Lee', terms: 'https://aws.amazon.com/agreement/', privacy: 'https://aws.amazon.com/privacy/', security: 'https://aws.amazon.com/compliance/' },
   { name: 'Cloudflare', service: 'DNS, TLS termination, and proxy for every public hostname', criticality: 'Critical', data: 'Traffic in transit; request metadata', owner: 'Jimmy Lee', terms: 'https://www.cloudflare.com/terms/', privacy: 'https://www.cloudflare.com/privacypolicy/', security: 'https://www.cloudflare.com/trust-hub/' },
-  { name: 'GitHub', service: 'Source control, pull request review, and the commit trigger for Render deploys', criticality: 'Critical', data: 'Source code; no customer data', owner: 'Jimmy Lee', terms: 'https://docs.github.com/en/site-policy/github-terms/github-terms-of-service', privacy: 'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement', security: 'https://github.com/security' },
+  { name: 'GitHub', service: 'Source control, pull request review, CodeQL code scanning, Copilot code review, Dependabot alerts, secret scanning with push protection, and the commit trigger for Render deploys', criticality: 'Critical', data: 'Source code; no customer data', owner: 'Jimmy Lee', terms: 'https://docs.github.com/en/site-policy/github-terms/github-terms-of-service', privacy: 'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement', security: 'https://github.com/security' },
   { name: 'Stripe', service: 'Subscriptions, marketplace checkout, and card payments', criticality: 'Critical', data: 'Payment card data (held by Stripe, never by INTDEV), customer email', owner: 'Jimmy Lee', terms: 'https://stripe.com/legal/ssa', privacy: 'https://stripe.com/privacy', security: 'https://docs.stripe.com/security' },
   { name: 'Google', service: 'Google Workspace email, Google sign-in (OAuth), Google Cloud Storage presigned uploads', criticality: 'High', data: 'Staff email; OAuth identity (email, name); uploaded files', owner: 'Jimmy Lee', terms: 'https://cloud.google.com/terms', privacy: 'https://policies.google.com/privacy', security: 'https://cloud.google.com/security/compliance' },
   { name: 'Mailgun', service: 'Transactional email (verification, receipts, notices)', criticality: 'High', data: 'Recipient email address and message content', owner: 'Jimmy Lee', terms: 'https://www.mailgun.com/legal/terms/', privacy: 'https://www.mailgun.com/legal/privacy-policy/', security: 'https://www.mailgun.com/security/' },
@@ -419,11 +456,16 @@ export const VULNERABILITIES: Vulnerability[] = [
     component: 'Legacy AWS EC2 security groups in us-west-2',
     severity: 'Medium',
     found: 'November 4, 2026',
-    status: 'Open, remediation plan approved',
-    state: 'open',
-    fixed_in: null,
-    action: 'Found in the 2026 firewall review. Inbound rules on legacy security groups are broader than their business need. The four instances they protect are stopped, and no production workload runs on EC2. Remove the legacy groups or restrict them to named sources before any instance is started again. SLA: 60 days (January 3, 2027).',
-    evidence: [{ label: 'Configuration export', detail: 'AWS EC2 security group export, November 4, 2026', href: '/compliance/network-segmentation' }],
+    status: 'Remediated November 5, 2026 in the AWS account, recorded in INTDEV API 2.0.30',
+    state: 'remediated',
+    fixed_in: '2.0.30',
+    action: 'Found in the 2026 firewall review. Two legacy security groups in us-west-2, cantaloupe-app and the default group, admitted traffic from any address. They protected only four t2.micro instances from 2015, stopped since August 2016, and no production workload ran on EC2. With the owner’s approval, the four instances were terminated, which deleted their root volumes, the Elastic IP one of them held was released, cantaloupe-app was deleted, and the default group was returned to the AWS default rule, which admits only members of the same group. Closed within its 60-day SLA (January 3, 2027).',
+    evidence: [
+      { label: 'Configuration export', detail: 'AWS EC2 security group export, November 4, 2026, before the change', href: '/compliance/network-segmentation' },
+      { label: 'Change', detail: 'Made with the AWS CLI on November 5, 2026, approved by Jimmy Lee, Chief Executive Officer' },
+      { label: 'Verification', detail: 'AWS read of 11:24 UTC on November 5, 2026: no security group in the four monitored regions admits any address, and the account runs no EC2 instance and holds no EBS volume or Elastic IP in them', href: '/compliance/network-segmentation' },
+      { label: 'Release', detail: 'INTDEV API 2.0.30 compiles that read. The report’s security group check passes once api.internet.dev serves 2.0.30 or later.', href: '/compliance/ci-cd' },
+    ],
   },
   {
     id: 'INTDEV-2026-HSTS',
@@ -435,6 +477,36 @@ export const VULNERABILITIES: Vulnerability[] = [
     fixed_in: null,
     action: 'Every hostname redirects HTTP to HTTPS and negotiates TLS 1.3, but none sends a Strict-Transport-Security header. Enable HSTS at the Cloudflare edge. SLA: 90 days (February 2, 2027).',
     evidence: [{ label: 'External test', detail: 'TLS and header test of each hostname, November 4, 2026', href: '/compliance/encryption-in-transit' }],
+  },
+  {
+    id: 'INTDEV-2026-CODE-01',
+    component: 'INTDEV API: two server-side requests (email verification page and App Store transaction check)',
+    severity: 'Critical',
+    found: 'November 6, 2026',
+    status: 'Fixed November 6, 2026 in INTDEV API 2.0.32',
+    state: 'fixed_pending_release',
+    fixed_in: '2.0.32',
+    action: 'Found by the first GitHub CodeQL code scanning analysis of the INTDEV API repository (rule js/request-forgery, two alerts, both rated critical by CodeQL). Each request now takes its destination only from configuration, and the request input it carries is validated before use. Details are Confidential under the Data Management Policy and are available to auditors on request. SLA: 30 days (December 6, 2026).',
+    evidence: [
+      { label: 'Detection', detail: 'GitHub CodeQL default setup, first analysis of main in GitHub internet-development/apis, November 6, 2026 03:17 UTC: code scanning alerts 7 and 8' },
+      { label: 'Change', detail: 'Reviewed pull request to main in GitHub internet-development/apis, with the INTDEV API test suite passing' },
+      { label: 'Release', detail: 'Ships in INTDEV API 2.0.32. This page reports it live when api.internet.dev serves 2.0.32 or later; CodeQL closes both alerts on its next analysis of main.', href: '/compliance/ci-cd' },
+    ],
+  },
+  {
+    id: 'INTDEV-2026-CODE-02',
+    component: 'INTDEV API: Markdown-to-Slate parser for posts and the admin S3 folder name check',
+    severity: 'High',
+    found: 'November 6, 2026',
+    status: 'Fixed November 6, 2026 in INTDEV API 2.0.32',
+    state: 'fixed_pending_release',
+    fixed_in: '2.0.32',
+    action: 'Found by the same CodeQL analysis (rule js/polynomial-redos, six alerts, rated high): crafted text could make a request take seconds of processing, a denial-of-service risk. Every pattern involved now runs in linear time, and a regression test parses the reported input shapes within a time bound. SLA: 30 days (December 6, 2026).',
+    evidence: [
+      { label: 'Detection', detail: 'GitHub CodeQL default setup, first analysis of main in GitHub internet-development/apis, November 6, 2026 03:17 UTC: code scanning alerts 1 to 6' },
+      { label: 'Verification', detail: 'common/markdown.spec.ts parses each reported input shape at 50,000 characters within one second; the previous patterns took one to four seconds at 20,000 characters' },
+      { label: 'Release', detail: 'Ships in INTDEV API 2.0.32. This page reports it live when api.internet.dev serves 2.0.32 or later; CodeQL closes the alerts on its next analysis of main.', href: '/compliance/ci-cd' },
+    ],
   },
 ];
 

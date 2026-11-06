@@ -1,7 +1,7 @@
 import type { InfrastructureSnapshot } from '@root/compliance/site/types';
 
 export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
-  "captured_at": "2026-11-05T02:58:28Z",
+  "captured_at": "2026-11-06T02:58:40Z",
   "aws": {
     "regions": [
       {
@@ -132,40 +132,24 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "unencrypted_rds_snapshots": 0,
         "security_groups": [
           {
-            "group": "cantaloupe-app",
-            "inbound": [
-              "TCP 80 from any IPv4 address and 1 named address",
-              "TCP 22 from any IPv4 address"
-            ],
-            "outbound": [
-              "All traffic to any IPv4 address"
-            ],
-            "open_to_internet": true,
-            "attached": 3,
-            "instances": {
-              "running": 0,
-              "stopped": 3
-            }
-          },
-          {
             "group": "default",
             "inbound": [
-              "All traffic from any IPv4 address"
+              "All traffic from members of the same group"
             ],
             "outbound": [
               "All traffic to any IPv4 address"
             ],
-            "open_to_internet": true,
-            "attached": 1,
+            "open_to_internet": false,
+            "attached": 0,
             "instances": {
               "running": 0,
-              "stopped": 1
+              "stopped": 0
             }
           },
           {
             "group": "rds-launch-wizard",
             "inbound": [
-              "TCP 5432 from 2 named addresses"
+              "TCP 5432 from 1 named address and 1 private network range"
             ],
             "outbound": [
               "All traffic to any IPv4 address"
@@ -223,7 +207,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "active_keys": 1,
         "unused_keys": 0,
         "last_used": "2026-11-05",
-        "last_used_service": "ec2",
+        "last_used_service": "iam",
         "owner_tagged": true
       },
       {
@@ -232,7 +216,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "mfa": false,
         "active_keys": 1,
         "unused_keys": 0,
-        "last_used": "2026-11-05",
+        "last_used": "2026-11-06",
         "last_used_service": "s3",
         "owner_tagged": true
       },
@@ -310,7 +294,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
       "cipher": "TLS_AES_256_GCM_SHA384",
       "tls_1_1": "refused",
       "issuer": "Google Trust Services WE1",
-      "valid_to": "2026-12-06T08:47:05.000Z",
+      "valid_to": "2027-02-03T11:04:58.000Z",
       "error": null
     },
     {

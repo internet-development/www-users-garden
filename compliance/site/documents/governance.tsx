@@ -4,7 +4,7 @@ import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
 import type { SecurityRole } from '@root/compliance/site/types';
 
 import { Fields, Group, Links, List, Member, Members, People, Section, Table } from '@root/compliance/site/Blocks';
-import { AWS_REGIONS, COMPANY, CONTACTS, countWord, EVERY_MEMBER, EVERY_MEMBER_LABEL, EXECUTIVE, FORMER_TEAM, JIMMY_LEE_CV, POLICIES, POLICY_COUNT, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, TRUST_CENTER, VENDORS } from '@root/compliance/site/facts';
+import { AWS_REGIONS, COMPANY, CONTACTS, countWord, EVERY_MEMBER, EVERY_MEMBER_LABEL, EXECUTIVE, FORMER_TEAM, JIMMY_LEE_CV, NETWORK_ADMINISTRATORS, POLICIES, POLICY_COUNT, POLICY_DATES, PRODUCTS, SECURITY_ROLES, TEAM, TRUST_CENTER, VENDORS } from '@root/compliance/site/facts';
 import { findCatalogEntry, TRUST_CENTER_CATEGORIES, TRUST_CENTER_CONTROLS, trustCenterCategoryUrl } from '@root/compliance/site/catalog';
 
 const STAFF = TEAM.filter((person) => person.name !== EXECUTIVE);
@@ -12,7 +12,7 @@ const STAFF = TEAM.filter((person) => person.name !== EXECUTIVE);
 const STAFF_NAMES = STAFF.map((person) => person.name);
 
 function Holders(props: { role: SecurityRole }) {
-  if (!props.role.holders.startsWith(EVERY_MEMBER)) return <Member name={props.role.holders} />;
+  if (!props.role.holders.startsWith(EVERY_MEMBER)) return props.role.members.length > 1 ? <Members names={props.role.members} /> : <Member name={props.role.holders} />;
   return (
     <>
       {EVERY_MEMBER_LABEL}: <Members names={props.role.members} />
@@ -73,7 +73,7 @@ export function SystemDescription() {
               ['Software', 'The INTDEV API is a Next.js and TypeScript application. Every route runs inside one wrapper that applies CORS, API-key resolution, per-category rate limits, token accounting, and exception reporting. Data access goes through Knex query helpers, and background adjutant workers run from the same codebase. Users Garden is a Next.js client of the API. Terminal Graph is a signed native macOS application. Every package the INTDEV API depends on, with the version in production, is listed in the software inventory on the service infrastructure maintenance page.'],
               ['People', `${TEAM.length} people: the CEO and ${STAFF.length} Members of Technical Staff. See the organization chart.`],
               ['Data', 'Account data (email, username, password hash, API key, tier), organizations and memberships, credit ledger, orders, licenses, download links, posts and documents, analytics events, slide decks, and uploads. Payment card data is held by Stripe and never stored by INTDEV.'],
-              ['Procedures', 'Change management through GitHub pull requests and Render deploys. Access provisioning, quarterly reviews, and deprovisioning within 24 business hours. Incident response, vulnerability management, vendor management, and annual policy review.'],
+              ['Procedures', 'Change management through GitHub pull requests, each analyzed by CodeQL code scanning and reviewed by Copilot code review, and Render deploys. Access provisioning, quarterly reviews, and deprovisioning within 24 business hours. Incident response, vulnerability management, vendor management, and annual policy review.'],
             ]}
           />
           <ArchitectureDiagram />
@@ -297,7 +297,7 @@ export function OrganizationChart() {
           columns={['Level', 'Role', 'Person', 'Reports to', 'Profile']}
           rows={[
             ['Governance', 'Board of Directors', <Member key="chair" name="Jimmy Lee (Chair)" />, 'Stockholders', CV_LINK],
-            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', DIRECTOR, 'Board of Directors', CV_LINK],
+            ['Executive', 'Chief Executive Officer and Chief Information Security Officer; Privacy Management Lead (Data Protection Officer); Network Administrator; acting Chief Technology Officer, Chief Operating Officer, and Security & Compliance Manager', DIRECTOR, 'Board of Directors', CV_LINK],
             ...STAFF.map((person) => ['Technical Staff', `${person.role}; Security Engineer, DevOps, and Privacy Team`, <Member key="person" name={person.name} />, DIRECTOR, <a key="profile" href={person.linkedin}>LinkedIn</a>]),
           ]}
         />
@@ -307,7 +307,7 @@ export function OrganizationChart() {
         <List
           items={[
             'INTDEV is a flat studio. Every Member of Technical Staff reports directly to the CEO, who is also the Chief Information Security Officer.',
-            'Every Member of Technical Staff holds the Security Engineer, DevOps, and Privacy Team roles. See roles and responsibilities for each job description.',
+            'Every Member of Technical Staff holds the Security Engineer, DevOps, and Privacy Team roles. The separate Network Administrator role is held by Jimmy Lee alone. See roles and responsibilities for each job description.',
             'Product ownership: Caidan Williams leads Terminal Graph. The CEO owns the INTDEV API and Users Garden.',
             'Affiliates: Andrew Valantine, Hailey Elizabeth, Mitchell Ellero, Sah Pham, and Victoria Venturella are independent friends of the studio engaged case by case for photo, video, events, and ATProto work. They are not staff.',
             `Former team members: ${joinNames(FORMER_TEAM.map((person) => person.name))}.`,
@@ -325,7 +325,7 @@ export function SecurityTeamStatement() {
   return (
     <Group>
       <p>
-        Security and privacy at INTDEV are not a separate department. INTDEV is a small, flat studio, and every Member of Technical Staff is a founder in training who owns the security and privacy of what they build and run. Each one holds the Security Engineer, DevOps, and Privacy Team roles as part of the job. Jimmy Lee, the Chief Executive Officer, is also the Chief Information Security Officer and the Privacy Management Lead (Data Protection Officer), and reports on both to the board every year.
+        Security and privacy at INTDEV are not a separate department. INTDEV is a small, flat studio, and every Member of Technical Staff is a founder in training who owns the security and privacy of what they build and run. Each one holds the Security Engineer, DevOps, and Privacy Team roles as part of the job. Network administration is a separate role, held by Jimmy Lee alone, so that general IT operations do not change network rules. Jimmy Lee, the Chief Executive Officer, is also the Chief Information Security Officer and the Privacy Management Lead (Data Protection Officer), and reports on both to the board every year.
       </p>
       <Table columns={['Role', 'Held by', 'Reports to', 'Policy roles it covers']} rows={SECURITY_ROLES.map((role) => [role.title, <Holders key="holders" role={role} />, role.reportsTo, role.policyRoles])} />
       <p>The policy roles are those of the Information Security Roles and Responsibilities Policy. Every person in these roles signs the confidentiality agreement, is background checked, and completes security awareness training within 30 days of hire and every year after.</p>
@@ -358,7 +358,7 @@ export function RolesAndResponsibilities() {
     <Document
       slug="roles-and-responsibilities"
       title="Information security roles and responsibilities"
-      summary="Who is responsible for designing, developing, implementing, operating, maintaining, and monitoring INTDEV’s information security and privacy controls, as the Information Security Roles and Responsibilities Policy assigns, with a job description for every key security and privacy role: the CISO, Security Engineers, DevOps, the Privacy Management Lead (Data Protection Officer), and the Privacy Team."
+      summary="Who is responsible for designing, developing, implementing, operating, maintaining, and monitoring INTDEV’s information security and privacy controls, as the Information Security Roles and Responsibilities Policy assigns, with a job description for every key security and privacy role: the CISO, Security Engineers, DevOps, the Network Administrator, the Privacy Management Lead (Data Protection Officer), and the Privacy Team."
       controls={['Roles and responsibilities specified']}
     >
       <Section title="Role assignments">
@@ -375,6 +375,7 @@ export function RolesAndResponsibilities() {
                 <Member name="Jimmy Lee for the INTDEV API and Users Garden" />; <Member name="Caidan Williams for Terminal Graph" />
               </span>],
             ['Security and Compliance Manager', 'Contractual commitments, privacy law (CCPA, GDPR), SOC 2 and ISO 27001 adherence, and security tooling in production', <Member key="holder" name="Jimmy Lee (acting)" />],
+            ['Network Administrator', 'Approves and applies every change to network rules in Cloudflare, Render, and AWS, separately from general IT operations; keeps network diagrams and configuration baselines current', <Members key="holder" names={NETWORK_ADMINISTRATORS} />],
             ['Customer Support Lead', 'Customer data retention and deletion; customer support at eng@internet.dev', 'Members of Technical Staff on rotation'],
             ['Systems Owners', 'Confidentiality, integrity, and availability of the systems they own; approve non-standard access and change requests', 'The product owners above'],
             ['CEO', 'Qualified and competent staff; background checks; policy and Code of Conduct acknowledgement; performance and security training', <Member key="holder" name="Jimmy Lee" />],

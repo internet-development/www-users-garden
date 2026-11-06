@@ -1,11 +1,14 @@
+import type * as React from 'react';
+
 import Document from '@root/compliance/site/Document';
 
-import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, PRODUCTS, PUBLIC_TERMS, TRUST_CENTER, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
+import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, countWord, PRODUCTS, PUBLIC_TERMS, TRUST_CENTER, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
-import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT } from '@root/compliance/site/records';
+import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, DEVICE_CHECK_FRESH_DAYS, DEVICE_INVENTORY, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
+import { RECOVERY_PROCEDURES } from '@root/compliance/site/documents/operations';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
 import { SecurityJobDescriptions, SecurityTeamStatement } from '@root/compliance/site/documents/governance';
-import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
+import { CheckTable, Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 
 const PRIVACY_POLICY = PUBLIC_TERMS.find((term) => term.href.endsWith('intdev-privacy-policy')) ?? { label: 'Privacy Policy', href: 'https://txt.dev/wwwjim/intdev-privacy-policy' };
 
@@ -16,6 +19,7 @@ export function DataDeletion() {
       title="Customer data deleted on departure"
       summary="When customers leave, INTDEV removes their confidential data from the application environment. Customers can delete their own account at any time in Users Garden, and INTDEV deletes the rest within 30 days of a contract ending. The anonymous record of completed deletions is published below."
       controls={['Customer data deleted upon leaving']}
+      updated="November 6, 2026"
     >
       <Section title="Deletion record">
         <Group>
@@ -56,7 +60,12 @@ export function DataDeletion() {
         />
       </Section>
       <Section title="Contract termination">
-        <p>When an enterprise or API contract ends, INTDEV deletes the customer’s accounts and data within 30 days, as Appendix A of the Data Management Policy requires, and confirms by email on request. PII is also deleted when a consumer or data subject makes a verified request and no legal obligation requires keeping it.</p>
+        <Group>
+          <p>When an enterprise or API contract ends, INTDEV deletes the customer’s accounts and data within 30 days, as Appendix A of the Data Management Policy requires, and confirms by email on request. PII is also deleted when a consumer or data subject makes a verified request and no legal obligation requires keeping it.</p>
+          <p>
+            Client engagements follow the same limit. When a design, research, or engineering engagement ends, INTDEV deletes the client’s designs, research, and other confidential data within 30 days, including copies outside its own applications, under the <a href="/compliance/client-data-protection">engagement closeout</a> process.
+          </p>
+        </Group>
       </Section>
       <Section title="Ask for deletion">
         <p>
@@ -213,7 +222,7 @@ export function ServiceDescription() {
             ['Production, US West', 'Render Oregon region', 'internet-apis (2 instances), terminalgraph (1 instance), INTDEV DATA PostgreSQL 15', 'Render private network within the region; the API’s private address is internet-apis:10001'],
             ['Production, US East', 'Render Ohio region', 'www-users-garden and www-internet-v3 (1 instance each)', 'Render private network within the region'],
             ['Object storage', 'AWS us-west-2 (Oregon)', 'Amazon S3 buckets for uploads, private attachments, and public assets', 'AWS regional endpoints over HTTPS'],
-            ['AWS account network', `AWS ${AWS_REGIONS.join(', ')}`, 'One default VPC per region; four stopped legacy t2.micro instances in us-west-2; no production workload', 'VPC 172.31.0.0/16 in each region, one /20 subnet per availability zone (six in us-east-1, three in us-east-2, two in us-west-1, four in us-west-2)'],
+            ['AWS account network', `AWS ${AWS_REGIONS.join(', ')}`, 'One default VPC per region; no EC2 instances and no production workload', 'VPC 172.31.0.0/16 in each region, one /20 subnet per availability zone (six in us-east-1, three in us-east-2, two in us-west-1, four in us-west-2)'],
             ['Development', 'Engineers’ Macs', 'Company laptops with FileVault, screen lock, automatic updates, XProtect, and the firewall on', 'Not routable to production data; no customer data permitted'],
           ]}
         />
@@ -229,7 +238,7 @@ export function ServiceDescription() {
             ['Payments', 'Client → Stripe; internet-apis → Stripe API; Stripe → webhook', 'Card data goes only to Stripe; webhook signatures verified'],
             ['Email, SMS, and sign-in', 'internet-apis → Mailgun, Twilio, Google, Apple, Bluesky', 'HTTPS to each provider’s API; Twilio callbacks signature-verified'],
             ['Cross-origin payloads', 'internet-apis ↔ INTDEV sites', `HTTPS; the API key in the payload is also encrypted with the API’s application-layer AES, being brought to the Cryptography Policy’s standard under ${APPLICATION_ENCRYPTION.finding}`],
-            ['Change', 'Engineer → GitHub pull request → main → Render build → release', 'Review before merge; only main deploys; every deploy recorded with its commit'],
+            ['Change', 'Engineer → GitHub pull request → main → Render build → release', 'Review before merge; CodeQL code scanning and Copilot code review on every pull request; only main deploys; every deploy recorded with its commit'],
             ['Monitoring', 'AWS GuardDuty findings → EventBridge → SNS → eng@internet.dev; VPC Flow Logs → CloudWatch', 'All severities alert; flow logs kept 365 days'],
           ]}
         />
@@ -241,8 +250,8 @@ export function ServiceDescription() {
             'Encryption at rest: Render-managed PostgreSQL encryption, SSE AES-256 on every S3 bucket, and FileVault on every laptop.',
             'Authentication and authorization: per-customer API keys, tiered permissions, organization roles checked on every request, and rate limits per category.',
             'Monitoring: GuardDuty with email alerts and VPC Flow Logs in four US regions, GuardDuty Malware Protection on upload buckets, and Render deploy and service logs.',
-            'Change management: reviewed pull requests, deploys only from main, and a public deploy record.',
-            'Vulnerability management: quarterly scans, an annual penetration test, and SLAs of 30, 60, and 90 days.',
+            'Change management: reviewed pull requests, each one analyzed by GitHub CodeQL code scanning and reviewed by GitHub Copilot code review, deploys only from main, and a public deploy record.',
+            'Vulnerability management: monthly scans, GitHub Dependabot alerts, an annual penetration test, and SLAs of 30, 60, and 90 days.',
           ]}
         />
       </Section>
@@ -287,6 +296,7 @@ export function SecurityInformation() {
       title="Security at INTDEV"
       summary="The security commitments INTDEV makes to its customers, how they are met across the INTDEV API, Users Garden, and Terminal Graph, and the people responsible for them: the Chief Information Security Officer and every Member of Technical Staff."
       controls={['Company commitments externally communicated', 'Roles and responsibilities specified']}
+      updated="November 6, 2026"
     >
       <Section title="Our commitments">
         <List
@@ -298,6 +308,7 @@ export function SecurityInformation() {
             'We review every change before release, deploy through an audited pipeline, and publish what changed.',
             'We patch critical and high vulnerabilities within 30 days, medium within 60, and low within 90, and run an annual penetration test.',
             'We delete your data when you delete your account, and within 30 days after a contract ends.',
+            'When a client engagement ends, we delete the client’s designs, research, and other confidential data we hold within 30 days, including copies outside our own applications, and confirm the deletion in writing on request.',
             'We notify affected customers of a breach without undue delay, as our contracts and the law require.',
           ]}
         />
@@ -325,6 +336,7 @@ export function SecurityInformation() {
             { label: 'Vendor management', href: '/compliance/vendor-management' },
             { label: 'Roles and responsibilities', href: '/compliance/roles-and-responsibilities' },
             { label: 'Fleet disk encryption report', href: '/compliance/removable-media' },
+            { label: 'Client data protection, engagement closeout, and Microsoft supplier requirements', href: '/compliance/client-data-protection' },
             { label: `${TRUST_CENTER.name}, where ${TRUST_CENTER.operator} publishes every control it monitors`, href: TRUST_CENTER.url },
             { label: 'All compliance records', href: '/compliance' },
           ]}
@@ -341,6 +353,7 @@ export function MasterServicesAgreement() {
       title="Master Services Agreement (template)"
       summary={`The template ${COMPANY.name} uses for enterprise and API customers. Security, confidentiality, and privacy commitments are in sections 4 through 7.`}
       controls={['Company commitments externally communicated', 'Third-party agreements established']}
+      updated="November 6, 2026"
     >
       <Note>
         <p>This template is a starting point. The agreement each customer signs, together with its order forms and statements of work, controls.</p>
@@ -361,7 +374,7 @@ export function MasterServicesAgreement() {
         <p>Each party will protect the other’s Confidential Information with at least reasonable care, use it only to perform this Agreement, and disclose it only to personnel and subcontractors who need it and are bound by confidentiality obligations at least as protective. These obligations survive termination for five years, and indefinitely for trade secrets and Customer Data.</p>
       </Section>
       <Section title="6. Data protection">
-        <p>INTDEV processes Customer Data only to provide the services and as Customer instructs, follows applicable privacy laws including the CCPA, and uses only the subprocessors listed on its vendor management page. INTDEV will notify Customer of a Security Incident affecting Customer Data without undue delay, and in any case within 72 hours of confirming it, and will cooperate with Customer’s response. On termination INTDEV will delete Customer Data within 30 days, unless law requires otherwise, and will certify the deletion on request.</p>
+        <p>INTDEV processes Customer Data only to provide the services and as Customer instructs, within the direct business relationship between the parties, and will not sell Customer personal data or process it for any other purpose. INTDEV follows applicable privacy laws including the CCPA, and uses only the subprocessors listed on its vendor management page. Where INTDEV processes personal data for Customer, the Order describes the subject matter and duration of the processing, its nature and purpose, the types of personal data, the categories of data subjects, and Customer’s obligations and rights. INTDEV will notify Customer of a Security Incident affecting Customer Data without undue delay, and in any case within 72 hours of confirming it, and will cooperate with Customer’s response. On termination INTDEV will return or delete Customer Data within 30 days, including copies held outside INTDEV’s own applications, unless law requires otherwise, and will certify the deletion on request.</p>
       </Section>
       <Section title="7. Availability and support">
         <p>INTDEV will use commercially reasonable efforts to keep the services available, publish their status, announce planned maintenance in advance, and respond to support requests sent to {CONTACTS.support}.</p>
@@ -479,6 +492,558 @@ export function VendorManagement() {
         />
         <p>{VENDOR_REVIEW.others}</p>
       </Section>
+    </Document>
+  );
+}
+
+const MICROSOFT_TERMS = 'https://www.microsoft.com/en-us/procurement/contracting-terms-conditions.aspx';
+
+interface SupplierRequirement {
+  id: number;
+  title: string;
+  requires: string;
+  meets: string[];
+  evidence: { label: string; href: string }[];
+  open: string[];
+  answer?: { response: string; comment: string };
+}
+
+const OWNER_DECISION = 'Owner decision, November 6, 2026';
+
+const UPDATE_COURSE = TRAINING_COURSES.find((course) => course.id === 'security-awareness-2026-update') ?? { version: 'version 2', due: null };
+
+const UPDATE_DUE = UPDATE_COURSE.due ? formatRecordDay(UPDATE_COURSE.due) : 'a date not yet decided';
+
+const DPR_V12 = 'https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/accex/documents/presentations/FY26-Microsoft-Supplier-Data-Protection-Requirements-v12_en-US.pdf';
+
+const MICROSOFT_DATA_RULES = [
+  'Microsoft data stays in Microsoft’s systems. INTDEV team members open Microsoft Personal and Confidential Data, including the designs, documents, and code Microsoft provides, only in systems Microsoft provides, and never download it or keep a copy in INTDEV’s accounts, on INTDEV laptops, or in the INTDEV API. The INTDEV API, the only INTDEV system that stores user data, holds no Microsoft data.',
+  'Code INTDEV writes for Microsoft is kept in Microsoft’s systems, or is INTDEV’s own work product until it is delivered. Work product kept by INTDEV lives only in private repositories in INTDEV’s GitHub organization, which hold no Microsoft Personal or Confidential Data and into which nothing Microsoft provides is copied. Delivered code reaches Microsoft through Microsoft’s systems, and INTDEV’s copies are then handled under the engagement closeout.',
+  'Microsoft data reaches INTDEV only through those Microsoft systems, over TLS. Anything sent another way, such as on removable media or as an unencrypted file, is refused, deleted without being opened, and reported to the Microsoft contact.',
+  'If a laptop or other physical asset is ever found holding Microsoft Personal or Confidential Data despite these rules, its storage is burned, pulverized, or shredded, as Microsoft requires, instead of being erased or kept under FileVault. The destruction is dated in the engagement’s closeout record, and the CEO certifies it to Microsoft in a signed certificate of destruction on request.',
+  'No Microsoft Personal or Confidential Data, including designs, documents, and code, is entered into any AI system, coding assistants included, without Microsoft’s written permission. When Microsoft permits it, INTDEV uses only an AI system that Microsoft provides and manages, reached through access Microsoft issues for the engagement, such as a Microsoft Entra guest account in Microsoft’s tenant or an API key for a Microsoft Foundry resource in a Microsoft-owned Azure subscription, and never an AI service of INTDEV’s own. Each person completes AI training for their role before they start.',
+  'No INTDEV team member holds @microsoft.com credentials or works inside the Microsoft corporate network environment.',
+  'MFA is enforced on every account INTDEV uses for Microsoft work.',
+];
+
+const SUPPLIER_REQUIREMENTS: SupplierRequirement[] = [
+  {
+    id: 1,
+    title: 'Data protection terms in every agreement',
+    requires: 'Each agreement with Microsoft carries privacy and security terms for Microsoft Personal and Confidential Data and prohibits selling Microsoft Personal Data or processing it outside the direct business relationship. Where the supplier is a processor or subprocessor, the agreement describes the subject matter and duration of the processing, its nature and purpose, the types of personal data, the categories of data subjects, and Microsoft’s obligations and rights.',
+    meets: [
+      'INTDEV’s statement of work with Microsoft provides its services under the Microsoft Purchase Order Terms and Conditions, which carry Microsoft’s privacy and security data protection terms.',
+      'As those terms require, INTDEV never sells Microsoft Personal Data, and processes Microsoft Personal and Confidential Data only to perform the engagement, within its direct business relationship with Microsoft.',
+      'INTDEV keeps no Microsoft data in its own systems: team members work with it only in systems Microsoft provides (the Microsoft engagement rules above).',
+      'INTDEV’s own Master Services Agreement template makes the same commitments to every customer: no sale of personal data, no processing outside the business relationship, a description of the processing in each order, and deletion of customer data, including copies outside INTDEV’s applications, within 30 days of termination.',
+    ],
+    evidence: [
+      { label: 'Microsoft Purchase Order Terms and Conditions', href: MICROSOFT_TERMS },
+      { label: 'Master Services Agreement (template), section 6', href: '/compliance/master-services-agreement' },
+    ],
+    open: [`The statement of work describes the services but not the processing, which Microsoft’s requirement asks for only when INTDEV is a Processor of Microsoft Personal Data. ${OWNER_DECISION}: INTDEV asks Microsoft to confirm whether the engagement makes it one; if Microsoft confirms it, Microsoft adds the processing description to the statement of work or purchase order, as the DPR allows for purchase orders already in flight. If Microsoft confirms that the engagement involves PHI, a Business Associate Agreement with Microsoft comes first.`],
+  },
+  {
+    id: 3,
+    title: 'Annual privacy, security, and AI training',
+    requires: 'Everyone with access to Microsoft Personal or Confidential Data completes privacy and security training every year, covering incident prevention, safeguarding passwords, log-in monitoring, the risks of downloading malicious software, privacy law, security obligations, AI systems, and contract obligations. Anyone who processes Microsoft data within AI systems completes AI training for their role, and IT staff train for incident response with simulated events.',
+    meets: [
+      'Every team member completes security awareness training and business continuity and disaster recovery training within 30 days of hire and every year after, as the Human Resource Security Policy requires. Each signed completion is published by the INTDEV API with the person’s user_id and live account level, so attendance records are available at any time.',
+      'The security awareness course covers credentials and secrets (a password manager, unique passwords of at least 12 characters, MFA, and reporting a leak at once), phishing and social engineering, data handling and classification, devices, secure development, and incident reporting.',
+      'Incident response with a simulated event: every team member took part in the November 4, 2026 tabletop exercise, a timed simulation of a total compromise of the INTDEV API run through every phase of the Incident Response Plan.',
+      `The security awareness update (${UPDATE_COURSE.version}) adds log-in monitoring, the risks of downloading malicious software, privacy law, contract obligations with the Microsoft engagement rules, and AI systems, and is published with the course.`,
+      'AI training: no one at INTDEV processes Microsoft data within an AI system. Microsoft data enters an AI system only with Microsoft’s written permission, only one Microsoft provides and manages, and only after the person completes AI training for their role, for which Microsoft’s AI Literacy Resources may be used.',
+    ],
+    evidence: [
+      { label: 'Security awareness training', href: '/compliance/security-awareness-training' },
+      { label: 'Training completions (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.training}` },
+      { label: 'Disaster recovery tabletop exercise', href: '/compliance/tabletop-exercise' },
+      { label: 'Incident response plan test', href: '/compliance/incident-response-test' },
+      { label: 'Microsoft AI Literacy Resources', href: 'https://aka.ms/EUAIAct-AILiteracy' },
+    ],
+    open: [`The November 4, 2026 course did not cover log-in monitoring, the risks of downloading malicious software, privacy law such as the CCPA and the GDPR, contract obligations, or AI systems, all of which Microsoft’s evidence for this requirement names. ${OWNER_DECISION}: adopted. The security awareness update adds them with the Microsoft engagement rules; the CEO approves it as the course owner, and every team member signs it by ${UPDATE_DUE}. The training record shows each signature once the CEO confirms it.`],
+  },
+  {
+    id: 4,
+    title: 'Sanctions for policy violations',
+    requires: 'Apply sanctions to personnel who fail to comply with the supplier’s privacy and security policies, or with Microsoft’s policies when working within the Microsoft corporate environment.',
+    meets: [
+      'Every INTDEV policy states that a violation can lead to immediate withdrawal or suspension of system and network privileges, and to disciplinary action up to and including termination of employment.',
+      'The Human Resource Security Policy puts employees and third parties who violate the information security policies through INTDEV’s progressive disciplinary process, up to and including termination of employment or contract, and compliance with the policies is assessed in every annual performance review.',
+      'Every contractor agreement makes a breach of the Code of Conduct a material breach, and INTDEV may end the engagement immediately.',
+      'Anyone who retaliates against a person who reported a concern in good faith is disciplined, up to and including termination.',
+      'Microsoft’s own policies apply to people working within the Microsoft corporate environment. No INTDEV team member works there or holds @microsoft.com credentials, as the owner confirmed on November 6, 2026.',
+    ],
+    evidence: [
+      { label: 'Security awareness training (sanctions)', href: '/compliance/security-awareness-training' },
+      { label: 'Code of Conduct for contractors', href: '/compliance/contractor-code-of-conduct' },
+      { label: 'Performance evaluations', href: '/compliance/performance-evaluations' },
+      { label: 'Anonymous whistleblower channel', href: '/compliance/whistleblower' },
+    ],
+    open: [],
+  },
+  {
+    id: 12,
+    title: 'Retention no longer than necessary',
+    requires: 'Microsoft Personal and Confidential Data is kept no longer than needed to perform the work, unless the law requires keeping it, under documented retention policies or the retention Microsoft sets in the contract, with documentary evidence available on request.',
+    meets: [
+      'Microsoft data stays in Microsoft’s systems, so INTDEV keeps no copy of it that could outlive the work, and Microsoft’s own retention applies (the Microsoft engagement rules above).',
+      'The Data Management Policy keeps data only while the company needs it or a regulation or contract requires it, deletes personal data as soon as it has no business use, and sets each system’s retention period in its Data Retention Matrix.',
+      'When an engagement ends, every copy of the client’s data INTDEV holds is deleted within 30 days under the engagement closeout above, unless the agreement says otherwise, and the closeout record dates each deletion.',
+    ],
+    evidence: [
+      { label: 'Customer data deleted on departure', href: '/compliance/data-deletion' },
+      { label: 'Master Services Agreement (template), section 6', href: '/compliance/master-services-agreement' },
+    ],
+    open: [],
+  },
+  {
+    id: 13,
+    title: 'Return or destruction at the end of the work',
+    requires: 'At Microsoft’s choice, Microsoft Personal and Confidential Data in the supplier’s possession is returned or destroyed when the work is complete or on request. Applications securely delete data removed by users or by age; physical assets holding Microsoft data are burned, pulverized, or shredded; a record of disposition is kept; and a certificate of destruction signed by an officer is provided when Microsoft requires destruction.',
+    meets: [
+      'The engagement closeout returns anything the client asks for and deletes every remaining copy within 30 days. Its record lists each place the data was kept with the date of each deletion, which is the record of disposition.',
+      'On request, the CEO, an officer of INTDEV, confirms the deletion in a signed certificate of destruction.',
+      'Deletion inside INTDEV’s applications is secure: deleting an INTDEV API account is a hard delete in one transaction, and a file removed from INTDEV’s versioned S3 buckets is removed with every stored version.',
+      'Microsoft data is never kept on an INTDEV laptop or other physical asset (the Microsoft engagement rules above).',
+      `${OWNER_DECISION}: if a laptop or other physical asset is ever found holding Microsoft data, its storage is burned, pulverized, or shredded, as Microsoft requires, and the destruction is recorded in the closeout record and certified on request (the Microsoft engagement rules above). The Data Management Policy’s exemption from physical destruction for FileVault-encrypted devices applies only to devices that hold no Microsoft data.`,
+    ],
+    evidence: [
+      { label: 'Customer data deleted on departure', href: '/compliance/data-deletion' },
+      { label: 'Deletion record (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.dataDeletions}` },
+    ],
+    open: [],
+  },
+  {
+    id: 30,
+    title: 'Notifying Microsoft of a Data Incident',
+    requires: 'An incident response plan that notifies Microsoft of a Data Incident as the contract or privacy law requires, or without undue delay, whichever is sooner; cooperation with Microsoft’s investigation, including an incident summary, the compromise, the scope of data accessed, the mitigations, and access to personnel or hardware for forensic review; and security contacts kept current in Microsoft SupplierWeb.',
+    meets: [
+      'The Incident Response Plan requires INTDEV to notify customers promptly of relevant incidents and breaches, as its policies, contracts, and the law require, and to report breaches without undue delay. The CEO and legal counsel make that determination.',
+      'INTDEV’s Master Services Agreement template sets notice within 72 hours of confirming a Security Incident at the latest, and cooperation with the customer’s response.',
+      'The plan commits INTDEV to cooperate with customers, data controllers, and regulators in an incident, and its responders preserve evidence following NIST SP 800-86, so the incident summary, the scope of data accessed, and the mitigations are available to Microsoft.',
+      'For Microsoft, notice follows Microsoft’s SSPA Program Guide: INTDEV reports a Data Incident through Microsoft SupplierWeb or by email to SuppIR@microsoft.com, with the date of the incident, INTDEV’s supplier name and supplier number, the Microsoft contacts notified, the associated purchase order, and a summary of the incident.',
+      'The security contact INTDEV named in its November 5, 2026 attestation is Jimmy Lee, Chief Executive Officer and CISO.',
+    ],
+    evidence: [
+      { label: 'Incident response plan test', href: '/compliance/incident-response-test' },
+      { label: 'Master Services Agreement (template), section 6', href: '/compliance/master-services-agreement' },
+      { label: 'Customer support (reporting an incident)', href: '/compliance/support' },
+    ],
+    open: [
+      'Not yet recorded: that the security contact fields in Microsoft SupplierWeb name INTDEV’s security contacts. The owner confirms them in SupplierWeb.',
+      'The Incident Response Plan does not yet name Microsoft’s channel: it names neither SupplierWeb nor SuppIR@microsoft.com, nor the six fields the SSPA Program Guide asks a report to carry. A revision of the plan with a client notification step that names them is not yet decided.',
+      'The Incident Response Plan reports breaches without undue delay and as contracts and the law require, but does not say that the earliest of the three governs, as Microsoft’s “whichever is sooner” does. A revision of the plan that says so is not yet decided.',
+      'The SSPA Program Guide requires a separate security contact to sign off on Section J of the requirements, and that contact is not yet recorded. Who it is, and whether the security contact may also be the Authorized Representative who signs INTDEV’s attestation, which SSPA support can confirm, is not yet decided.',
+    ],
+  },
+  {
+    id: 31,
+    title: 'Remediation of each Data Incident',
+    requires: 'A remediation plan for each Data Incident, monitored to closure, with timely updates to Microsoft until it is resolved and a post-incident review.',
+    meets: [
+      'The Incident Response Plan takes every critical incident through investigation, containment, eradication, recovery, and remediation of the vulnerabilities, and ends with a post-mortem report of the lessons learned.',
+      'Every incident is documented in GitHub Issues with a root cause analysis, and executive staff direct the planning, communication, and execution of each mitigation and remedial action.',
+      'The Incident Manager sends status updates at regular intervals until the incident response is formally closed, and INTDEV cooperates with affected customers throughout.',
+      'INC-2026-001 shows the process carried to closure: detection, containment, root cause analysis, corrective actions, and a review of their effectiveness.',
+    ],
+    evidence: [
+      { label: 'Incident report INC-2026-001', href: '/compliance/incident-report' },
+      { label: 'Incident response plan test', href: '/compliance/incident-response-test' },
+    ],
+    open: [],
+  },
+  {
+    id: 33,
+    title: 'Annual security assessments and change logs',
+    requires: 'Assess every year the risks to the confidentiality, integrity, and availability of Microsoft Personal Data and the measures that reduce them; review major changes to the environment, such as new system components, network topology, and firewall rules; and keep change logs that record each change, its reason, and the name and title of its approver, with 90 days of records available on request.',
+    meets: [
+      'The Risk Management Policy, based on ISO 27005 and NIST SP 800-30, requires a risk assessment every year. Risks are scored by likelihood and impact on a 1 to 5 scale and kept in the Vanta risk register, and the board reviews the assessment. The register is Confidential and available to Microsoft on request.',
+      'The Operations Security Policy requires an annual network security assessment that reviews major changes to the environment, such as new system components and network topology. The 2026 assessment, on November 4, 2026, covered authentication and authorization code, credential and cryptography handling, every production dependency, TLS on each hostname, AWS IAM, MFA, security groups, and GuardDuty, and the Render database network and backup settings. The 2026 firewall review covered the Cloudflare, Render, and AWS rulesets the same day.',
+      'Change logs: every production change to the INTDEV API is a GitHub pull request with its description and review; Render records every deploy with its commit and time; the version ledger records what each INTDEV API version changed, including routes, dependencies, compliance registers, and AWS, TLS, and Render configuration; and changes to the AWS account are recorded with their approver in the vulnerability register. All of these are kept for more than 90 days.',
+      'From November 6, 2026, every pull request in the INTDEV API repository uses INTDEV’s template, which records the reason for the change and the approver’s name and title, and network changes are recorded by the Network Administrator with their reason and approver.',
+      'In the INTDEV API repository, a GitHub ruleset on every branch requires an approving review before merge, requests a GitHub Copilot code review on every push to a pull request, and blocks a merge that leaves a high or critical CodeQL code scanning alert, as read through the GitHub API on November 6, 2026. The owner confirmed the same day that every pull request in INTDEV’s other repositories, which hold no Microsoft data, is also analyzed by CodeQL and reviewed by Copilot.',
+      'Scan results are published in the vulnerability register.',
+    ],
+    evidence: [
+      { label: 'Penetration testing (2026 assessment)', href: '/compliance/penetration-testing' },
+      { label: 'Network firewall review', href: '/compliance/firewall-review' },
+      { label: 'CI/CD production deployments', href: '/compliance/ci-cd' },
+      { label: 'Changelog and version ledger', href: '/compliance/changelog' },
+      { label: 'Vulnerability scanning and remediation', href: '/compliance/vulnerability-scans' },
+    ],
+    open: [
+      'Changes to the Users Garden repository, which publishes users.garden and these pages, reach main without a pull request: on November 6, 2026 no GitHub ruleset or branch protection applied to its main branch, and its five most recent commits, from November 4 and 5, 2026, belong to no pull request. Requiring pull request review there, as in the INTDEV API repository, is not yet decided.',
+      'Pull requests from before November 6, 2026 show the reviewer’s GitHub account but not their title, so 90 days of change records that all carry the approver’s name and title are available from February 4, 2027.',
+      'The pull request template is recorded only in the INTDEV API repository. INTDEV’s other repositories, including the two that publish these pages, do not carry it, so their pull requests do not record the approver’s title. Adding the template to every repository that holds INTDEV’s or Microsoft’s work, or supplying it as a default for INTDEV’s GitHub organization, is not yet decided.',
+      'The annual risk assessment’s coverage of the Microsoft engagement is not recorded: the risks to Microsoft data from laptops, GitHub identities, access Microsoft issues, and any local copy are not shown to be in the risk register. Adding them to the register with a date is not yet decided.',
+    ],
+  },
+  {
+    id: 35,
+    title: 'Asset inventory and ownership',
+    requires: 'Every physical and virtual asset that supports the work has a named owner and is kept in an inventory that records each device’s location, the classification of the data on it, its recovery when employment or an agreement ends, and the disposal of storage media. A device used with @microsoft.com credentials to reach Microsoft data is managed solely by Microsoft.',
+    meets: [
+      'The Asset Management Policy requires an inventory of every asset that stores, processes, or transmits classified information, a named owner for each, acceptable use rules (in the Information Security Policy), the return of every asset when employment or a contract ends, and disposal by an approved erasure method under NIST SP 800-88, or a certificate of destruction from a third-party service.',
+      `Laptops: every laptop used for INTDEV work is enrolled in the central device register under its team member, with its location, the classification of the data on it, its model, chip, macOS version, disk encryption, anti-malware state, and last check-in, published live. Every work laptop was in Seattle, WA when the CEO recorded the locations on November 6, 2026, and every one is classified ${DEVICE_INVENTORY.classification}, because the Data Management Policy classifies a system by the highest class of data it holds.`,
+      'Virtual assets: the Render services and database are listed with their region and plan; every AWS IAM user, customer-managed role, and S3 bucket carries a named owner tag; the vendor inventory names an owner for each vendor; and the software inventory lists every package the INTDEV API runs, with the version in production.',
+      'Data classification: the Data Management Policy classifies data as Confidential, Restricted, or Public, and classifies each system by the highest classification of data it holds. Client data is Confidential.',
+      `Recovery and disposal: ${DEVICE_INVENTORY.recovery} ${DEVICE_INVENTORY.disposal} The device register states both beside every laptop.`,
+      'No team member uses @microsoft.com credentials on any device, as the owner confirmed on November 6, 2026, so no INTDEV device needs to be managed solely by Microsoft.',
+    ],
+    evidence: [
+      { label: 'Mobile device management system (device register)', href: '/compliance/mobile-device-management-system' },
+      { label: 'Render service agreement', href: '/compliance/render-service-agreement' },
+      { label: 'Access reviews (AWS owners)', href: '/compliance/access-reviews' },
+      { label: 'Vendor management program', href: '/compliance/vendor-management' },
+      { label: 'Service infrastructure maintenance (software inventory)', href: '/compliance/infrastructure-maintenance' },
+      { label: 'Access revoked upon termination', href: '/compliance/access-termination' },
+    ],
+    open: [],
+  },
+  {
+    id: 36,
+    title: 'Access rights management',
+    requires: 'Access control and identification procedures, lockout after unsuccessful attempts, automatic logoff after inactivity, strong password rules (length, complexity, and no reuse), deactivation within 48 hours of termination, MFA for identities, and a least-privilege access review with defined roles, a documented justification for each person in a role, and a strong prohibition on shared accounts or passwords.',
+    meets: [
+      'The Access Control Policy grants access on least privilege through the roles in the access matrix, requires a unique user ID for every person, forbids sharing credentials, and keeps every permission change for at least a year. User IDs are never reused.',
+      'Password rules on confidential systems, wherever the system allows: at least 12 characters with upper and lower case letters, a number, and a special character; no reuse of the last 16 passwords; lockout after 6 failed attempts; new passwords checked against common and leaked password lists; and storage only as bcrypt hashes.',
+      'Automatic logoff: a device with confidential data locks after 5 minutes of inactivity, and any device after 10 minutes at most.',
+      'MFA is enforced on every account INTDEV uses for Microsoft work, as the owner confirmed on November 6, 2026, and is required for all privileged access to production.',
+      'INTDEV has no shared accounts or passwords, as the owner confirmed on November 6, 2026. Every system account in the register has one owner, and the account registered to the engineering mailbox is signed in to only by Jimmy Lee.',
+      'Every access request names the system, the level, the business reason, and an approver who is never the requester. Access is reviewed every quarter, and the INTDEV API publishes every grant with its user_id and checks it against production on every read.',
+      'Departures: a termination checklist removes all access within 24 business hours, and the INTDEV API checks former team members’ access against production on every read.',
+    ],
+    evidence: [
+      { label: 'Access control procedures', href: '/compliance/access-control' },
+      { label: 'Access requests', href: '/compliance/access-requests' },
+      { label: 'Access reviews', href: '/compliance/access-reviews' },
+      { label: 'Access revoked upon termination', href: '/compliance/access-termination' },
+      { label: 'Mobile device management (screen lock)', href: '/compliance/mobile-device-management' },
+    ],
+    open: [
+      `The Access Control Policy’s limit is 24 business hours, which can run past Microsoft’s 48 hours over a weekend or holiday. ${OWNER_DECISION}: adopted. The Access Control Policy is to add that every account is deactivated within 48 hours of a departure at most, and the new version is approved in Vanta.`,
+      `The Access Control Policy still lets root, service, and administrator passwords be shared through a password manager for business continuity, where Microsoft asks for a strong prohibition on shared accounts and passwords. ${OWNER_DECISION}: adopted, and INTDEV has no shared accounts or passwords. The policy is to prohibit them and keep emergency access as a single break-glass credential held by the CEO, and the new version is approved in Vanta.`,
+      'Access a client issues, such as membership in Microsoft’s GitHub organization or a Microsoft Entra guest account, is not in the access register, and no termination step asks the client to remove it, so its removal within 48 hours of a departure is not recorded. Recording client-issued access by person, client, level, approver, and date, and a termination step that asks each client to remove the access it issued and records the client’s confirmation, are not yet decided.',
+    ],
+  },
+  {
+    id: 37,
+    title: 'Patch management',
+    requires: 'Monthly vulnerability scans with a compliance report covering the prior 12 months; risk-based prioritization of security patches under documented severity definitions; emergency patching; coverage of operating systems and server software; records of the risk each patch mitigates and of exceptions; and retirement of software its vendor no longer supports.',
+    meets: [
+      'Severity is defined in writing, by CVSS base score and impact, and sets the deadline: critical and high within 30 days, medium within 60, low within 90, and informational as needed (Operations Security Policy). INTDEV may raise or lower a scanner’s severity for real-world impact and exploitability, and records why.',
+      'A finding that cannot meet its deadline gets a risk treatment plan with compensating controls and management sign-off, recorded in the vulnerability register.',
+      'Emergency patches ship at once and are reviewed afterward. Users Garden moved to Next.js 16.0.7 on December 5, 2025, two days after a critical remote code execution advisory.',
+      'Render patches the host operating systems, the container runtime, and the PostgreSQL engine; INTDEV patches the Node.js runtime, frameworks, and dependencies. GitHub Dependabot alerts are on for every one of INTDEV’s own repositories, and Vanta tests that findings of every severity are fixed within their deadlines.',
+      'Software its vendor no longer supports is retired before its end of life, or recorded as a finding of at least Medium severity and replaced within that deadline. The rule covers operating systems, runtimes, packages, and the macOS version on every laptop.',
+      'The vulnerability register records each finding, the risk it poses, the change and release that fixed it, and how the fix was verified, and the version ledger and deploy history keep the patch record of every release.',
+    ],
+    evidence: [
+      { label: 'Vulnerability scanning and remediation (severity definitions)', href: '/compliance/vulnerability-scans' },
+      { label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' },
+      { label: 'Service infrastructure maintenance (retiring unsupported software)', href: '/compliance/infrastructure-maintenance' },
+      { label: 'Changelog and version ledger', href: '/compliance/changelog' },
+    ],
+    open: [
+      `Scans ran every quarter until November 4, 2026, the first recorded scan, so no 12-month history of monthly scans exists yet. ${OWNER_DECISION}: scans run every month from that scan, with the next due by December 4, 2026, and each one is added to the published record until it covers 12 months.`,
+      'The monthly scan covers the INTDEV API, its public hostnames, AWS, and Render, but does not record the patch state of the laptops, the systems used to process Microsoft data, although the device check reports each laptop’s macOS version and whether security updates install automatically. Adding the laptops’ patch state to each scan is not yet decided.',
+      'No rule defines which macOS versions count as supported, which the retirement rule needs to judge a laptop, and Apple publishes no end-of-life schedule for macOS. The supported-macOS rule is not yet decided.',
+    ],
+  },
+  {
+    id: 38,
+    title: 'Anti-virus and anti-malware',
+    requires: 'Anti-virus and anti-malware software on all equipment connected to any network that processes Microsoft data, including servers and Linux, kept current with definitions updated daily or as the vendor directs, with records showing it is active.',
+    meets: [
+      'Microsoft data is processed only on the laptops INTDEV team members use to open it in Microsoft’s systems. Production, which runs in Render-managed Linux containers, holds no Microsoft data.',
+      `Laptops run XProtect and Gatekeeper, built into macOS, and Apple installs XProtect’s definitions automatically as it directs. Each laptop reports Gatekeeper, its installed XProtect definitions, its automatic update settings, and its application firewall through the device check at least every ${DEVICE_CHECK_FRESH_DAYS} days, and the anti-malware page publishes that record live.`,
+      'GuardDuty Malware Protection scans new objects in the S3 buckets that hold customer uploads, and GuardDuty threat detection runs in four AWS regions. The state of both is read when each INTDEV API release is built.',
+      'Gmail scans company email attachments and links for malware.',
+      'A known or suspected malware detection is a security incident, and disabling anti-malware without authorization violates policy. The Operations Security Policy’s exemption for operating systems not normally prone to malicious software covers no equipment used for Microsoft work, since every laptop reports its anti-malware.',
+    ],
+    evidence: [
+      { label: 'Anti-malware (live laptop record)', href: '/compliance/anti-malware' },
+      { label: 'Device check-ins (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.devices}` },
+      { label: 'Intrusion detection', href: '/compliance/intrusion-detection' },
+      { label: 'Infrastructure controls (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.infrastructure}` },
+    ],
+    open: [`The laptop record reads anti-malware from version 3 of the device check, which ships with INTDEV API 2.0.30. Each team member reruns the check on every laptop, and the record is complete when every current laptop has reported with it, within ${DEVICE_CHECK_FRESH_DAYS} days of that release.`],
+  },
+  {
+    id: 39,
+    title: 'Security by design',
+    requires: 'A supplier that develops software or applications for Microsoft builds security in by design, with security validation checkpoints in its technical specifications and code scanning that alerts on obvious flaws.',
+    meets: [
+      'INTDEV’s statement of work with Microsoft calls for research, competitive analysis, and design, and INTDEV also delivers code to Microsoft, so this requirement applies. Whenever INTDEV develops software, the Secure Development Policy applies.',
+      'The Secure Development Policy applies ten secure-by-design and seven privacy-by-design principles, requires significant changes to be reviewed and approved before merge, forbids deploying code without documented, successful tests, and requires application code to be scanned before deployment.',
+      'Security checkpoints in every change to the INTDEV API: each of its pull requests records its reason and approver, confirms that it adds no secret, and states any change to authentication, authorization, or data handling before review, and code is delivered only with its tests passing.',
+      'Every production change to the INTDEV API is a reviewed pull request, its tests hold its permission boundaries, and dependencies are scanned with npm audit and GitHub Dependabot. No Microsoft code is given to an AI coding assistant without Microsoft’s written permission.',
+      'Code scanning: GitHub CodeQL analyzes every pull request in INTDEV’s own repositories, including the private repositories that hold INTDEV’s work product for Microsoft, and alerts on flaws before merge, as the owner confirmed on November 6, 2026. In the INTDEV API repository, read through the GitHub API the same day, CodeQL scans each pull request, each push to main, and every week, and a ruleset blocks a merge that leaves a high or critical alert; its first analysis found eight alerts, recorded in the vulnerability register as INTDEV-2026-CODE-01 and INTDEV-2026-CODE-02 and fixed in INTDEV API 2.0.32. Code kept in Microsoft’s systems follows Microsoft’s own setup.',
+      'Code INTDEV writes for Microsoft is kept in Microsoft’s systems or in private repositories in INTDEV’s GitHub organization (the Microsoft engagement rules above).',
+    ],
+    evidence: [
+      { label: 'CI/CD production deployments', href: '/compliance/ci-cd' },
+      { label: 'Roles and responsibilities (Security Engineer)', href: '/compliance/roles-and-responsibilities' },
+      { label: 'Sample of remediated vulnerabilities', href: '/compliance/remediated-vulnerabilities' },
+    ],
+    open: [
+      'No technical specification template with security validation checkpoints is recorded, which Microsoft’s evidence for this requirement asks for, and where the technical specifications for Microsoft deliverables live is not recorded. A security validation section in that template, covering the threat review, authentication and data handling decisions, and the security tests that must pass, is not yet decided.',
+    ],
+  },
+  {
+    id: 40,
+    title: 'Data loss prevention',
+    requires: 'A data loss prevention program: data classified, labeled, and protected; host, network, and cloud intrusion detection where Microsoft data is retained; intrusion prevention configured to stop data loss; analysis for residual vulnerabilities after a breach; procedures for monitoring compromise detection tools; an incident response process; and a reminder to everyone leaving the work not to download or use Microsoft data.',
+    meets: [
+      'The Data Management Policy classifies data and sets handling rules for each class, and the Operations Security Policy’s data leakage prevention section requires classification and training in handling sensitive data.',
+      'Microsoft data stays in Microsoft’s systems, under Microsoft’s own classification, labels, and protection: INTDEV never downloads it or keeps a copy, and refuses it when it arrives any other way. INTDEV therefore retains no Microsoft data, which is the condition under which Microsoft requires host, network, and cloud intrusion detection.',
+      'INTDEV’s own systems are still monitored: GuardDuty in four AWS regions with every finding emailed to engineering, VPC Flow Logs kept for 365 days, CloudTrail, and Cloudflare in front of every public hostname.',
+      'Findings and suspected intrusions are handled under the Incident Response Plan: report, triage, investigation, containment, recovery and remediation, and lessons learned, with a root cause analysis for every incident.',
+      'After an incident the review is widened to similar weaknesses in every related system, as the INC-2026-001 report shows.',
+      'Everyone who leaves INTDEV or a client engagement is reminded in writing that they may not download, keep, or use the client’s data, and confirms they hold none, under the engagement closeout above.',
+    ],
+    evidence: [
+      { label: 'Intrusion detection', href: '/compliance/intrusion-detection' },
+      { label: 'Incident report INC-2026-001', href: '/compliance/incident-report' },
+      { label: 'Incident response plan test', href: '/compliance/incident-response-test' },
+    ],
+    open: [`Microsoft also requires intrusion prevention configured to monitor and actively stop data loss, with no condition on retention, and no DLP tool or intrusion prevention system does that on INTDEV laptops or accounts. ${OWNER_DECISION}: INTDEV answers requirement 40 “Does Not Apply” in the SSPA portal with the comment below, because Microsoft data never leaves Microsoft’s systems. INTDEV’s November 5, 2026 attestation answered “Compliant”; the owner is revising the attestation, and SSPA support verifies a “Does Not Apply” answer against the statement of work before accepting it.`],
+    answer: {
+      response: 'Does Not Apply',
+      comment:
+        'INTDEV performs its research, design, and engineering for Microsoft only inside systems Microsoft provides and manages, reached through access Microsoft issues for the engagement. INTDEV does not download, store, or retain Microsoft Personal or Confidential Data on its laptops, in its Google Workspace, Slack, or GitHub accounts, or in its own applications, and code INTDEV writes stays in Microsoft’s systems or is INTDEV’s own work product, holding no Microsoft data, until it is delivered. No INTDEV application, system, or infrastructure therefore holds Microsoft data where an INTDEV intrusion detection or prevention system could monitor or stop its loss; Microsoft’s own controls protect it where it lives. INTDEV still classifies its data, runs incident response under its Incident Response Plan, and reminds everyone leaving the engagement in writing not to download or use Microsoft data.',
+    },
+  },
+  {
+    id: 41,
+    title: 'Network protection',
+    requires: 'Controls against unauthorized network access, secure transmission, segmented traffic, current network diagrams and configuration baselines, logs of monitoring and incident response, and network administration roles separate from general IT operations.',
+    meets: [
+      'Every hostname serves HTTPS only behind Cloudflare, each Render service exposes only its HTTP port, the database requires TLS and a credential, and the S3 buckets refuse plain HTTP.',
+      'The public edge, production services, production data, object storage, the AWS account, and development are separate segments, shown in the network diagrams with the only paths between them.',
+      'The Render and AWS security group configurations are exported into every INTDEV API release as the current configuration baseline, under the configuration and hardening standards of the Operations Security Policy.',
+      'GuardDuty findings, VPC Flow Logs, and the incident record show monitoring and response. Firewall rules are reviewed every year.',
+      'Network administration is a written role separate from general IT operations, held by Jimmy Lee alone, as the owner confirmed on November 6, 2026. Only he holds permission to change Cloudflare, which carries no Microsoft work, Render network settings, and AWS network settings; DevOps asks him for any network change. He is the only person with access to the AWS account, through the administrator account he holds with MFA.',
+      'The database network allow list is being narrowed (INTDEV-2026-NET-01, due January 3, 2027). The database holds no Microsoft data.',
+    ],
+    evidence: [
+      { label: 'Network segmentation', href: '/compliance/network-segmentation' },
+      { label: 'Service description and network diagram', href: '/compliance/service-description' },
+      { label: 'Data transmission encryption', href: '/compliance/encryption-in-transit' },
+      { label: 'Network firewall review', href: '/compliance/firewall-review' },
+      { label: 'Roles and responsibilities (Network Administrator)', href: '/compliance/roles-and-responsibilities' },
+      { label: 'Network configuration exports (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.network}` },
+    ],
+    open: [],
+  },
+  {
+    id: 42,
+    title: 'No secrets in code',
+    requires: 'Secrets are never embedded in source or configuration files. A current credential exposure prevention tool, such as GitHub Advanced Security, is in use; a secret found in code is documented as revoked; its replacement is never pushed back into code; and false positives are documented.',
+    meets: [
+      'Secrets live only in Render’s environment settings and in maintainers’ local, git-ignored files. Account administration credentials are never deployed, and every production instance checks at launch that it holds none of them.',
+      'Training requires that secrets are never committed or pasted into issues, chat, or email, and that a possible leak is reported at once, the secret rotated, and the secret removed from history.',
+      'A secret found in code is a security incident. It is revoked at its issuer first, and the incident record notes what was exposed (never the value), when it was revoked, and by whom. Its replacement goes only into Render’s environment settings or a git-ignored file, and the reviewer of the fix confirms the diff adds no secret. A scanner alert that is not a secret is dismissed with its reason, which is recorded with the date.',
+      'Every pull request in the INTDEV API repository confirms that it adds no secret to any source or configuration file.',
+      'GitHub secret scanning, including non-provider patterns, and push protection are on for the INTDEV API repository, and its ruleset blocks a merge until every secret scanning alert for a known provider’s credential is resolved, as read through the GitHub API on November 6, 2026.',
+      'The compliance snapshots compiled into each release are refused if they contain an account ID, an ARN, or an access key ID.',
+    ],
+    evidence: [
+      { label: 'Security awareness training', href: '/compliance/security-awareness-training' },
+      { label: 'Access requests (credentials in practice)', href: '/compliance/access-requests' },
+      { label: 'Disaster recovery tabletop exercise (action items)', href: '/compliance/tabletop-exercise' },
+    ],
+    open: ['Secret scanning and push protection for every repository in the GitHub organization is a tabletop action item due December 4, 2026. They are recorded as on only for the INTDEV API repository; the organization’s other repositories have not yet been read.'],
+  },
+  {
+    id: 43,
+    title: 'Backup',
+    requires: 'Documented response and recovery procedures with continuity objectives approved by management, and procedures to back up critical data periodically, store it securely (including encryption), and recover it.',
+    meets: [
+      'The BC/DR Plan sets the recovery objectives management approved: four hours to restore the INTDEV API and its sign-in, with at most one hour of data loss.',
+      'The production database has point-in-time recovery with about seven days of history, kept encrypted by Render outside the primary instance.',
+      'The S3 buckets that hold customer uploads are versioned with no automatic expiry, so an overwritten or deleted object stays restorable.',
+      'The restore procedure is written: recover to a new instance, verify it, point the API at it, rotate the credential, and record the result against the objectives. Information security continuity is part of the plan, and a security event follows the Incident Response Plan.',
+    ],
+    evidence: [
+      { label: 'Backup and recovery', href: '/compliance/backups' },
+      { label: 'Disaster recovery tabletop exercise', href: '/compliance/tabletop-exercise' },
+    ],
+    open: ['The first full restore into an isolated instance is scheduled for December 18, 2026.'],
+  },
+  {
+    id: 44,
+    title: 'Business continuity and disaster recovery',
+    requires: 'A tested disaster recovery plan with criteria for deciding which systems are critical, the list of critical systems, a recovery procedure for each that lets an engineer who does not know the system recover it in under 72 hours, and testing at least once a year.',
+    meets: [
+      'The BC/DR Plan ranks INTDEV’s systems by business impact with a recovery time and recovery point objective for each, and sets a procedure for each disruption scenario.',
+      `A system is critical when losing it would make a customer-facing INTDEV service or customer sign-in unavailable, put customer data at risk of loss or exposure, or stop INTDEV from shipping a fix to production. By those criteria the ${countWord(RECOVERY_PROCEDURES.length)} critical systems are ${RECOVERY_PROCEDURES.map((procedure) => procedure.system).join(', ')}.`,
+      'A step-by-step recovery procedure for each critical system, written for an engineer who does not know the system, is published on the disaster recovery procedures page, with its recovery objective and the access it needs.',
+      'Users Garden, Terminal Graph, item.market, and TXT.DEV are front-ends that keep no customer data of their own. Their data is held by the INTDEV API, its database, Amazon S3, and Stripe, and is recovered with those systems’ procedures, so each front-end’s procedure only has to redeploy it.',
+      'The plan is tested every year. The November 4, 2026 tabletop exercise ran a total loss of the INTDEV API with every team member, and its action items are tracked to completion.',
+    ],
+    evidence: [
+      { label: 'Disaster recovery procedures', href: '/compliance/disaster-recovery' },
+      { label: 'Disaster recovery tabletop exercise', href: '/compliance/tabletop-exercise' },
+      { label: 'Backup and recovery', href: '/compliance/backups' },
+    ],
+    open: [
+      ...RECOVERY_PROCEDURES.filter((procedure) => procedure.gaps.length).map((procedure) => `${procedure.system}: ${procedure.gaps.join(' ')} ${recoveryGapPlan(procedure)}`),
+      'The first timed restore test is scheduled for December 18, 2026.',
+    ],
+  },
+  {
+    id: 45,
+    title: 'Identity authentication and least privilege',
+    requires: 'Authenticate each individual before granting access to Microsoft Personal or Confidential Data, with a unique user ID, an industry standard authentication method, and MFA, and limit that access to what the individual needs, for no longer than needed.',
+    meets: [
+      'Every person has a unique user ID, and staff identities are Google Workspace accounts.',
+      'MFA is enforced on every account INTDEV uses for Microsoft work, as the owner confirmed on November 6, 2026, and is required for all privileged access to production.',
+      'Access comes from a role or from an approved request with a business reason and a review or expiry date, is reviewed every quarter, and is removed when a person leaves. Client data is open only to the team members assigned to the engagement, and Microsoft data only through the access Microsoft grants in its own systems.',
+    ],
+    evidence: [
+      { label: 'Access control procedures', href: '/compliance/access-control' },
+      { label: 'Access requests', href: '/compliance/access-requests' },
+      { label: 'Access reviews', href: '/compliance/access-reviews' },
+    ],
+    open: [],
+  },
+  {
+    id: 47,
+    title: 'Encryption in transit',
+    requires: 'All data processed for Microsoft is encrypted in transit with TLS or IPsec, as NIST SP 800-52 and SP 800-57 describe or an equivalent standard; Microsoft data delivered by unencrypted means is refused; and the creation, deployment, and replacement of certificates is defined and enforced.',
+    meets: [
+      'Microsoft data reaches INTDEV only through Microsoft’s own systems, over TLS. Anything sent another way, such as on removable media or as an unencrypted file, is refused, deleted without being opened, and reported to the Microsoft contact.',
+      'All of INTDEV’s own traffic is HTTPS: TLS 1.3 is negotiated at the Cloudflare edge and legacy TLS is refused, origins are reached over HTTPS, the database requires TLS, and the S3 buckets refuse unencrypted requests. The TLS of each hostname is tested when each INTDEV API release is built.',
+      'The Cryptography Policy follows NIST SP 800-57: TLS ciphers rated B or better, and certificates using RSA 2048 or ECC 256 with SHA-2, valid for no more than a year.',
+      'Certificates are created, deployed, and renewed automatically by Cloudflare at the edge and by Render at the origins, and their validity is checked on every request to the infrastructure record. A Strict-Transport-Security header, which hardens INTDEV’s own hostnames beyond this requirement, is tracked as INTDEV-2026-HSTS (due February 2, 2027).',
+    ],
+    evidence: [
+      { label: 'Data transmission encryption', href: '/compliance/encryption-in-transit' },
+      { label: 'Infrastructure controls (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.infrastructure}` },
+    ],
+    open: [],
+  },
+  {
+    id: 48,
+    title: 'Full disk encryption',
+    requires: 'Every device that accesses or handles Microsoft Personal or Confidential Data uses full disk encryption, such as BitLocker or an industry equivalent.',
+    meets: [
+      'FileVault, the full disk encryption built into macOS and its equivalent of BitLocker, is required on every laptop used for INTDEV work: AES-256-XTS on Apple silicon, and AES-XTS on T2 and older Intel Macs.',
+      `Each laptop proves its encryption to the INTDEV API at least every ${DEVICE_CHECK_FRESH_DAYS} days, and the fleet report is published live. A team member whose laptop is unencrypted or has not reported shows as open.`,
+    ],
+    evidence: [
+      { label: 'Removable media encryption (fleet report)', href: '/compliance/removable-media' },
+      { label: 'Mobile device management system', href: '/compliance/mobile-device-management-system' },
+      { label: 'Encryption standard (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.encryption}` },
+    ],
+    open: [],
+  },
+  {
+    id: 49,
+    title: 'Encryption at rest',
+    requires: 'Systems and procedures, following current standards such as NIST SP 800-111, encrypt at rest all Microsoft Personal and Confidential Data, including credentials, payment data, personal identifiers, data belonging to Microsoft’s customers, and material about unannounced Microsoft products.',
+    meets: [
+      'Microsoft data stays at rest in Microsoft’s own systems: INTDEV keeps no copy of it, and the laptops that open it are encrypted with FileVault.',
+      'The Cryptography Policy requires AES-256 for confidential data at rest, and the Data Management Policy requires confidential data to be encrypted at rest and every backup to be encrypted.',
+      'The production database is encrypted at rest by Render, every S3 bucket uses server-side AES-256 encryption, and every laptop uses FileVault. Passwords are stored only as bcrypt hashes, and payment card data is held only by Stripe.',
+      'Credential storage in the INTDEV API, which holds no Microsoft data, is being brought to the Cryptography Policy’s standard (INTDEV-2026-CRYPTO-01, due December 4, 2026).',
+    ],
+    evidence: [
+      { label: 'Service description (where data is stored)', href: '/compliance/service-description' },
+      { label: 'Removable media encryption', href: '/compliance/removable-media' },
+      { label: 'Encryption standard (JSON)', href: `${API_HOST}${EVIDENCE_ENDPOINTS.encryption}` },
+    ],
+    open: [],
+  },
+];
+
+function recoveryGapPlan(procedure: (typeof RECOVERY_PROCEDURES)[number]): string {
+  if (procedure.due) return `Due ${procedure.due}.`;
+  if (procedure.owner) return `${OWNER_DECISION}: ${procedure.owner} completes it; the date is not yet set.`;
+  return `${OWNER_DECISION}: recovery procedures are published on the compliance pages; who completes this one, and by when, is not yet decided.`;
+}
+
+function requirementStatus(requirement: SupplierRequirement): string {
+  if (!requirement.open.length) return 'In place';
+  return `In place, with ${countWord(requirement.open.length)} item${requirement.open.length === 1 ? '' : 's'} not yet in place`;
+}
+
+export function ClientDataProtection() {
+  const complete = SUPPLIER_REQUIREMENTS.filter((requirement) => !requirement.open.length).length;
+  return (
+    <Document
+      slug="client-data-protection"
+      title="Client data protection and engagement closeout"
+      updated="November 6, 2026"
+      summary="How INTDEV protects the designs, research, and personal data its clients share in design, research, and engineering engagements; how an engagement is closed out and its data deleted, including copies outside INTDEV’s own applications; and how INTDEV meets each of Microsoft’s Supplier Data Protection Requirements, which Microsoft assesses through its Supplier Security and Privacy Assurance (SSPA) program."
+      controls={['Microsoft Supplier Data Protection Requirements (SSPA)', 'Customer data deleted upon leaving', 'Third-party agreements established']}
+      owner="Jimmy Lee, Chief Executive Officer and Privacy Management Lead"
+      appliesTo="INTDEV’s design, research, and engineering engagements for clients, including Microsoft"
+      related={[
+        { label: 'Microsoft Purchase Order Terms and Conditions', href: MICROSOFT_TERMS, detail: 'The terms INTDEV’s Microsoft statement of work incorporates' },
+        { label: 'Microsoft Supplier Data Protection Requirements, version 12', href: DPR_V12, detail: 'The requirements below, as Microsoft published them in March 2026' },
+      ]}
+    >
+      <Section title="Client data in engagements">
+        <Group>
+          <p>Clients share designs, research, product plans, and sometimes personal data, such as the contact details of their staff, so that INTDEV can do the work. Under the Data Management Policy all of it is Confidential, and the client’s agreement governs how it may be used. For Microsoft, that agreement is the statement of work under the Microsoft Purchase Order Terms and Conditions.</p>
+          <List
+            items={[
+              'Used only to perform the engagement, as the client’s agreement and instructions allow, within INTDEV’s direct business relationship with that client. INTDEV does not sell it or use it for any other purpose.',
+              'Open only to the team members assigned to the engagement, under the least privilege rule of the Access Control Policy.',
+              'Kept only in company systems listed in the vendor inventory, in the client’s own systems, or on company laptops encrypted with FileVault; never on personal phones or devices, or on removable media (Data Management Policy).',
+              'Never copied into development or test environments, and shared outside INTDEV only under a contract and with the client’s written permission.',
+              'Encrypted in transit over public networks and at rest, as the Cryptography Policy requires.',
+              'A security incident that affects client data is handled under the Incident Response Plan, and the client is notified as its agreement and the law require.',
+            ]}
+          />
+        </Group>
+      </Section>
+      <Section title="Microsoft engagement rules">
+        <Group>
+          <p>Microsoft’s engagement adds these rules to the ones above. The owner set them on November 6, 2026, and every team member who works on the engagement follows them.</p>
+          <List items={MICROSOFT_DATA_RULES} />
+        </Group>
+      </Section>
+      <Section title="Engagement closeout">
+        <Group>
+          <p>When an engagement ends, INTDEV deletes the client’s designs, research, and other confidential data it holds, including copies outside INTDEV’s own applications, unless the client asks for them back or its agreement says otherwise. The Data Management Policy requires customer data to be deleted within 30 days of a contract ending, and engagement data follows the same limit.</p>
+          <List
+            ordered
+            items={[
+              'The CEO opens a closeout record when the final deliverable is accepted or the agreement ends, whichever comes first.',
+              'The record lists every place the client’s data was kept: company laptops; Google Workspace mail and Drive; Slack; GitHub repositories; design, research, and AI tools; INTDEV storage such as Amazon S3; and copies outside INTDEV’s own applications, such as exports, downloads, screenshots, notes, and files shared with contractors.',
+              'INTDEV returns anything the client asks to have back, and confirms that the client holds every deliverable.',
+              'Every remaining copy is deleted within 30 days of the end of the engagement. In INTDEV’s versioned S3 buckets every stored version of a file is deleted, not just the current one, and the trash or deleted items of every tool that keeps them are emptied.',
+              'Each team member and contractor who worked on the engagement confirms in writing that they hold no copy. Anyone who leaves the engagement or INTDEV before it ends is reminded in writing that they may not download, keep, or use the client’s data, and makes the same confirmation.',
+              'INTDEV keeps only what the agreement or the law requires, such as the signed agreement, purchase orders, and invoices, which hold no designs or research. Copies inside a vendor’s own backups expire on that vendor’s schedule, and INTDEV never restores them.',
+              'The CEO closes the record with the date of each deletion. On request, the CEO, an officer of INTDEV, confirms the deletion to the client in a signed certificate of destruction.',
+            ]}
+          />
+          <p>Closeout records name the client, so they are Restricted under the Data Management Policy, and each is available to its client on request.</p>
+        </Group>
+      </Section>
+      <Section title="Microsoft Supplier Data Protection Requirements">
+        <Group>
+          <p>{`Each requirement below is numbered as it appears in INTDEV’s SSPA assessment and in version 12 of Microsoft’s Supplier Data Protection Requirements, with what Microsoft requires, how INTDEV meets it, where the evidence is, and anything that is not yet in place. Of the ${countWord(SUPPLIER_REQUIREMENTS.length)} requirements, ${countWord(complete)} ${complete === 1 ? 'has' : 'have'} nothing outstanding. An item not yet in place shows the owner’s decision and its date, or says that it is not yet decided. Section K of the requirements, for AI Systems, applies only to suppliers that provide or deploy AI Systems for Microsoft, and INTDEV’s assessment does not include it. The policies cited are Restricted and available to Microsoft under NDA from ${CONTACTS.support}.`}</p>
+          <CheckTable columns={['Requirement', 'Status']} rows={SUPPLIER_REQUIREMENTS.map((requirement) => ({ checked: requirement.open.length === 0, cells: [`${requirement.id}. ${requirement.title}`, requirementStatus(requirement)] }))} />
+        </Group>
+      </Section>
+      {SUPPLIER_REQUIREMENTS.map((requirement) => (
+        <Section key={requirement.id} title={`Requirement ${requirement.id}: ${requirement.title}`}>
+          <Fields
+            items={[
+              ['Microsoft requires', requirement.requires],
+              ['How INTDEV meets it', <List key="meets" items={requirement.meets} />],
+              ['Evidence', <Links key="evidence" items={requirement.evidence} />],
+              ['Not yet in place', requirement.open.length ? <List key="open" items={requirement.open} /> : 'Nothing outstanding.'],
+              ...(requirement.answer ? [['SSPA answer', `${requirement.answer.response}. Comment: ${requirement.answer.comment}`] as [string, React.ReactNode]] : []),
+            ]}
+          />
+        </Section>
+      ))}
     </Document>
   );
 }

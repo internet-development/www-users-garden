@@ -43,6 +43,8 @@ export type DeviceCheckInput = {
   data_volume: { encrypted: boolean; filevault: boolean };
   mdm_enrolled: boolean;
   removable_media: { mounted: number; unencrypted_writable: number };
+  anti_malware?: { gatekeeper_status: string; xprotect_version: string; xprotect_installed_at: string; xprotect_updates: boolean; security_updates: boolean };
+  firewall_status?: string;
   generated_at?: string;
   check?: string;
 };

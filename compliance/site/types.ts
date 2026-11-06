@@ -136,6 +136,7 @@ export interface TrainingCourse {
   title: string;
   version: string;
   covers: string;
+  due: string | null;
 }
 
 export interface TrainingCompletion {
@@ -239,6 +240,14 @@ export interface DeviceReport {
   data_volume: { encrypted: boolean; filevault: boolean };
   mdm_enrolled: boolean;
   removable_media: { mounted: number; unencrypted_writable: number };
+  anti_malware?: DeviceAntiMalware;
+  firewall?: { status: string; on: boolean };
+}
+
+export interface DeviceAntiMalware {
+  gatekeeper: { status: string; on: boolean };
+  xprotect: { version: string | null; installed_at: string | null };
+  automatic_updates: { xprotect: boolean; security: boolean };
 }
 
 export interface EncryptionSource {
@@ -261,6 +270,8 @@ export interface DeviceAssessment {
   cipher: string;
   aes_256: boolean;
   removable_media_clear: boolean;
+  anti_malware_active: boolean | null;
+  firewall_on: boolean | null;
 }
 
 export interface DeviceRecord extends DeviceReport {
@@ -273,6 +284,7 @@ export interface DeviceMember {
   person: string;
   role: string;
   user_id: string;
+  location: string | null;
   reporting: boolean;
   encrypted: boolean | null;
   devices: DeviceRecord[];
@@ -287,6 +299,8 @@ export interface DeviceFleetSummary {
   devices_aes_256: number;
   devices_removable_clear: number;
   devices_mdm_enrolled: number;
+  devices_anti_malware: number;
+  devices_firewall_on: number;
 }
 
 export interface LaptopEncryptionStandard extends DiskEncryptionStandard {

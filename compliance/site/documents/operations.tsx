@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 import Document from '@root/compliance/site/Document';
 import ciCdDeploys from '@root/compliance/site/images/ci-cd-render-deploys.png';
 import ciCdProject from '@root/compliance/site/images/ci-cd-render-project.png';
@@ -7,7 +9,7 @@ import internalCommunication2 from '@root/compliance/site/images/internal-commun
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
 import { InfrastructureChecks, ReleaseChecks, VersionHistory } from '@root/compliance/site/Evidence';
 import { CheckTable, Fields, Figure, Group, Links, List, Mail, Member, People, Section, Table } from '@root/compliance/site/Blocks';
-import { CONTACTS, FORMER_TEAM, TEAM } from '@root/compliance/site/facts';
+import { CONTACTS, FORMER_TEAM, TEAM, countWord } from '@root/compliance/site/facts';
 import { ALL_TERMINATIONS_VERIFIED_AT, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, LEVEL_RESTORED_AT, ORGANIZATIONS_REMOVED_AT, PLATFORM_ADMINS_SETTLED_AT, RECORDED_AT, RENDER_REMOVAL_VERIFIED_AT, SHARED_ORGANIZATIONS_REMOVED_AT, TERMINATION_CHECKLIST, TERMINATIONS, TERMINATIONS_REVERIFIED_AT } from '@root/compliance/site/records';
 
 const OWNER = <Member name="Jimmy Lee" />;
@@ -86,7 +88,7 @@ export function TabletopExercise() {
           rows={[
             ['Harden credential storage and cross-origin encryption (INTDEV-2026-CRYPTO-01), coordinated with consuming sites', OWNER, 'December 4, 2026'],
             ['Narrow the database network allow list (INTDEV-2026-NET-01)', OWNER, 'January 3, 2027'],
-            ['Turn on secret scanning and push protection for every repository in the internet-development GitHub organization', OWNER, 'December 4, 2026'],
+            ['Turn on secret scanning and push protection for every repository in the internet-development GitHub organization (read as on for the INTDEV API repository on November 6, 2026)', OWNER, 'December 4, 2026'],
             ['Add alerts for unusual database connections and exports, and review Render audit logs monthly', OWNER, 'January 3, 2027'],
             ['Run a real backup restore of the production database into an isolated instance, time it against the RTO, and record the result', OWNER, 'December 18, 2026'],
             ['Write a credential-rotation runbook covering Render, AWS, Stripe, Mailgun, Twilio, OAuth clients, and the shared AES keys', OWNER, 'December 18, 2026'],
@@ -122,6 +124,8 @@ export function ContinuousDeployment() {
           ordered
           items={[
             'Work happens on a branch and goes through a GitHub pull request. Significant changes are reviewed and approved before merge, as the Secure Development Policy requires.',
+            'On every pull request in INTDEV’s own repositories, GitHub CodeQL code scanning analyzes the change and GitHub Copilot code review reviews it, beside the teammate who approves it, and Dependabot alerts are on for each repository, as the owner confirmed on November 6, 2026. Repositories that belong to a client follow the client’s own setup.',
+            'In the INTDEV API repository these are enforced, as read through the GitHub API on November 6, 2026: a ruleset on every branch, with no bypass, blocks deleting a branch and merging without a pull request, one approving review, resolved review threads, and a rebase merge; it requests a Copilot code review on every push to a pull request, and blocks a merge that leaves a CodeQL error or a high or critical security alert, a code quality error, or an unresolved secret scanning alert for a known provider’s credential. CodeQL’s default setup scans each pull request, each push to main, and every week, and Dependabot alerts are on with no open alert.',
             'Merging to main triggers Render automatically (auto-deploy on every commit). Maintainers can also start a manual deploy of a specific commit, or roll back to one.',
             'Render installs a fresh resolution of package.json (no lockfile is committed), builds, and starts the new version. For the API, npm run build regenerates the route manifest, runs the build scan described below, then runs next build. Traffic moves to the new version only once it is up.',
             'The INTDEV API’s automated tests run on maintainers’ machines, not in Render’s build: npm test runs the Vitest specs, which hold the permission boundaries, the compliance registers, and the device check contract, and separate integration suites run the slides, Vmax Public access, SMS, and device check-in routes against a temporary embedded PostgreSQL with synthetic accounts only.',
@@ -296,6 +300,223 @@ export function Backups() {
   );
 }
 
+interface RecoveryProcedure {
+  system: string;
+  why: string;
+  objective: string;
+  access: string;
+  steps: React.ReactNode[];
+  gaps: string[];
+  due?: string;
+  owner?: string;
+}
+
+const ENVIRONMENT_SOURCE = 'Render’s environment settings for the service, or a maintainer’s git-ignored local environment file';
+
+const SHARED_KEYS = 'Restore the shared encryption keys (API_AES_KEY and API_IV_KEY) exactly as they were. Never generate new ones: the INTDEV API, Users Garden, TXT.DEV, and other INTDEV sites decrypt each other’s sign-in values with the same keys.';
+
+export const RECOVERY_PROCEDURES: RecoveryProcedure[] = [
+  {
+    system: 'INTDEV API and sign-in',
+    why: 'Every INTDEV product and every customer sign-in depends on it.',
+    objective: 'RTO 4 hours, RPO 1 hour; sign-in RPO 15 minutes',
+    access: 'A Render workspace member with MFA',
+    steps: [
+      'Check what failed: https://api.internet.dev/api/status tests encryption and token signing, and Render shows the internet-apis service’s events and deploys. If the database failed, follow the database procedure.',
+      'If a deploy broke the service, redeploy the last good commit from the service’s deploy history in Render. The changelog page lists each release with its commit.',
+      'If the service is gone, create a Render web service in Oregon from the GitHub repository internet-development/apis, branch main, on Node.js 22.12 or later. The build command is npm run build and the start command is npm start; both are defined in the repository’s package.json.',
+      `Set the environment values from ${ENVIRONMENT_SOURCE}. ${SHARED_KEYS}`,
+      'Deploy, then check /api/status, sign in through users.garden, and read /api/compliance/releases: the new instance’s launch scan must pass its environment, database, encryption, and token checks.',
+      'If the service’s Render hostname changed, point api.internet.dev at it in Cloudflare (the Cloudflare procedure), then re-point the Stripe webhook and the Google, Apple, and Bluesky sign-in redirects if their hostname changed.',
+    ],
+    gaps: ['The build and start commands are taken from the repository; the next restore test records the values set on the Render service, so the procedure does not rely on reading the old service.'],
+    due: 'December 18, 2026, at the first timed restore test',
+  },
+  {
+    system: 'Production database (PostgreSQL)',
+    why: 'Holds every account, organization, credit, order, and license.',
+    objective: 'RTO 4 hours, RPO 1 hour',
+    access: 'A Render workspace member with MFA',
+    steps: [
+      'In Render, recover the INTDEV DATA database to a new instance at a point in time before the failure. Point-in-time recovery keeps about seven days.',
+      'Check the row counts and newest records of users, organizations, credit transactions, and orders against the incident timeline.',
+      'Point the INTDEV API’s database settings at the recovered instance and redeploy.',
+      'Rotate the database credential, update the service, and redeploy again.',
+      'Record the recovery point, how long each step took, and any data lost, against the RTO and RPO.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Customer uploads (Amazon S3)',
+    why: 'The intdev-global and txtdev buckets hold customer uploads.',
+    objective: 'Inherited from Amazon S3; every version is kept',
+    access: 'The AWS administrator account, held by Jimmy Lee with MFA',
+    steps: [
+      'List the versions of the affected files. Both buckets keep every version and never expire one.',
+      'Restore a deleted file by removing its delete marker, or an overwritten file by copying its earlier version over the current one.',
+      'Check that each file serves again, and record each restored file in the recovery issue.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Source code (GitHub)',
+    why: 'The only path to ship a fix to production.',
+    objective: 'Inherited from GitHub',
+    access: 'A member of the internet-development GitHub organization',
+    steps: [
+      'Every maintainer’s clone holds the full history. If GitHub is down, keep working locally and hold deploys unless an emergency patch is needed.',
+      'If a repository is lost, push the most recent clone of main to a new repository in the internet-development organization, turn its pull request review, CodeQL code scanning, Copilot code review, Dependabot alerts, and secret scanning with push protection back on, and reconnect its Render service.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Company laptops',
+    why: 'Where all work happens.',
+    objective: 'RTO 48 hours, RPO 24 hours',
+    access: 'The laptop’s team member',
+    steps: [
+      `Report a lost or stolen laptop at once to ${CONTACTS.security}. FileVault keeps its disk encrypted.`,
+      'Revoke the laptop’s sessions in Google Workspace, GitHub, Slack, and Render, and rotate any credential stored on it outside the password manager.',
+      'Set up the replacement with FileVault on, sign in to company accounts with MFA, and run the device check so it joins the device register.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Users Garden',
+    why: 'The only public way for customers to sign in, manage API keys, and delete their accounts.',
+    objective: 'Not listed separately in BC/DR Appendix B; recovered with the INTDEV API',
+    access: 'A Render workspace member with MFA',
+    steps: [
+      'Users Garden keeps no customer data; everything it shows comes from the INTDEV API. If the API is down, recover the API first.',
+      'If a deploy broke the site, redeploy the last good commit of the www-users-garden service in Render.',
+      `If the service is gone, create a Render web service in Ohio from internet-development/www-users-garden, branch main, on Node.js 20.9 or later, with the build command npm run build and the start command npm start. ${SHARED_KEYS}`,
+      'If its Render hostname changed, point users.garden at it in Cloudflare, then sign in with a password and with Google to confirm both paths.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Cloudflare edge (DNS and TLS)',
+    why: 'Every public hostname resolves and terminates TLS through it.',
+    objective: 'Inherited from Cloudflare',
+    access: 'Only the Network Administrator, Jimmy Lee, holds Cloudflare access. A recovering engineer works with him or is granted access by him for the recovery.',
+    steps: [
+      'Check https://www.cloudflarestatus.com and whether the origins answer on their own Render hostnames, shown in each service’s Render dashboard. If only Cloudflare is failing, wait for it or set the affected records to DNS only so traffic reaches Render directly; Render serves its own certificate for each custom domain.',
+      'If records were lost or changed, recreate each public hostname as a proxied CNAME to the target Render shows under the service’s Custom Domains: api.internet.dev to internet-apis, users.garden to www-users-garden, internet.dev to www-internet-v3, and terminalgraph.com to terminalgraph. Cloudflare flattens a CNAME at a domain’s apex.',
+      'Recreate mail records from the settings Google Workspace and Mailgun (mail.internet.dev) publish for each domain, so company email and the API’s email keep working.',
+      'Restore the TLS settings: HTTP redirected to HTTPS, and TLS 1.1 and older refused. On November 5, 2026 each hostname that read covers negotiated TLS 1.3 and refused TLS 1.1.',
+      'Verify each hostname: it answers over HTTPS, redirects HTTP, and refuses TLS 1.1. The infrastructure read run with each INTDEV API release (npm run infrastructure-snapshot) checks all three for every public hostname.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Stripe',
+    why: 'Takes every subscription and checkout payment.',
+    objective: 'Inherited from Stripe',
+    access: 'A Stripe account administrator with MFA',
+    steps: [
+      'Check https://status.stripe.com. During a Stripe outage nothing is lost on INTDEV’s side: Stripe retries webhook deliveries automatically for up to three days.',
+      'If the webhook endpoint is missing or failing, add https://api.internet.dev/api/webhooks/stripe in Stripe’s Workbench with the events the API handles: checkout.session.completed, invoice.paid, customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, and payment_intent.succeeded. Put its signing secret in the INTDEV API’s Stripe webhook setting in Render and redeploy.',
+      'Resend the events that failed while the endpoint was down from the endpoint’s event list in Stripe.',
+      'Run npm run reconcile-orphan-payments in the INTDEV API on a maintainer machine. It lists orders that were charged but not fulfilled, and --apply issues each one with the same transaction the purchase routes use.',
+      'If a Stripe key may be exposed, roll it in Stripe, set the new key in Render for the INTDEV API, redeploy, and confirm that a webhook delivery succeeds.',
+    ],
+    gaps: [],
+  },
+  {
+    system: 'Terminal Graph',
+    why: 'INTDEV’s product: a macOS application with its site, documentation, changelog, and updates. Both are front-ends that keep no customer data of their own.',
+    objective: 'RTO 4 hours, RPO 1 hour',
+    access: 'Caidan Williams, the Terminal Graph product lead, who owns this procedure, with a Render workspace member',
+    steps: [
+      'Terminal Graph keeps no customer data of its own: workspaces stay on each user’s Mac and are not held by INTDEV, and accounts and subscriptions are held by the INTDEV API and Stripe. A server outage loses no user content, and recovering Terminal Graph means redeploying its front-ends.',
+      'If accounts or payments are failing, recover the INTDEV API and Stripe with their procedures first.',
+      'If the site, documentation, or changelog is down, redeploy the last good commit of the terminalgraph service in Render (Oregon), then check https://terminalgraph.com, its documentation, and its changelog.',
+    ],
+    gaps: ['The site’s repository and build settings, and how to recover the application’s signing certificate and update feed, are not yet written.'],
+    owner: 'Caidan Williams',
+  },
+  {
+    system: 'item.market',
+    why: 'A subscription service whose customer workflows stop without it. It is a front-end that keeps no customer data of its own.',
+    objective: 'RTO 8 hours, RPO 4 hours',
+    access: 'Jimmy Lee, who owns this procedure; the access its host needs is not yet written',
+    steps: [
+      'item.market keeps no customer data of its own: it stores its data through the APIs it calls, so recovering the application loses nothing.',
+      'Sign-in runs through the INTDEV API, which returns item.market users to item.market after Google, Apple, or Bluesky sign-in: recover the INTDEV API first.',
+      'Then redeploy the last good version of the item.market application on its host, and check that sign-in returns to item.market.',
+    ],
+    gaps: ['The application’s repository, host, and build settings, and which APIs hold its data and bill its subscriptions, are not yet written.'],
+    owner: 'Jimmy Lee',
+  },
+  {
+    system: 'TXT.DEV',
+    why: 'The publishing service for posts and newsletters. It is a front-end that keeps no data of its own.',
+    objective: 'RTO 8 hours, RPO 4 hours',
+    access: 'Jimmy Lee, who owns this procedure, or a member of the internet-development GitHub organization and of TXT.DEV’s host',
+    steps: [
+      'Posts and accounts live in the INTDEV API and uploads in the txtdev S3 bucket: recover those with their procedures first. The TXT.DEV application keeps no data of its own.',
+      'If a deploy broke the site, redeploy its last good commit on its host.',
+      `If the site is gone, deploy internet-development/www-txt-dev, branch main, as a Node.js 20.9 or later web service with the build command npm run build and the start command npm start. ${SHARED_KEYS}`,
+      'Point txt.dev at it in Cloudflare, then sign in and open a published post, such as the INTDEV Privacy Policy, to confirm reading and sign-in work.',
+    ],
+    gaps: ['The host TXT.DEV is deployed on is not yet written into this procedure.'],
+    owner: 'Jimmy Lee',
+  },
+];
+
+export function DisasterRecovery() {
+  const complete = RECOVERY_PROCEDURES.filter((procedure) => !procedure.gaps.length).length;
+  return (
+    <Document
+      slug="disaster-recovery"
+      title="Disaster recovery procedures"
+      summary="How INTDEV decides which systems are critical, the list of critical systems, and a recovery procedure for each, written so that an engineer who does not know the system can recover it in under 72 hours. The recovery objectives come from Appendix B of the Business Continuity and Disaster Recovery Plan."
+      controls={['Continuity and Disaster Recovery plans tested', 'Backup processes established']}
+      owner="Jimmy Lee, Chief Executive Officer and Incident Manager"
+      updated="November 6, 2026"
+    >
+      <Section title="Critical system criteria">
+        <Group>
+          <p>A system is critical when losing it would do any of the following:</p>
+          <List ordered items={['Make a customer-facing INTDEV service or customer sign-in unavailable.', 'Put customer data at risk of loss or exposure.', 'Stop INTDEV from shipping a fix to production.']} />
+          <p>Each critical system has a procedure below that an engineer who does not know it can follow to recover it in under 72 hours, and the procedures are tested at least once a year.</p>
+        </Group>
+      </Section>
+      <Section title="Critical systems">
+        <Group>
+          <p>{`Of the ${countWord(RECOVERY_PROCEDURES.length)} procedures, ${countWord(complete)} are complete. The others say what is still to be written and who writes it.`}</p>
+          <p>Users Garden, Terminal Graph, item.market, and TXT.DEV are front-ends. They keep no customer data of their own and store it through the INTDEV API and the other APIs they call, so they are critical because customers cannot use the service without them, not because data could be lost with them. Recovering one means redeploying it; its data is recovered with the INTDEV API, the production database, Amazon S3, and Stripe.</p>
+          <CheckTable columns={['System', 'Why it is critical', 'Objective', 'Access needed']} rows={RECOVERY_PROCEDURES.map((procedure) => ({ checked: !procedure.gaps.length, cells: [procedure.system, procedure.why, procedure.objective, procedure.access] }))} />
+        </Group>
+      </Section>
+      <Section title="Before you start">
+        <List
+          items={[
+            'The CEO, as Incident Manager, declares a recovery and opens a GitHub issue for it. Write the start time in the issue, then the time each step finishes.',
+            `Environment values live only in ${ENVIRONMENT_SOURCE}. Never copy a maintainer-only credential (the Render API key, the AWS administrator keys, or the Vanta client) into a deployed service; each instance refuses to pass its launch scan while it holds one.`,
+            'Recover in dependency order: Cloudflare and GitHub, then the database, then the INTDEV API, then Stripe, then the applications that depend on them.',
+          ]}
+        />
+      </Section>
+      {RECOVERY_PROCEDURES.map((procedure) => (
+        <Section key={procedure.system} title={`Recover: ${procedure.system}`}>
+          <Fields
+            items={[
+              ['Objective', procedure.objective],
+              ['Access needed', procedure.access],
+              ['Steps', <List key="steps" ordered items={procedure.steps} />],
+              ['Not yet written', procedure.gaps.length ? <List key="gaps" items={procedure.gaps} /> : 'Nothing outstanding.'],
+            ]}
+          />
+        </Section>
+      ))}
+      <Section title="Testing">
+        <p>The procedures are tested at least once a year. The November 4, 2026 tabletop exercise walked through a total loss of the INTDEV API with every team member. The first timed restore, of the production database into an isolated instance, is scheduled for December 18, 2026, and its result is recorded on the backup page.</p>
+      </Section>
+    </Document>
+  );
+}
+
 export function InternalChangeCommunication() {
   return (
     <Document
@@ -308,7 +529,7 @@ export function InternalChangeCommunication() {
         <Table
           columns={['Change', 'Where it is communicated', 'Who sees it']}
           rows={[
-            ['Every code change', 'A GitHub pull request with its description, review, and approval; the merge commit is the release note', 'Everyone with access to the repository'],
+            ['Every code change', 'A GitHub pull request with its description, review, and approval, its CodeQL code scanning result, and its Copilot code review; the merge commit is the release note', 'Everyone with access to the repository'],
             ['Every production deploy', 'Render records each deploy with its commit and can notify maintainers when a deploy fails. The history is mirrored on the CI/CD page.', 'Maintainers; the whole team through the CI/CD page'],
             ['Architecture, routes, permissions, rate limits, tables, workers, scripts', 'The repository’s AGENTS.md and published skills, updated in the same change', 'Engineers and the agents working in the repositories'],
             ['Planned work and handoffs', 'Each repository’s NEXT.md control file, which records the selected task, its evidence, and what remains', 'Engineers'],

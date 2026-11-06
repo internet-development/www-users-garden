@@ -9,7 +9,7 @@ import type { AccessGrant, AwsControls, CheckStatus, SystemAccount, ComplianceRe
 import { CheckItem, CheckTable, Member, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, AWS_IAM_REVIEW, AWS_IAM_REVIEWED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, levelName } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, AWS_IAM_REVIEW, AWS_IAM_REVIEWED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, DEVICE_INVENTORY, laptopLocation, levelName } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport, infrastructureChecks } from '@root/compliance/site/report';
 import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
@@ -341,7 +341,7 @@ export function TrainingRoster() {
               </span>,
               ...courses.map((course) => (
                 <CheckItem key={course.id} checked={record.courses.includes(course.id)}>
-                  {record.courses.includes(course.id) ? 'Completed' : 'Not completed'}
+                  {record.courses.includes(course.id) ? 'Completed' : course.due ? `Not completed; due ${formatDay(course.due)}` : 'Not completed'}
                 </CheckItem>
               )),
               <span key="signed">
@@ -669,7 +669,14 @@ export function DeviceEncryptionReport() {
   const roster: Pick<DeviceMember, 'person' | 'user_id' | 'reporting' | 'devices'>[] = served(data?.evidence, data?.members, compiledRoster);
 
   const rows = roster.flatMap((member) => {
-    const name = <Member key="person" name={member.person} />;
+    const location = laptopLocation(member.person);
+    const name = (
+      <span key="person">
+        <Member name={member.person} />
+        <br />
+        <span className={styles.muted}>{location ?? 'Location not yet recorded'}</span>
+      </span>
+    );
     if (member.reporting) return member.devices.map((device) => deviceRow(name, device));
     const pending = !data;
     const missing = {
@@ -695,7 +702,66 @@ export function DeviceEncryptionReport() {
           </CheckItem>
         </p>
       ) : null}
-      <CheckTable columns={['Team member', 'Laptop', 'Disk encryption', 'Removable media', 'Last check-in']} rows={rows} />
+      <p>{`Every work laptop is classified ${DEVICE_INVENTORY.classification}. ${DEVICE_INVENTORY.classification_basis} Location: ${DEVICE_INVENTORY.location} Recovery: ${DEVICE_INVENTORY.recovery} Disposal: ${DEVICE_INVENTORY.disposal}`}</p>
+      <CheckTable columns={['Team member and location', 'Laptop', 'Disk encryption', 'Removable media', 'Last check-in']} rows={rows} />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
+function antiMalwareLine(device: DeviceRecord): string {
+  const malware = device.anti_malware;
+  if (!malware) return 'Not read: this check-in predates device check 3';
+  const xprotect = malware.xprotect.version ? `XProtect ${malware.xprotect.version}${malware.xprotect.installed_at ? `, installed ${formatUtc(malware.xprotect.installed_at)}` : ''}` : 'XProtect definitions not found';
+  return `${xprotect} · Gatekeeper ${malware.gatekeeper.on ? 'on' : 'off'} · automatic security responses ${malware.automatic_updates.xprotect ? 'on' : 'off'} · security updates ${malware.automatic_updates.security ? 'on' : 'off'}`;
+}
+
+export function DeviceAntiMalwareReport() {
+  const path = EVIDENCE_ENDPOINTS.devices;
+  const { data, source } = useEvidence<LiveDevices>(path);
+  const summary = data?.summary ?? null;
+  const members = new Map((data?.members ?? []).map((member) => [member.user_id, member]));
+  const compiledRoster = TEAM.map((person) => members.get(person.userId) ?? { person: person.name, user_id: person.userId, reporting: false, devices: [] });
+  const roster: Pick<DeviceMember, 'person' | 'user_id' | 'reporting' | 'devices'>[] = served(data?.evidence, data?.members, compiledRoster);
+
+  const rows = roster.flatMap((member) => {
+    const name = <Member key="person" name={member.person} />;
+    const current = member.devices.filter((device) => device.current);
+    if (!current.length) {
+      const pending = !data;
+      return [{ checked: pending ? null : false, cells: [name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—', '—'] }];
+    }
+    return current.map((device) => ({
+      checked: device.assessment.anti_malware_active,
+      cells: [
+        name,
+        <span key="device">
+          {device.model} · macOS {device.os_version}
+          <br />
+          <span className={styles.muted}>Reference {device.device_ref} · checked {formatUtc(device.checked_at)}</span>
+        </span>,
+        <State key="malware" ok={device.assessment.anti_malware_active}>
+          {antiMalwareLine(device)}
+        </State>,
+        <State key="firewall" ok={device.assessment.firewall_on}>
+          {device.firewall ? device.firewall.status : 'Not read'}
+        </State>,
+      ],
+    }));
+  });
+
+  return (
+    <div className={styles.group}>
+      <p>
+        <CheckItem checked={summary ? summary.devices > 0 && summary.devices_anti_malware === summary.devices : null}>
+          {summary
+            ? summary.devices
+              ? `${summary.devices_anti_malware} of ${summary.devices} current laptops reported Gatekeeper on, XProtect definitions installed, and automatic security responses on at their last check-in. ${summary.devices_firewall_on} of ${summary.devices} reported the application firewall on.`
+              : 'No laptop has checked in yet.'
+            : `${roster.length} team members. Each laptop’s anti-malware state loads from the INTDEV API.`}
+        </CheckItem>
+      </p>
+      <CheckTable columns={['Team member', 'Laptop', 'Anti-malware', 'Application firewall']} rows={rows} />
       <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
     </div>
   );
@@ -719,6 +785,7 @@ export function DeviceManagementRecord() {
           row('Every current team member has a laptop enrolled and reporting', (fleet) => fleet.members > 0 && fleet.members_reporting === fleet.members, (fleet) => `${fleet.members_reporting} of ${fleet.members} team members checked in within the last ${DEVICE_CHECK_FRESH_DAYS} days, with ${fleet.devices} current laptop${fleet.devices === 1 ? '' : 's'} under management`),
           row('Every managed laptop is encrypted with FileVault', (fleet) => fleet.devices > 0 && fleet.devices_encrypted === fleet.devices, (fleet) => `${fleet.devices_encrypted} of ${fleet.devices} current laptops encrypted, ${fleet.devices_aes_256} with AES-256`),
           row('No managed laptop has an unencrypted, writable removable volume mounted', (fleet) => fleet.devices > 0 && fleet.devices_removable_clear === fleet.devices, (fleet) => `${fleet.devices_removable_clear} of ${fleet.devices} current laptops clear at their last check-in`),
+          row('Every managed laptop reports anti-malware active', (fleet) => fleet.devices > 0 && fleet.devices_anti_malware === fleet.devices, (fleet) => `${fleet.devices_anti_malware} of ${fleet.devices} current laptops reported Gatekeeper, XProtect, and automatic security responses on; ${fleet.devices_firewall_on} with the application firewall on`),
         ]}
       />
       {summary ? <p>{`${summary.devices_mdm_enrolled} of ${summary.devices} current laptops are also enrolled with a third-party MDM server, as macOS reports it (profiles status). INTDEV’s device management does not depend on one.`}</p> : null}

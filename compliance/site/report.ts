@@ -122,7 +122,7 @@ export function infrastructureChecks(snapshot: InfrastructureSnapshot | null, ch
   awsCheck('aws-security-groups', 'No AWS security group admits traffic from any address', '/compliance/network-segmentation', (value) => {
     const open = value.regions.flatMap((item) => item.security_groups.filter((group) => group.open_to_internet).map((group) => `${item.region} ${group.group}`));
     const running = value.regions.flatMap((item) => item.security_groups.filter((group) => group.open_to_internet && group.instances.running > 0)).length;
-    return { status: open.length ? 'open' : 'pass', result: open.length ? `${counting(open.length, 'group admits', 'groups admit')} any address (${open.join(', ')}), tracked as ${OPEN_SECURITY_GROUP_FINDING}; ${running ? `${running} with a running instance` : 'none is attached to a running instance'}` : 'No group admits any address' };
+    return { status: open.length ? 'open' : 'pass', result: open.length ? `${counting(open.length, 'group admits', 'groups admit')} any address (${open.join(', ')}), ${OPEN_SECURITY_GROUP_FINDING ? `tracked as ${OPEN_SECURITY_GROUP_FINDING}` : 'not yet tracked in the vulnerability register'}; ${running ? `${running} with a running instance` : 'none is attached to a running instance'}` : 'No group admits any address' };
   });
 
   const hosts = snapshot?.tls ?? [];
@@ -246,7 +246,7 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
   }
 
   const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;
-  checks.push(check('training', 'People', 'Every team member has signed both training courses', '/compliance/security-awareness-training', EVIDENCE_ENDPOINTS.training, counted(signed, TRAINING_COMPLETIONS.length), `${signed} of ${TRAINING_COMPLETIONS.length} team members signed`));
+  checks.push(check('training', 'People', 'Every team member has signed every training course', '/compliance/security-awareness-training', EVIDENCE_ENDPOINTS.training, counted(signed, TRAINING_COMPLETIONS.length), `${signed} of ${TRAINING_COMPLETIONS.length} team members signed all ${TRAINING_COURSES.length} courses`));
 
   const devices = inputs.devices;
   checks.push(
@@ -271,6 +271,17 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
       EVIDENCE_ENDPOINTS.devices,
       devices ? (devices.devices > 0 && devices.devices_removable_clear === devices.devices ? 'pass' : 'open') : 'unavailable',
       devices ? (devices.devices ? `${devices.devices_removable_clear} of ${devices.devices} current laptops clear` : 'No laptop has checked in yet') : pending
+    )
+  );
+  checks.push(
+    check(
+      'device-anti-malware',
+      'Devices',
+      'Every current laptop reported Gatekeeper on, XProtect definitions installed, and automatic security responses on at its last check-in',
+      '/compliance/anti-malware',
+      EVIDENCE_ENDPOINTS.devices,
+      devices ? (devices.devices > 0 && devices.devices_anti_malware === devices.devices ? 'pass' : 'open') : 'unavailable',
+      devices ? (devices.devices ? `${devices.devices_anti_malware} of ${devices.devices} current laptops reported anti-malware active; ${devices.devices_firewall_on} with the application firewall on` : 'No laptop has checked in yet') : pending
     )
   );
 
