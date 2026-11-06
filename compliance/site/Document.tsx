@@ -78,7 +78,7 @@ export default function Document(props: DocumentProps) {
             <p>
               Owner: <Member name={props.owner ?? 'Jimmy Lee, Chief Executive Officer and Chief Information Security Officer'} /> · Updated {updated}
             </p>
-            <p>Applies to: {props.appliesTo ?? 'INTDEV API (api.internet.dev), Users Garden (users.garden), and Terminal Graph (terminalgraph.com)'}</p>
+            <p>Applies to: {props.appliesTo ?? `${COMPANY.name}’s APIs (api.internet.dev) and employees, the application and service layer for every application the company builds`}</p>
           </div>
         </header>
         <div className={styles.body}>

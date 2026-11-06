@@ -10,7 +10,7 @@ import StandardLayout from '@components/StandardLayout';
 import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P } from '@system/typography';
-import { DEVICE_CHECK_FRESH_DAYS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { DEVICE_CHECK_FRESH_DAYS, TRAINING_COURSES, VANTA_TRAINING } from '@root/compliance/site/records';
 
 import type { DeviceMember, TrainingCourse } from '@root/compliance/site/types';
 
@@ -50,7 +50,7 @@ function trainingItem(courses: TrainingCourse[], signed: string[] | null, error:
   return {
     label: 'Sign every training course',
     done: false,
-    detail: `${courses.length - unsigned.length} of ${courses.length} signed. Still to sign: ${unsigned.map((course) => course.title).join('; ')}${due ? `, due ${formatDay(`${due.slice(0, 10)}T12:00:00Z`)}` : ''}. Read each course, then sign it with your own account.`,
+    detail: `${courses.length - unsigned.length} of ${courses.length} signed. Still to sign: ${unsigned.map((course) => course.title).join('; ')}${due ? `, due ${formatDay(`${due.slice(0, 10)}T12:00:00Z`)}` : ''}. Complete your training in ${VANTA_TRAINING.name}, read each course, then sign it with your own account.`,
     action: 'Sign your training',
     active: 'USER_TRAINING',
   };
@@ -134,12 +134,18 @@ export default function UserGardenCompliance(props) {
 
       <StandardLayoutSection title="How each item works">
         <P style={{ marginTop: 6 }}>
-          Device check: open Terminal on the Mac, run the one command Device check shows, paste the report it copies, and send it. Device check then lists anything that did not pass with the steps to fix it, after which you run the check again. Training: read each course, check the acknowledgement, and sign it as yourself. Never report a laptop or sign a course for someone else.
+          Device check: open Terminal on the Mac, run the one command Device check shows, paste the report it copies, and send it. Device check then lists anything that did not pass with the steps to fix it, after which you run the check again. Training: complete your training in {VANTA_TRAINING.name}, which takes the most time, then read each INTDEV course, check the acknowledgement, and sign it as yourself. Your signatures are your statement that your training is complete. Never report a laptop or sign a course for someone else.
         </P>
       </StandardLayoutSection>
 
       <StandardLayoutSection title="What you need">
-        <P style={{ marginTop: 6 }}>A web browser for training. For the device check:</P>
+        <P style={{ marginTop: 6 }}>
+          A web browser and your Vanta account for training, which starts in{' '}
+          <a className={styles.inline} href={VANTA_TRAINING.url} rel="noreferrer" target="_blank">
+            {VANTA_TRAINING.name}
+          </a>
+          . For the device check:
+        </P>
         <dl className={styles.rows}>
           {Compliance.DEVICE_CHECK_REQUIREMENTS.map((item) => (
             <div className={styles.row} key={item.name}>

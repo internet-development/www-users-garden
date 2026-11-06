@@ -92,7 +92,7 @@ export function SystemDescription() {
 
       <Section title="5. Control environment">
         <Group>
-          <p>The CEO owns the information security program and approves every policy. {POLICY_DATES}. Policies are kept in Vanta, reviewed every year, and acknowledged by all personnel. Personnel are background checked, sign confidentiality agreements, and take security awareness training.</p>
+          <p>The CEO owns the information security program and approves every policy. {POLICY_DATES}. Policies are kept in Vanta, reviewed every year, and acknowledged by all personnel. Personnel are background checked, sign confidentiality agreements, and take security awareness training in Vanta’s employee onboarding.</p>
           <p>Risk assessment follows the Risk Management Policy, which is based on ISO 27005 and NIST SP 800-30. Risks are scored by likelihood and impact on a 1 to 5 scale, kept in the Vanta risk register, and reviewed at least once a year.</p>
           <p>Monitoring includes GuardDuty findings emailed to {CONTACTS.support} from {AWS_REGIONS.length} AWS regions, VPC Flow Logs kept for 365 days, Render deploy and service logs, an annual penetration test, and dependency vulnerability scans.</p>
           <p>Information and communication run through the public compliance pages, the status page, the changelog, {CONTACTS.support} for support, {CONTACTS.security} for security reports, and the published API contract.</p>

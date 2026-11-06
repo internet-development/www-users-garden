@@ -26,7 +26,7 @@ const API_GUIDES = [
 ];
 
 export const COMPLIANCE_INDEX_TITLE = 'Compliance';
-export const COMPLIANCE_INDEX_DESCRIPTION = 'Public compliance records for the INTDEV API, Users Garden, and Terminal Graph: policies, controls, and live evidence.';
+export const COMPLIANCE_INDEX_DESCRIPTION = 'Public compliance records for the Internet Development Studio Company’s APIs and our company employees, the entire application and service layer for all applications built by our company.';
 
 export default function ComplianceIndex() {
   return (

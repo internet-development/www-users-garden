@@ -479,6 +479,11 @@ export function isTerminatedAccount(user: { id?: string | null } | null | undefi
   return typeof user?.id === 'string' && TERMINATED_USER_IDS.has(user.id);
 }
 
+export const VANTA_TRAINING = {
+  name: 'Vanta employee onboarding',
+  url: 'https://app.vanta.com/c/internet.dev/employee/onboarding',
+};
+
 export const TRAINING_COURSES: TrainingCourse[] = [
   { id: 'security-awareness-2026', title: 'Security awareness training', version: 'November 4, 2026', covers: 'Credentials and secrets, phishing, data handling, devices (FileVault, screen lock, updates), secure development, and incident reporting', due: null },
   { id: 'business-continuity-2026', title: 'Business continuity and disaster recovery training', version: 'BC/DR Plan v1.0 and the November 4, 2026 tabletop exercise', covers: 'Roles in a disaster, the restore procedure, RTO and RPO targets, customer communication, and the tabletop action items', due: null },

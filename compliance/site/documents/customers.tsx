@@ -4,7 +4,7 @@ import Document from '@root/compliance/site/Document';
 
 import { API_HOST, AWS_REGIONS, COMPANY, CONTACTS, countWord, PRODUCTS, PUBLIC_TERMS, TRUST_CENTER, VENDORS, VENDOR_REVIEW } from '@root/compliance/site/facts';
 import { ArchitectureDiagram } from '@root/compliance/site/NetworkDiagram';
-import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, DEVICE_CHECK_FRESH_DAYS, DEVICE_INVENTORY, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT, SUPPORTED_MACOS, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
+import { APPLICATION_ENCRYPTION, DELETION_STATEMENT, DEVICE_CHECK_FRESH_DAYS, DEVICE_INVENTORY, EVIDENCE_ENDPOINTS, RENDER_NETWORK_EXPORT, SUPPORTED_MACOS, TRAINING_COURSES, VANTA_TRAINING, formatRecordDay } from '@root/compliance/site/records';
 import { RECOVERY_PROCEDURES } from '@root/compliance/site/documents/operations';
 import { DeletionRecord } from '@root/compliance/site/Evidence';
 import { SecurityJobDescriptions, SecurityTeamStatement } from '@root/compliance/site/documents/governance';
@@ -549,7 +549,7 @@ const SUPPLIER_REQUIREMENTS: SupplierRequirement[] = [
     title: 'Annual privacy, security, and AI training',
     requires: 'Everyone with access to Microsoft Personal or Confidential Data completes privacy and security training every year, covering incident prevention, safeguarding passwords, log-in monitoring, the risks of downloading malicious software, privacy law, security obligations, AI systems, and contract obligations. Anyone who processes Microsoft data within AI systems completes AI training for their role, and IT staff train for incident response with simulated events.',
     meets: [
-      'Every team member completes security awareness training and business continuity and disaster recovery training within 30 days of hire and every year after, as the Human Resource Security Policy requires. Each signed completion is published by the INTDEV API with the person’s user_id and live account level, so attendance records are available at any time.',
+      `Every team member completes security awareness training and business continuity and disaster recovery training within 30 days of hire and every year after, as the Human Resource Security Policy requires. The training is taken in INTDEV’s ${VANTA_TRAINING.name}, and INTDEV’s own courses add its systems, procedures, and customer obligations. Each signed completion is published by the INTDEV API with the person’s user_id and live account level, so attendance records are available at any time.`,
       'The security awareness course covers credentials and secrets (a password manager, unique passwords of at least 12 characters, MFA, and reporting a leak at once), phishing and social engineering, data handling and classification, devices, secure development, and incident reporting.',
       'Incident response with a simulated event: every team member took part in the November 4, 2026 tabletop exercise, a timed simulation of a total compromise of the INTDEV API run through every phase of the Incident Response Plan.',
       `The security awareness update (${UPDATE_COURSE.version}) adds log-in monitoring, the risks of downloading malicious software, privacy law such as the CCPA and the GDPR, contract obligations with the Microsoft engagement rules, and AI systems, and is published with the course. The CEO approved it as the course owner.`,

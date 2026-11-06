@@ -11,7 +11,7 @@ import StandardLayout from '@components/StandardLayout';
 import StandardLayoutSection from '@components/StandardLayoutSection';
 
 import { P } from '@system/typography';
-import { TRAINING_ACKNOWLEDGEMENT, TRAINING_COURSES } from '@root/compliance/site/records';
+import { TRAINING_ACKNOWLEDGEMENT, TRAINING_COURSES, VANTA_TRAINING } from '@root/compliance/site/records';
 
 import type { TrainingCourse, TrainingSignature } from '@root/compliance/site/types';
 
@@ -68,7 +68,16 @@ export default function UserGardenTraining(props) {
 
   return (
     <StandardLayout>
-      <StandardHeader title="Training">Read each INTDEV training course, then sign it here with your own account. INTDEV team members sign every course within 30 days of joining and every year after, and sign again whenever a course gets a new version. Your signature is recorded with the course, its version, and the time, and the training record on the compliance pages shows it within a minute.</StandardHeader>
+      <StandardHeader title="Training">Complete your training in Vanta, then read each INTDEV training course and sign it here with your own account. INTDEV team members sign every course within 30 days of joining and every year after, and sign again whenever a course gets a new version. Your signature is recorded with the course, its version, and the time, and the training record on the compliance pages shows it within a minute.</StandardHeader>
+
+      <StandardLayoutSection title="Start in Vanta">
+        <P style={{ marginTop: 6 }}>Your training is taken in {VANTA_TRAINING.name}. Sign in to Vanta and finish every task it assigns you; it covers most of INTDEV’s training requirements and takes real time. The INTDEV courses below add INTDEV’s own rules. Signing them here is your statement that your training is complete, because the INTDEV API does not read Vanta.</P>
+        <div className={styles.actions}>
+          <Button href={VANTA_TRAINING.url} rel="noreferrer" target="_blank">
+            Open Vanta training
+          </Button>
+        </div>
+      </StandardLayoutSection>
 
       {!isTeamMember ? (
         <StandardLayoutSection title="Before you join the team">

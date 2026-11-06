@@ -1,7 +1,7 @@
 import type { InfrastructureSnapshot } from '@root/compliance/site/types';
 
 export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
-  "captured_at": "2026-11-06T04:58:31Z",
+  "captured_at": "2026-11-06T07:17:57Z",
   "aws": {
     "regions": [
       {
@@ -207,7 +207,7 @@ export const INFRASTRUCTURE_SNAPSHOT: InfrastructureSnapshot | null = {
         "active_keys": 1,
         "unused_keys": 0,
         "last_used": "2026-11-06",
-        "last_used_service": "s3",
+        "last_used_service": "iam",
         "owner_tagged": true
       },
       {

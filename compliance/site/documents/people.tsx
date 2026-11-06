@@ -3,7 +3,7 @@ import Document from '@root/compliance/site/Document';
 import type { Person } from '@root/compliance/site/types';
 
 import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, EXECUTIVE, TEAM } from '@root/compliance/site/facts';
-import { EVIDENCE_ENDPOINTS, TRAINING_ACKNOWLEDGEMENT, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
+import { EVIDENCE_ENDPOINTS, TRAINING_ACKNOWLEDGEMENT, TRAINING_COURSES, VANTA_TRAINING, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 import { TrainingRoster } from '@root/compliance/site/Evidence';
 
@@ -275,12 +275,18 @@ export function SecurityAwarenessTraining() {
     <Document
       slug="security-awareness-training"
       title="Security awareness training"
-      summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Every employee and every contractor with privileged access completes each course within 30 days of hire and every year after, as the Human Resource Security Policy requires."
+      summary="INTDEV’s security awareness and business continuity training, and the signed completion record for every team member. Training is taken in Vanta’s employee onboarding, and the INTDEV courses on this page add INTDEV’s own rules. Every employee and every contractor with privileged access completes it within 30 days of hire and every year after, as the Human Resource Security Policy requires."
       controls={['Security awareness training implemented']}
       updated="November 6, 2026"
     >
       <Section title="Completion record">
         <TrainingRoster />
+      </Section>
+      <Section title="Training in Vanta">
+        <p>
+          Every team member completes their training in INTDEV’s <a href={VANTA_TRAINING.url}>{VANTA_TRAINING.name}</a>, signed in to Vanta with their own account. It covers most of INTDEV’s training requirements and takes real time to finish. The INTDEV courses below add what is specific to INTDEV: its systems, its incident and recovery procedures, and its customer obligations.
+        </p>
+        <p>Each person states that they completed their training by signing every course under Training in Users Garden. The INTDEV API records those signatures and publishes them in the completion record above; it does not read Vanta.</p>
       </Section>
       {TRAINING_MODULES.map(([title, points]) => (
         <Section key={title} title={title}>
@@ -321,9 +327,10 @@ export function SecurityAwarenessTraining() {
           items={[
             ['Who', 'All employees and partners, plus contractors with administrative or privileged technical access'],
             ['When', 'Within 30 days of hire, then every year'],
+            ['Where', <a key="vanta" href={VANTA_TRAINING.url}>{VANTA_TRAINING.name}</a>],
             ['Courses', TRAINING_COURSES.map((course) => `${course.title} (version: ${course.version})`).join('; ')],
             ['Evidence', <a key="evidence" href={`${API_HOST}${EVIDENCE_ENDPOINTS.training}`}>{`${API_HOST.replace('https://', '')}${EVIDENCE_ENDPOINTS.training}`}</a>],
-            ['How it is recorded', `Each person reads the course on this page, then signs it under Training in the COMPLIANCE sidebar of Users Garden, signed in to their own account. The signature names the course, its exact version, and the time, with the acknowledgement “${TRAINING_ACKNOWLEDGEMENT}” The INTDEV API records it under the person’s user_id, and the completion record and the compliance report show it at once. The November 4, 2026 signatures were confirmed by the CEO. A new version of a course is signed again.`],
+            ['How it is recorded', `Each person completes their training in ${VANTA_TRAINING.name} and reads the course on this page, then signs it under Training in the COMPLIANCE sidebar of Users Garden, signed in to their own account. The signature names the course, its exact version, and the time, with the acknowledgement “${TRAINING_ACKNOWLEDGEMENT}” The INTDEV API records it under the person’s user_id, and the completion record and the compliance report show it at once. The November 4, 2026 signatures were confirmed by the CEO. A new version of a course is signed again.`],
             ['Sanctions', 'A team member or contractor who violates INTDEV’s security or privacy policies goes through the progressive disciplinary process of the Human Resource Security Policy, up to and including termination of employment or contract, and can lose system and network privileges immediately.'],
           ]}
         />

@@ -10,7 +10,7 @@ export default function ComplianceDocumentPage(props) {
 
   const { Component } = entry;
   return (
-    <Page title={`${entry.title} — Users Garden Compliance`} description={entry.description} url={`https://users.garden/compliance/${entry.slug}`}>
+    <Page title={`${entry.title} — INTDEV Compliance`} description={entry.description} url={`https://users.garden/compliance/${entry.slug}`}>
       <Component />
     </Page>
   );
