@@ -2,7 +2,7 @@ import Document from '@root/compliance/site/Document';
 
 import { API_HOST, AWS_REGIONS, TEAM } from '@root/compliance/site/facts';
 import { AccessRequestRecords, AwsIdentityRecord, InfrastructureChecks, SystemAccountRecords, TerminationRecords } from '@root/compliance/site/Evidence';
-import { EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATION_CHECKLIST } from '@root/compliance/site/records';
+import { CLIENT_ACCESS_STEP_FROM, EVIDENCE_ENDPOINTS, SYSTEM_ACCOUNTS, TERMINATION_CHECKLIST, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Group, List, Member, Members, Section, Table } from '@root/compliance/site/Blocks';
 
 function endpointLink(path: string) {
@@ -139,13 +139,13 @@ export function AccessTermination() {
     <Document
       slug="access-termination"
       title="Access revoked upon termination"
-      summary="When an employee, partner, or contractor leaves, a termination checklist revokes all of their access within 24 business hours, the SLA in the Access Control Policy. The completed checklists for recent departures are published by the INTDEV API, with each step’s status, completion time, and evidence."
+      summary="When an employee, partner, or contractor leaves, a termination checklist revokes all of their access within 24 business hours of the last day, the SLA in the Access Control Policy, and never later than 48 hours. The completed checklists for recent departures are published by the INTDEV API, with each step’s status, completion time, and evidence."
       controls={['Access revoked upon termination']}
     >
       <Section title="Termination checklist">
         <Group>
           <List ordered items={TERMINATION_CHECKLIST.map((step) => `${step}.`)} />
-          <p>Every step must be complete within 24 business hours of the last day.</p>
+          <p>Every step must be complete within 24 business hours of the last day, and never later than 48 hours after it. {`The step that asks clients to remove the access they issued was added on ${formatRecordDay(CLIENT_ACCESS_STEP_FROM)}; the records below were closed before it, under the checklist in force at the time.`}</p>
         </Group>
       </Section>
       <Section title="Termination records">

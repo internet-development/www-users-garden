@@ -26,6 +26,16 @@ export const Users = {
   },
 };
 
+// NOTE(claude)
+// Links such as https://users.garden/#device-check open a compliance view
+// directly, so the device check script and the compliance pages can send a
+// signed-in team member straight to the step they need.
+export const DASHBOARD_HASHES: Record<string, string> = {
+  compliance: 'USER_COMPLIANCE',
+  'device-check': 'USER_DEVICE_CHECK',
+  training: 'USER_TRAINING',
+};
+
 export const Payouts = {
   PAYING: 1500,
   GENERAL_CO_WORKING: 45000,

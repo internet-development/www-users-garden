@@ -5,6 +5,7 @@ import ciCdDeploys from '@root/compliance/site/images/ci-cd-render-deploys.png';
 import ciCdProject from '@root/compliance/site/images/ci-cd-render-project.png';
 import internalCommunication1 from '@root/compliance/site/images/internal-communication-1.webp';
 import internalCommunication2 from '@root/compliance/site/images/internal-communication-2.webp';
+import pullRequestApproval from '@root/compliance/site/images/pull-request-approval.png';
 
 import { DeployFeed, StatusBoard } from '@root/compliance/site/Live';
 import { InfrastructureChecks, ReleaseChecks, VersionHistory } from '@root/compliance/site/Evidence';
@@ -84,11 +85,11 @@ export function TabletopExercise() {
 
       <Section title="Action items">
         <Table
-          columns={['Action', 'Owner', 'Due']}
+          columns={['Action', 'Owner', 'Due or done']}
           rows={[
             ['Harden credential storage and cross-origin encryption (INTDEV-2026-CRYPTO-01), coordinated with consuming sites', OWNER, 'December 4, 2026'],
             ['Narrow the database network allow list (INTDEV-2026-NET-01)', OWNER, 'January 3, 2027'],
-            ['Turn on secret scanning and push protection for every repository in the internet-development GitHub organization (read as on for the INTDEV API repository on November 6, 2026)', OWNER, 'December 4, 2026'],
+            ['Turn on secret scanning and push protection for the INTDEV API repository', OWNER, 'Done November 6, 2026, as read through the GitHub API'],
             ['Add alerts for unusual database connections and exports, and review Render audit logs monthly', OWNER, 'January 3, 2027'],
             ['Run a real backup restore of the production database into an isolated instance, time it against the RTO, and record the result', OWNER, 'December 18, 2026'],
             ['Write a credential-rotation runbook covering Render, AWS, Stripe, Mailgun, Twilio, OAuth clients, and the shared AES keys', OWNER, 'December 18, 2026'],
@@ -110,7 +111,7 @@ export function ContinuousDeployment() {
     <Document
       slug="ci-cd"
       title="CI/CD: production deployments"
-      summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A reviewed commit lands on main in GitHub, and Render builds it and releases it to production. Each table below is the Render API read made on a maintainer machine before the serving INTDEV API release was built; a deploy after that read, including the release’s own, appears with the next release."
+      summary="Every change to the INTDEV API, Users Garden, the Terminal Graph site, and internet.dev ships through the same pipeline. A commit lands on main in GitHub, through a reviewed pull request for the INTDEV API, which is the whole backend, and Render builds it and releases it to production. Each table below is the Render API read made on a maintainer machine before the serving INTDEV API release was built; a deploy after that read, including the release’s own, appears with the next release."
       controls={['CI/CD system in use', 'Change management']}
     >
       <Section title="The CI/CD system">
@@ -124,8 +125,7 @@ export function ContinuousDeployment() {
           ordered
           items={[
             'Work happens on a branch and goes through a GitHub pull request. Significant changes are reviewed and approved before merge, as the Secure Development Policy requires.',
-            'On every pull request in INTDEV’s own repositories, GitHub CodeQL code scanning analyzes the change and GitHub Copilot code review reviews it, beside the teammate who approves it, and Dependabot alerts are on for each repository, as the owner confirmed on November 6, 2026. Repositories that belong to a client follow the client’s own setup.',
-            'In the INTDEV API repository these are enforced, as read through the GitHub API on November 6, 2026: a ruleset on every branch, with no bypass, blocks deleting a branch and merging without a pull request, one approving review, resolved review threads, and a rebase merge; it requests a Copilot code review on every push to a pull request, and blocks a merge that leaves a CodeQL error or a high or critical security alert, a code quality error, or an unresolved secret scanning alert for a known provider’s credential. CodeQL’s default setup scans each pull request, each push to main, and every week, and Dependabot alerts are on with no open alert.',
+            'On every pull request in the INTDEV API repository, GitHub CodeQL code scanning analyzes the change and GitHub Copilot code review reviews it, beside the teammate who approves it. These are enforced, as read through the GitHub API on November 6, 2026: a ruleset on every branch, with no bypass, blocks deleting a branch and merging without a pull request, one approving review, resolved review threads, and a rebase merge; it requests a Copilot code review on every push to a pull request, and blocks a merge that leaves a CodeQL error or a high or critical security alert, a code quality error, or an unresolved secret scanning alert for a known provider’s credential. CodeQL’s default setup scans each pull request, each push to main, and every week, and Dependabot alerts are on with no open alert.',
             'Merging to main triggers Render automatically (auto-deploy on every commit). Maintainers can also start a manual deploy of a specific commit, or roll back to one.',
             'Render installs a fresh resolution of package.json (no lockfile is committed), builds, and starts the new version. For the API, npm run build regenerates the route manifest, runs the build scan described below, then runs next build. Traffic moves to the new version only once it is up.',
             'The INTDEV API’s automated tests run on maintainers’ machines, not in Render’s build: npm test runs the Vitest specs, which hold the permission boundaries, the compliance registers, and the device check contract, and separate integration suites run the slides, Vmax Public access, SMS, and device check-in routes against a temporary embedded PostgreSQL with synthetic accounts only.',
@@ -133,6 +133,16 @@ export function ContinuousDeployment() {
             'Every deploy is recorded with its ID, trigger, commit, and timestamps. That record is the evidence shown below.',
           ]}
         />
+      </Section>
+      <Section title="Pull request approval">
+        <Group>
+          <p>This is what a change looks like when it is ready to merge. A teammate other than the author has approved it, both CodeQL checks have passed with no new alert in the code it changes, it has no conflict with main, and the only way to merge it is a rebase. In the INTDEV API repository, the ruleset described above requires the approval, the clean code scanning result, and the rebase before GitHub allows a merge.</p>
+          <Figure
+            image={pullRequestApproval}
+            alt="GitHub pull request merge box: elijaharita approved these changes. Changes approved, 1 approving review by reviewers with write access. All checks have passed, 2 successful checks: Code scanning results / CodeQL, successful in 1 second with no new alerts in code changed by this pull request, and CodeQL / Analyze (javascript-typescript) (dynamic), successful in 1 minute. No conflicts with base branch. The merge button reads Rebase and merge."
+            caption="A pull request in INTDEV’s GitHub organization, approved by Elijah Seed Arita (elijaharita) and cleared by CodeQL code scanning, ready to rebase and merge. Captured November 6, 2026."
+          />
+        </Group>
       </Section>
       <Section title="INTDEV API (api.internet.dev)">
         <DeployFeed service="internet-apis" />
@@ -307,8 +317,6 @@ interface RecoveryProcedure {
   access: string;
   steps: React.ReactNode[];
   gaps: string[];
-  due?: string;
-  owner?: string;
 }
 
 const ENVIRONMENT_SOURCE = 'Render’s environment settings for the service, or a maintainer’s git-ignored local environment file';
@@ -329,8 +337,7 @@ export const RECOVERY_PROCEDURES: RecoveryProcedure[] = [
       'Deploy, then check /api/status, sign in through users.garden, and read /api/compliance/releases: the new instance’s launch scan must pass its environment, database, encryption, and token checks.',
       'If the service’s Render hostname changed, point api.internet.dev at it in Cloudflare (the Cloudflare procedure), then re-point the Stripe webhook and the Google, Apple, and Bluesky sign-in redirects if their hostname changed.',
     ],
-    gaps: ['The build and start commands are taken from the repository; the next restore test records the values set on the Render service, so the procedure does not rely on reading the old service.'],
-    due: 'December 18, 2026, at the first timed restore test',
+    gaps: [],
   },
   {
     system: 'Production database (PostgreSQL)',
@@ -365,7 +372,7 @@ export const RECOVERY_PROCEDURES: RecoveryProcedure[] = [
     access: 'A member of the internet-development GitHub organization',
     steps: [
       'Every maintainer’s clone holds the full history. If GitHub is down, keep working locally and hold deploys unless an emergency patch is needed.',
-      'If a repository is lost, push the most recent clone of main to a new repository in the internet-development organization, turn its pull request review, CodeQL code scanning, Copilot code review, Dependabot alerts, and secret scanning with push protection back on, and reconnect its Render service.',
+      'If the INTDEV API repository, internet-development/apis, is lost, push the most recent clone of main to a new repository in the internet-development organization, turn its pull request review ruleset, CodeQL code scanning, Copilot code review, Dependabot alerts, and secret scanning with push protection back on, and reconnect the internet-apis Render service.',
     ],
     gaps: [],
   },
@@ -423,32 +430,6 @@ export const RECOVERY_PROCEDURES: RecoveryProcedure[] = [
     gaps: [],
   },
   {
-    system: 'Terminal Graph',
-    why: 'INTDEV’s product: a macOS application with its site, documentation, changelog, and updates. Both are front-ends that keep no customer data of their own.',
-    objective: 'RTO 4 hours, RPO 1 hour',
-    access: 'Caidan Williams, the Terminal Graph product lead, who owns this procedure, with a Render workspace member',
-    steps: [
-      'Terminal Graph keeps no customer data of its own: workspaces stay on each user’s Mac and are not held by INTDEV, and accounts and subscriptions are held by the INTDEV API and Stripe. A server outage loses no user content, and recovering Terminal Graph means redeploying its front-ends.',
-      'If accounts or payments are failing, recover the INTDEV API and Stripe with their procedures first.',
-      'If the site, documentation, or changelog is down, redeploy the last good commit of the terminalgraph service in Render (Oregon), then check https://terminalgraph.com, its documentation, and its changelog.',
-    ],
-    gaps: ['The site’s repository and build settings, and how to recover the application’s signing certificate and update feed, are not yet written.'],
-    owner: 'Caidan Williams',
-  },
-  {
-    system: 'item.market',
-    why: 'A subscription service whose customer workflows stop without it. It is a front-end that keeps no customer data of its own.',
-    objective: 'RTO 8 hours, RPO 4 hours',
-    access: 'Jimmy Lee, who owns this procedure; the access its host needs is not yet written',
-    steps: [
-      'item.market keeps no customer data of its own: it stores its data through the APIs it calls, so recovering the application loses nothing.',
-      'Sign-in runs through the INTDEV API, which returns item.market users to item.market after Google, Apple, or Bluesky sign-in: recover the INTDEV API first.',
-      'Then redeploy the last good version of the item.market application on its host, and check that sign-in returns to item.market.',
-    ],
-    gaps: ['The application’s repository, host, and build settings, and which APIs hold its data and bill its subscriptions, are not yet written.'],
-    owner: 'Jimmy Lee',
-  },
-  {
     system: 'TXT.DEV',
     why: 'The publishing service for posts and newsletters. It is a front-end that keeps no data of its own.',
     objective: 'RTO 8 hours, RPO 4 hours',
@@ -456,11 +437,10 @@ export const RECOVERY_PROCEDURES: RecoveryProcedure[] = [
     steps: [
       'Posts and accounts live in the INTDEV API and uploads in the txtdev S3 bucket: recover those with their procedures first. The TXT.DEV application keeps no data of its own.',
       'If a deploy broke the site, redeploy its last good commit on its host.',
-      `If the site is gone, deploy internet-development/www-txt-dev, branch main, as a Node.js 20.9 or later web service with the build command npm run build and the start command npm start. ${SHARED_KEYS}`,
+      `If the site or its host is gone, create a Render web service in Oregon, where the INTDEV API runs, from internet-development/www-txt-dev, branch main, on Node.js 20.9 or later, with the build command npm run build and the start command npm start. The site does not depend on its previous host. ${SHARED_KEYS}`,
       'Point txt.dev at it in Cloudflare, then sign in and open a published post, such as the INTDEV Privacy Policy, to confirm reading and sign-in work.',
     ],
-    gaps: ['The host TXT.DEV is deployed on is not yet written into this procedure.'],
-    owner: 'Jimmy Lee',
+    gaps: [],
   },
 ];
 
@@ -484,8 +464,8 @@ export function DisasterRecovery() {
       </Section>
       <Section title="Critical systems">
         <Group>
-          <p>{`Of the ${countWord(RECOVERY_PROCEDURES.length)} procedures, ${countWord(complete)} are complete. The others say what is still to be written and who writes it.`}</p>
-          <p>Users Garden, Terminal Graph, item.market, and TXT.DEV are front-ends. They keep no customer data of their own and store it through the INTDEV API and the other APIs they call, so they are critical because customers cannot use the service without them, not because data could be lost with them. Recovering one means redeploying it; its data is recovered with the INTDEV API, the production database, Amazon S3, and Stripe.</p>
+          <p>{complete === RECOVERY_PROCEDURES.length ? `All ${countWord(RECOVERY_PROCEDURES.length)} procedures are complete.` : `Of the ${countWord(RECOVERY_PROCEDURES.length)} procedures, ${countWord(complete)} are complete. Each of the others lists what is still to add.`}</p>
+          <p>Users Garden and TXT.DEV are front-ends. They keep no customer data of their own and store it through the INTDEV API, so they are critical because customers cannot use the service without them, not because data could be lost with them. Recovering one means redeploying it; its data is recovered with the INTDEV API, the production database, Amazon S3, and Stripe.</p>
           <CheckTable columns={['System', 'Why it is critical', 'Objective', 'Access needed']} rows={RECOVERY_PROCEDURES.map((procedure) => ({ checked: !procedure.gaps.length, cells: [procedure.system, procedure.why, procedure.objective, procedure.access] }))} />
         </Group>
       </Section>
@@ -505,7 +485,7 @@ export function DisasterRecovery() {
               ['Objective', procedure.objective],
               ['Access needed', procedure.access],
               ['Steps', <List key="steps" ordered items={procedure.steps} />],
-              ['Not yet written', procedure.gaps.length ? <List key="gaps" items={procedure.gaps} /> : 'Nothing outstanding.'],
+              ['Still to add', procedure.gaps.length ? <List key="gaps" items={procedure.gaps} /> : 'Nothing outstanding.'],
             ]}
           />
         </Section>
@@ -529,7 +509,7 @@ export function InternalChangeCommunication() {
         <Table
           columns={['Change', 'Where it is communicated', 'Who sees it']}
           rows={[
-            ['Every code change', 'A GitHub pull request with its description, review, and approval, its CodeQL code scanning result, and its Copilot code review; the merge commit is the release note', 'Everyone with access to the repository'],
+            ['Every code change', 'A GitHub pull request with its description, review, and approval, and for the INTDEV API its CodeQL code scanning result and its Copilot code review; the merge commit is the release note. The CI/CD page shows an approved pull request ready to merge.', 'Everyone with access to the repository'],
             ['Every production deploy', 'Render records each deploy with its commit and can notify maintainers when a deploy fails. The history is mirrored on the CI/CD page.', 'Maintainers; the whole team through the CI/CD page'],
             ['Architecture, routes, permissions, rate limits, tables, workers, scripts', 'The repository’s AGENTS.md and published skills, updated in the same change', 'Engineers and the agents working in the repositories'],
             ['Planned work and handoffs', 'Each repository’s NEXT.md control file, which records the selected task, its evidence, and what remains', 'Engineers'],
@@ -668,7 +648,7 @@ export function IncidentReport() {
         <CheckTable
           columns={['Action', 'Prevents', 'Owner', 'Done or due']}
           rows={[
-            { checked: true, cells: [`A termination register: every departure is a record with a ${TERMINATION_CHECKLIST.length}-step checklist, published by the INTDEV API at ${EVIDENCE_ENDPOINTS.terminations}`, 'Departures with no checklist', OWNER, 'November 4, 2026'] },
+            { checked: true, cells: [`A termination register: every departure is a record with a checklist (twelve steps when it was created, ${countWord(TERMINATION_CHECKLIST.length)} since the client access step was added on November 6, 2026), published by the INTDEV API at ${EVIDENCE_ENDPOINTS.terminations}`, 'Departures with no checklist', OWNER, 'November 4, 2026'] },
             { checked: true, cells: ['The checklist includes INTDEV organization memberships: INTDEV’s own domains and every organization a current team member belongs to', 'Access missed outside the account level', OWNER, 'November 4, 2026'] },
             { checked: true, cells: ['Naming a person in the termination register makes the API refuse every grant based on an INTDEV email address, even though the account keeps that address', 'Email-domain grants after departure', OWNER, `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },
             { checked: true, cells: ['Live checks: the termination records and the compliance report re-check every former account’s level, organization memberships, and domain grants each time they load, and every release carries a Render membership read made before it was built', 'Undetected retained access', OWNER, `INTDEV API ${DOMAIN_GRANT_BLOCK_RELEASE}`] },

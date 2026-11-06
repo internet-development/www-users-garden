@@ -1,9 +1,9 @@
 import type { AccountState, CheckStatus, ComplianceReportData, InfrastructureSnapshot, ReportCheck, ReportInputs } from '@root/compliance/site/types';
 
 import { AWS_REGIONS, CONTACTS, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, OPEN_SECURITY_GROUP_FINDING, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, DEVICE_CHECK_FRESH_DAYS, DOMAIN_GRANT_BLOCK_RELEASE, EVIDENCE_ENDPOINTS, OPEN_SECURITY_GROUP_FINDING, SUPPORTED_MACOS, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, signedCourses } from '@root/compliance/site/records';
 
-export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null, infrastructure: null, checkedAt: null };
+export const EMPTY_REPORT_INPUTS: ReportInputs = { release: null, accounts: null, intdevOrganizations: null, renderMembership: null, platformAdmins: null, deletions: null, releaseScan: null, devices: null, training: null, infrastructure: null, checkedAt: null };
 
 export const CERTIFICATE_MARGIN_DAYS = 14;
 
@@ -245,8 +245,12 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
     checks.push(check('former-render', 'Termination', 'No former team member is in a Render workspace', '/compliance/access-termination', EVIDENCE_ENDPOINTS.terminations, 'unavailable', `All ${former} verified absent through the Render API at ${utcMoment(ALL_TERMINATIONS_VERIFIED_AT)}. Each release carries the Render read made on a maintainer machine when it was built; this release has none`));
   }
 
-  const signed = TRAINING_COMPLETIONS.filter((record) => TRAINING_COURSES.every((course) => record.courses.includes(course.id))).length;
-  checks.push(check('training', 'People', 'Every team member has signed every training course', '/compliance/security-awareness-training', EVIDENCE_ENDPOINTS.training, counted(signed, TRAINING_COMPLETIONS.length), `${signed} of ${TRAINING_COMPLETIONS.length} team members signed all ${TRAINING_COURSES.length} courses`));
+  const signed = TRAINING_COMPLETIONS.filter((record) => {
+    const courses = signedCourses(record, inputs.training?.[record.user_id] ?? []);
+    return TRAINING_COURSES.every((course) => courses.includes(course.id));
+  }).length;
+  const trainingStatus: CheckStatus = signed === TRAINING_COMPLETIONS.length ? 'pass' : inputs.training ? 'open' : 'unavailable';
+  checks.push(check('training', 'People', 'Every team member has signed every training course', '/compliance/security-awareness-training', EVIDENCE_ENDPOINTS.training, trainingStatus, `${signed} of ${TRAINING_COMPLETIONS.length} team members signed all ${TRAINING_COURSES.length} courses${inputs.training ? '' : `. ${pending} of the signatures made in Users Garden`}`));
 
   const devices = inputs.devices;
   checks.push(
@@ -282,6 +286,17 @@ export function buildComplianceReport(inputs: ReportInputs): ComplianceReportDat
       EVIDENCE_ENDPOINTS.devices,
       devices ? (devices.devices > 0 && devices.devices_anti_malware === devices.devices ? 'pass' : 'open') : 'unavailable',
       devices ? (devices.devices ? `${devices.devices_anti_malware} of ${devices.devices} current laptops reported anti-malware active; ${devices.devices_firewall_on} with the application firewall on` : 'No laptop has checked in yet') : pending
+    )
+  );
+  checks.push(
+    check(
+      'device-patch-state',
+      'Devices',
+      `Every current laptop runs a supported macOS (macOS ${SUPPORTED_MACOS.minimum_major} or later) and installs security updates automatically`,
+      '/compliance/infrastructure-maintenance',
+      EVIDENCE_ENDPOINTS.devices,
+      devices ? (devices.devices > 0 && devices.devices_patch_current === devices.devices ? 'pass' : 'open') : 'unavailable',
+      devices ? (devices.devices ? `${devices.devices_patch_current} of ${devices.devices} current laptops patched; ${devices.devices_os_supported} on a supported macOS` : 'No laptop has checked in yet') : pending
     )
   );
 

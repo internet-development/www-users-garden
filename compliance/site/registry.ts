@@ -67,6 +67,7 @@ const COMPONENTS: Record<ComplianceSlug, () => React.ReactElement> = {
   'infrastructure-maintenance': Security.InfrastructureMaintenance,
   'remediated-vulnerabilities': Security.RemediatedVulnerabilities,
   'vulnerability-scans': Security.VulnerabilityScans,
+  'technical-specification-template': Security.TechnicalSpecificationTemplate,
   'trust-center': Governance.TrustCenter,
 };
 

@@ -1,3 +1,3 @@
-export const KIT_RELEASE = '2.0.32';
+export const KIT_RELEASE = '2.0.33';
 
-export const KIT_REGISTERS = '4601477e0c39';
+export const KIT_REGISTERS = '826434deb00a';

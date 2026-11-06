@@ -6,7 +6,7 @@
     "node": ">=20.9.0"
   },
   "license": "MIT",
-  "version": "1.1.19",
+  "version": "1.1.20",
   "scripts": {
     "dev": "next -p 10000",
     "build": "next build",

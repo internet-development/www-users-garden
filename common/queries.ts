@@ -238,3 +238,11 @@ export async function onDeviceCheckIn({ key, device }: { key: string; device: De
 export async function onGetDeviceFleet({ id }: { id: string }): Promise<DeviceCheck.DeviceFleetResult> {
   return DeviceCheck.readDeviceFleetMember({ host: Constants.HOST, id });
 }
+
+export async function onGetTrainingRecord({ id }: { id: string }): Promise<DeviceCheck.TrainingRecordResult> {
+  return DeviceCheck.readTrainingMember({ host: Constants.HOST, id });
+}
+
+export async function onSignTraining({ key, course }: { key: string; course: { id: string; version: string } }): Promise<DeviceCheck.TrainingSignResult> {
+  return DeviceCheck.sendTrainingSignature({ host: Constants.HOST, key, course });
+}

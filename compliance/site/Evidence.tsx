@@ -4,12 +4,12 @@ import styles from '@root/compliance/site/Blocks.module.css';
 
 import * as React from 'react';
 
-import type { AccessGrant, AwsControls, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, ReleaseVersion, ReportCheck, SoftwareInventory, TerminationRecord, TlsHostRead, TrainingCompletion, TrainingCourse, Vulnerability } from '@root/compliance/site/types';
+import type { AccessGrant, AwsControls, CheckStatus, SystemAccount, ComplianceReportData, DeviceChip, DeviceFleetSummary, DeviceMember, DeviceRecord, EvidenceMeta, LaptopEncryptionStandard, ReleaseScan, ReleaseVersion, ReportCheck, SoftwareInventory, TerminationRecord, TlsHostRead, TrainingCompletion, TrainingCourse, TrainingSignature, Vulnerability } from '@root/compliance/site/types';
 
 import { CheckItem, CheckTable, Member, Signed, State, Table } from '@root/compliance/site/Blocks';
 import { formatUtc } from '@root/compliance/site/Live';
 import { API_HOST, API_MANIFEST, API_SOFTWARE, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
-import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, AWS_IAM_REVIEW, AWS_IAM_REVIEWED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, DEVICE_INVENTORY, laptopLocation, levelName } from '@root/compliance/site/records';
+import { ACCESS_GRANTS, ALL_TERMINATIONS_VERIFIED_AT, AWS_IAM_REVIEW, AWS_IAM_REVIEWED_AT, DELETION_SNAPSHOT, DEVICE_CHECK_FRESH_DAYS, EVIDENCE_ENDPOINTS, FILEVAULT_STANDARD, SUPPORTED_MACOS, SYSTEM_ACCOUNTS, TERMINATIONS, TRAINING_COMPLETIONS, TRAINING_COURSES, DEVICE_INVENTORY, laptopLocation, levelName, macosMajor } from '@root/compliance/site/records';
 import { EMPTY_REPORT_INPUTS, buildComplianceReport, infrastructureChecks } from '@root/compliance/site/report';
 import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
 import { findCatalogEntry } from '@root/compliance/site/catalog';
@@ -309,14 +309,14 @@ export function TerminationRecords() {
   );
 }
 
-type LiveTraining = TrainingCompletion & { signed: boolean; live: LiveLevel };
+type LiveTraining = TrainingCompletion & { signatures?: TrainingSignature[]; signed?: boolean; live?: LiveLevel };
 
 export function TrainingRoster() {
   const path = EVIDENCE_ENDPOINTS.training;
   const { data, source } = useEvidence<{ courses?: TrainingCourse[]; records: LiveTraining[]; evidence: EvidenceMeta; live_check: string }>(path);
   const live = new Map((data?.records ?? []).map((record) => [record.user_id, record]));
   const courses = served(data?.evidence, data?.courses, TRAINING_COURSES);
-  const completions: TrainingCompletion[] = served(data?.evidence, data?.records, TRAINING_COMPLETIONS);
+  const completions: LiveTraining[] = served<LiveTraining[]>(data?.evidence, data?.records, TRAINING_COMPLETIONS);
   const complete = (record: TrainingCompletion) => courses.every((course) => record.courses.includes(course.id));
   const signed = completions.filter(complete).length;
 
@@ -339,17 +339,26 @@ export function TrainingRoster() {
                 <br />
                 <span className={styles.muted}>{record.role}</span>
               </span>,
-              ...courses.map((course) => (
-                <CheckItem key={course.id} checked={record.courses.includes(course.id)}>
-                  {record.courses.includes(course.id) ? 'Completed' : course.due ? `Not completed; due ${formatDay(course.due)}` : 'Not completed'}
-                </CheckItem>
-              )),
+              ...courses.map((course) => {
+                const online = record.signatures?.find((signature) => signature.course_id === course.id);
+                return (
+                  <CheckItem key={course.id} checked={record.courses.includes(course.id)}>
+                    {online ? `Signed ${formatDay(online.signed_at)} in Users Garden` : record.courses.includes(course.id) ? 'Completed' : course.due ? `Not completed; due ${formatDay(course.due)}` : 'Not completed'}
+                  </CheckItem>
+                );
+              }),
               <span key="signed">
                 {formatDay(record.signed_at)}
                 <br />
                 <span className={styles.muted}>
                   Confirmed by <Member name={record.confirmation.by.split(',')[0] ?? record.confirmation.by} />
                 </span>
+                {record.signatures?.length ? (
+                  <>
+                    <br />
+                    <span className={styles.muted}>Later courses signed by the team member in Users Garden</span>
+                  </>
+                ) : null}
               </span>,
               current ? levelLine(current.live, 0) : <State key="level" ok={null}>Pending live check</State>,
             ],
@@ -767,6 +776,63 @@ export function DeviceAntiMalwareReport() {
   );
 }
 
+function patchLine(device: DeviceRecord): string {
+  const updates = device.anti_malware ? (device.anti_malware.automatic_updates.security ? 'security updates install automatically' : 'security updates do not install automatically') : 'automatic security updates not read: this check-in predates device check 3';
+  const supported = macosMajor(device.os_version) >= SUPPORTED_MACOS.minimum_major;
+  return `macOS ${device.os_version}, ${supported ? 'supported' : `not supported (macOS ${SUPPORTED_MACOS.minimum_major} or later required)`} · ${updates}`;
+}
+
+function patchCurrent(device: DeviceRecord): boolean | null {
+  if (!device.anti_malware) return null;
+  return macosMajor(device.os_version) >= SUPPORTED_MACOS.minimum_major && device.anti_malware.automatic_updates.security;
+}
+
+export function DevicePatchReport() {
+  const path = EVIDENCE_ENDPOINTS.devices;
+  const { data, source } = useEvidence<LiveDevices>(path);
+  const members = new Map((data?.members ?? []).map((member) => [member.user_id, member]));
+  const compiledRoster = TEAM.map((person) => members.get(person.userId) ?? { person: person.name, user_id: person.userId, reporting: false, devices: [] });
+  const roster: Pick<DeviceMember, 'person' | 'user_id' | 'reporting' | 'devices'>[] = served(data?.evidence, data?.members, compiledRoster);
+  const current = roster.flatMap((member) => member.devices.filter((device) => device.current));
+  const patched = current.filter((device) => patchCurrent(device) === true).length;
+
+  const rows = roster.flatMap((member) => {
+    const name = <Member key="person" name={member.person} />;
+    const laptops = member.devices.filter((device) => device.current);
+    if (!laptops.length) {
+      const pending = !data;
+      return [{ checked: pending ? null : false, cells: [name, <State key="device" ok={pending ? null : false}>{pending ? 'Pending live check' : `No laptop reported in the last ${DEVICE_CHECK_FRESH_DAYS} days`}</State>, '—'] }];
+    }
+    return laptops.map((device) => ({
+      checked: patchCurrent(device),
+      cells: [
+        name,
+        <span key="device">
+          {device.model}
+          <br />
+          <span className={styles.muted}>Reference {device.device_ref} · checked {formatUtc(device.checked_at)}</span>
+        </span>,
+        <State key="patch" ok={patchCurrent(device)}>
+          {patchLine(device)}
+        </State>,
+      ],
+    }));
+  });
+
+  return (
+    <div className={styles.group}>
+      <p>
+        <CheckItem checked={data ? current.length > 0 && patched === current.length : null}>
+          {data ? (current.length ? `${patched} of ${current.length} current laptops run a supported macOS and install security updates automatically.` : 'No laptop has checked in yet.') : `${roster.length} team members. Each laptop’s patch state loads from the INTDEV API.`}
+        </CheckItem>
+      </p>
+      <p>{`${SUPPORTED_MACOS.rule} ${SUPPORTED_MACOS.basis}`}</p>
+      <CheckTable columns={['Team member', 'Laptop', 'Patch state']} rows={rows} />
+      <EvidenceSource path={path} source={source} meta={data?.evidence ?? null} liveCheck={data?.live_check} />
+    </div>
+  );
+}
+
 export function DeviceManagementRecord() {
   const path = EVIDENCE_ENDPOINTS.devices;
   const { data, source } = useEvidence<LiveDevices>(path);
@@ -786,6 +852,7 @@ export function DeviceManagementRecord() {
           row('Every managed laptop is encrypted with FileVault', (fleet) => fleet.devices > 0 && fleet.devices_encrypted === fleet.devices, (fleet) => `${fleet.devices_encrypted} of ${fleet.devices} current laptops encrypted, ${fleet.devices_aes_256} with AES-256`),
           row('No managed laptop has an unencrypted, writable removable volume mounted', (fleet) => fleet.devices > 0 && fleet.devices_removable_clear === fleet.devices, (fleet) => `${fleet.devices_removable_clear} of ${fleet.devices} current laptops clear at their last check-in`),
           row('Every managed laptop reports anti-malware active', (fleet) => fleet.devices > 0 && fleet.devices_anti_malware === fleet.devices, (fleet) => `${fleet.devices_anti_malware} of ${fleet.devices} current laptops reported Gatekeeper, XProtect, and automatic security responses on; ${fleet.devices_firewall_on} with the application firewall on`),
+          row(`Every managed laptop runs a supported macOS (${SUPPORTED_MACOS.minimum_major} or later) and installs security updates automatically`, (fleet) => fleet.devices > 0 && fleet.devices_patch_current === fleet.devices, (fleet) => (typeof fleet.devices_patch_current === 'number' ? `${fleet.devices_patch_current} of ${fleet.devices} current laptops patched; ${fleet.devices_os_supported} on a supported macOS` : 'Judged from INTDEV API 2.0.33; the release serving this record does not report it')),
         ]}
       />
       {summary ? <p>{`${summary.devices_mdm_enrolled} of ${summary.devices} current laptops are also enrolled with a third-party MDM server, as macOS reports it (profiles status). INTDEV’s device management does not depend on one.`}</p> : null}

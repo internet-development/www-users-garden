@@ -139,7 +139,7 @@ export const SOFTWARE_RETIREMENT = [
   'INTDEV runs only software its authoring company or project still supports with security fixes: operating systems, runtimes such as Node.js, frameworks, packages, and the macOS version on every laptop used for INTDEV work.',
   'Software is retired before its published end-of-life date. When support ends without notice, such as a package that is deprecated or archived, INTDEV records it in the vulnerability register at Medium severity or higher and replaces or removes it within that deadline.',
   'Software that cannot be retired in time stays only under a risk treatment plan with compensating controls and management sign-off, like any other finding that cannot meet its deadline.',
-  'Retirement is checked with every monthly scan against the software inventory, the Node.js release schedule, and the macOS versions the device check reports.',
+  'Retirement is checked with every monthly scan against the software inventory, the Node.js release schedule, and the macOS versions the device check reports. A laptop’s macOS is supported while Apple still ships security updates for it: the current major version and the two before it, macOS 15 or later on November 6, 2026.',
 ];
 
 export const SECURITY_ROLES: SecurityRole[] = [

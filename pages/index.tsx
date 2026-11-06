@@ -57,6 +57,7 @@ function ExampleRootSinglePageApplication(props) {
 
   const onGetSmsSettings = React.useCallback(() => Queries.onGetSmsSettings({ key }), [key]);
   const onDeviceCheckIn = React.useCallback(({ device }) => Queries.onDeviceCheckIn({ key, device }), [key]);
+  const onSignTraining = React.useCallback(({ course }) => Queries.onSignTraining({ key, course }), [key]);
   const phoneSession = React.useRef({ key, id: currentUser?.id });
   phoneSession.current = { key, id: currentUser?.id };
   const onSaveSmsPhone = React.useCallback(async (phone: string) => {
@@ -71,6 +72,11 @@ function ExampleRootSinglePageApplication(props) {
   }, [key, currentUser?.id]);
   const onRequestSmsConsent = React.useCallback((phone: string, requestId: string) => Queries.onRequestSmsConsent({ key, phone, requestId }), [key]);
   const onRemoveSmsPhone = React.useCallback(() => onSaveSmsPhone(''), [onSaveSmsPhone]);
+
+  React.useEffect(() => {
+    const linked = Constants.DASHBOARD_HASHES[window.location.hash.slice(1)];
+    if (linked && props.viewer) setActive(linked);
+  }, []);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -122,6 +128,8 @@ function ExampleRootSinglePageApplication(props) {
         onRemoveSmsPhone={onRemoveSmsPhone}
         onDeviceCheckIn={onDeviceCheckIn}
         onGetDeviceFleet={Queries.onGetDeviceFleet}
+        onGetTrainingRecord={Queries.onGetTrainingRecord}
+        onSignTraining={onSignTraining}
         onUserGetInvoices={async ({ id }) => {
           const response = await Queries.onUserGetInvoices({ key, id });
           return response;
@@ -141,6 +149,8 @@ function ExampleRootSinglePageApplication(props) {
         onNavigate={({ active, nextOrganization }) => {
           setActive(active);
           setCurrentOrganization(nextOrganization);
+          const hash = Object.keys(Constants.DASHBOARD_HASHES).find((each) => Constants.DASHBOARD_HASHES[each] === active);
+          window.history.replaceState(window.history.state, '', hash ? `#${hash}` : `${window.location.pathname}${window.location.search}`);
         }}
         onChangeUserPassword={async ({ password }) => {
           const response = await Queries.onUserChangePassword({ key, password });

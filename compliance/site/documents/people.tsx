@@ -3,7 +3,7 @@ import Document from '@root/compliance/site/Document';
 import type { Person } from '@root/compliance/site/types';
 
 import { API_HOST, AGREEMENT_TEMPLATES, COMPANY, CONTACTS, EXECUTIVE, TEAM } from '@root/compliance/site/facts';
-import { EVIDENCE_ENDPOINTS, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
+import { EVIDENCE_ENDPOINTS, TRAINING_ACKNOWLEDGEMENT, TRAINING_COURSES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Group, Links, List, Mail, Member, Note, Section, Table } from '@root/compliance/site/Blocks';
 import { TrainingRoster } from '@root/compliance/site/Evidence';
 
@@ -288,7 +288,7 @@ export function SecurityAwarenessTraining() {
         </Section>
       ))}
       <Section title="Security awareness update">
-        <p>{`Modules 8 to 12 are the ${UPDATE_COURSE?.title.toLowerCase() ?? 'security awareness update'} (${UPDATE_COURSE?.version ?? 'version 2'}). They add the topics Microsoft’s Supplier Data Protection Requirements name for annual training. The CEO approves the course as its owner, and every team member signs it by ${UPDATE_COURSE?.due ? formatRecordDay(UPDATE_COURSE.due) : 'the date the CEO sets'}. A signature is recorded only when the CEO confirms it.`}</p>
+        <p>{`Modules 8 to 12 are the ${UPDATE_COURSE?.title.toLowerCase() ?? 'security awareness update'} (${UPDATE_COURSE?.version ?? 'version 2'}). They add the topics Microsoft’s Supplier Data Protection Requirements name for annual training. The CEO approved the course as its owner, and every team member signs it by ${UPDATE_COURSE?.due ? formatRecordDay(UPDATE_COURSE.due) : 'the date the CEO sets'} under Training in Users Garden. The completion record above shows each signature as soon as it is made.`}</p>
       </Section>
       {UPDATE_MODULES.map(([title, points]) => (
         <Section key={title} title={title}>
@@ -323,7 +323,7 @@ export function SecurityAwarenessTraining() {
             ['When', 'Within 30 days of hire, then every year'],
             ['Courses', TRAINING_COURSES.map((course) => `${course.title} (version: ${course.version})`).join('; ')],
             ['Evidence', <a key="evidence" href={`${API_HOST}${EVIDENCE_ENDPOINTS.training}`}>{`${API_HOST.replace('https://', '')}${EVIDENCE_ENDPOINTS.training}`}</a>],
-            ['How it is recorded', 'Each person signs an acknowledgement of each course, and the CEO confirms the signature before it is recorded. The record is published by the INTDEV API with each person’s user_id and live account level, so it can be checked against the production system.'],
+            ['How it is recorded', `Each person reads the course on this page, then signs it under Training in the COMPLIANCE sidebar of Users Garden, signed in to their own account. The signature names the course, its exact version, and the time, with the acknowledgement “${TRAINING_ACKNOWLEDGEMENT}” The INTDEV API records it under the person’s user_id, and the completion record and the compliance report show it at once. The November 4, 2026 signatures were confirmed by the CEO. A new version of a course is signed again.`],
             ['Sanctions', 'A team member or contractor who violates INTDEV’s security or privacy policies goes through the progressive disciplinary process of the Human Resource Security Policy, up to and including termination of employment or contract, and can lose system and network privileges immediately.'],
           ]}
         />

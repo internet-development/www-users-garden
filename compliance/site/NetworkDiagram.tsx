@@ -113,7 +113,7 @@ export function ArchitectureDiagram() {
         { x: 24, y: 604, w: 196, h: 88, kind: 'data', title: 'Amazon S3 · 3+ AZs', lines: ['Uploads and attachments', 'SSE AES-256 at rest', 'Presigned HTTPS URLs'] },
         { x: 236, y: 604, w: 196, h: 88, kind: 'node', title: 'VPC 172.31.0.0/16', lines: ['4 subnets /20, us-west-2a–d', 'No EC2 instances', 'Flow logs · GuardDuty'] },
         { x: 464, y: 568, w: 296, h: 136, kind: 'node', title: 'Processors · HTTPS from the API', lines: ['Stripe: cards, PCI DSS Level 1', 'Mailgun email · Twilio SMS', 'Google, Apple, Bluesky sign-in', 'Google Cloud Storage uploads'] },
-        { x: 8, y: 744, w: 368, h: 96, kind: 'plane', title: 'Change plane', lines: ['Engineers’ Macs (FileVault, MFA) → GitHub', 'pull request: review, CodeQL, Copilot', '→ main → Render auto-deploy, zero downtime'] },
+        { x: 8, y: 744, w: 368, h: 96, kind: 'plane', title: 'Change plane', lines: ['Engineers’ Macs (FileVault, MFA) → GitHub', 'API pull request: review, CodeQL, Copilot', '→ main → Render auto-deploy, zero downtime'] },
         { x: 392, y: 744, w: 368, h: 96, kind: 'plane', title: 'Monitoring plane · 4 US AWS regions', lines: ['GuardDuty → EventBridge → SNS', '→ eng@internet.dev', 'VPC Flow Logs → CloudWatch, 365 days'] },
         { x: 8, y: 872, w: 20, h: 16, kind: 'data', title: '' },
         { x: 284, y: 872, w: 20, h: 16, kind: 'zone', title: '' },

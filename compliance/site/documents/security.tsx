@@ -4,7 +4,7 @@ import fileVaultEncryption from '@root/compliance/site/images/filevault-encrypti
 import { API_HOST, AWS_REGIONS, BUG_BOUNTY, CONTACTS, OSPREY, PENETRATION_TEST, SEVERITY_ASSESSMENT, SEVERITY_DEFINITIONS, SOFTWARE_RETIREMENT, VULNERABILITIES } from '@root/compliance/site/facts';
 import { APPLE_ENCRYPTION_SOURCES, APPLICATION_ENCRYPTION, CRYPTOGRAPHY_POLICY_KEYS, DEVICE_CHECK_FRESH_DAYS, DEVICE_CHECK_IN, DEVICE_CHECK_SCRIPT, EVIDENCE_ENDPOINTS, FILEVAULT_REQUIRED, REMOVABLE_MEDIA_CONTROL, REMOVABLE_MEDIA_ENCRYPTION, NETWORK_EXPORTED_AT, RENDER_NETWORK_EXPORT, SECURITY_GROUP_EXPORT, VULNERABILITY_SCAN, XTS_KEY_SIZES, formatRecordDay } from '@root/compliance/site/records';
 import { Fields, Figure, Group, Links, List, Mail, Member, Section, Table } from '@root/compliance/site/Blocks';
-import { DeviceAntiMalwareReport, DeviceEncryptionReport, DeviceManagementRecord, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
+import { DeviceAntiMalwareReport, DeviceEncryptionReport, DeviceManagementRecord, DevicePatchReport, FileVaultStandardReport, InfrastructureChecks, RemediationRecords, SoftwareInventoryRecord, TlsRecord } from '@root/compliance/site/Evidence';
 import { SegmentationDiagram } from '@root/compliance/site/NetworkDiagram';
 
 const VULNERABILITY_RECORD = `${API_HOST}${EVIDENCE_ENDPOINTS.vulnerabilities}`;
@@ -544,7 +544,7 @@ export function MobileDeviceManagementSystem() {
           columns={['Stage', 'What happens', 'Record']}
           rows={[
             ['Enroll', 'At onboarding, and whenever a team member sets up a new laptop, they run the device check, which sends the laptop’s configuration under their own account. The API refuses a laptop already enrolled under another current team member, so one Mac cannot count for several people.', 'The laptop’s first check-in in the central register'],
-            ['Monitor', `The laptop reports again at least every ${DEVICE_CHECK_FRESH_DAYS} days. The API checks each report’s seal, tool version, age, and model against its chip, then decides compliance itself from the raw macOS values: FileVault on and the data volume encrypted, the cipher Apple documents for the chip, no unencrypted writable removable volume mounted, and, from device check 3, anti-malware active.`, 'The fleet record and the tables above'],
+            ['Monitor', `The laptop reports again at least every ${DEVICE_CHECK_FRESH_DAYS} days. The API checks each report’s seal, tool version, age, and model against its chip, then decides compliance itself from the raw macOS values: FileVault on and the data volume encrypted, the cipher Apple documents for the chip, no unencrypted writable removable volume mounted, and, from device check 3, anti-malware active and a supported macOS that installs security updates automatically.`, 'The fleet record and the tables above'],
             ['Respond', `A laptop that fails, or a team member with no check-in in the last ${DEVICE_CHECK_FRESH_DAYS} days, shows as open on this page and opens the device checks in the compliance report until a passing check-in arrives. The team member corrects the laptop and runs the check again.`, 'The compliance report’s device checks'],
             ['Remove', 'When a person leaves, the termination record removes them from the team register and their laptops drop out of the fleet record. The Information Security Policy requires them to return every company-owned device and delete all company information and accounts from personal devices.', <a key="termination" href="/compliance/access-termination">Access revoked upon termination</a>],
           ]}
@@ -739,14 +739,20 @@ export function InfrastructureMaintenance() {
             ['Host operating systems, container runtime, and PostgreSQL engine', 'Render (managed platform)', 'Continuous platform maintenance; minor PostgreSQL updates applied by Render'],
             ['Node.js runtime and frameworks (Next.js, React)', 'INTDEV', 'Framework upgrades shipped as tagged releases through CI/CD. Render selects the Node.js version from the service’s NODE_VERSION setting when one is set, and otherwise from the engines range in package.json, which resolves to the newest Node.js release that satisfies it.'],
             ['Application dependencies', 'INTDEV', 'Dependency audit every month and whenever an advisory is published, fixed within SLA. No lockfile is committed, so every Render build installs a fresh resolution of package.json, the same resolution the dependency scan audits. A package pinned to an exact version changes only when package.json does.'],
-            ['Vulnerability alerts', 'GitHub and Vanta', 'GitHub Dependabot vulnerability alerts are on for every one of INTDEV’s own repositories. Vanta reads them and tests that critical, high, medium, and low findings are addressed within their SLAs; all four tests passed on November 5, 2026. The INTDEV API repository had no Dependabot alert, open or closed, when read through the GitHub API on November 6, 2026.'],
-            ['Application code', 'INTDEV, with GitHub', 'GitHub CodeQL code scanning analyzes every pull request in INTDEV’s own repositories, and GitHub Copilot code review reviews it beside the teammate who approves it, as the owner confirmed on November 6, 2026. Its findings take the same severity deadlines as every other finding. In the INTDEV API repository a ruleset blocks a merge that leaves a high or critical CodeQL alert; CodeQL’s first analysis there, on November 6, 2026, found eight, recorded as INTDEV-2026-CODE-01 and INTDEV-2026-CODE-02.'],
+            ['Vulnerability alerts', 'GitHub and Vanta', 'GitHub Dependabot vulnerability alerts are on for the INTDEV API repository. Vanta reads them and tests that critical, high, medium, and low findings are addressed within their SLAs; all four tests passed on November 5, 2026. The INTDEV API repository had no Dependabot alert, open or closed, when read through the GitHub API on November 6, 2026.'],
+            ['Application code', 'INTDEV, with GitHub', 'In the INTDEV API repository, as read through the GitHub API on November 6, 2026, GitHub CodeQL code scanning analyzes every pull request, GitHub Copilot code review reviews it beside the teammate who approves it, and a ruleset blocks a merge that leaves a high or critical CodeQL alert; CodeQL’s first analysis there, on November 6, 2026, found eight, recorded as INTDEV-2026-CODE-01 and INTDEV-2026-CODE-02. Its findings take the same severity deadlines as every other finding.'],
             ['Edge TLS and certificates', 'Cloudflare', 'Automatic certificate issuance and renewal'],
           ]}
         />
       </Section>
       <Section title="Retiring unsupported software">
         <List items={SOFTWARE_RETIREMENT} />
+      </Section>
+      <Section title="Laptop patch state">
+        <Group>
+          <p>{`Every team member reruns the device check from Device check in Users Garden at least every ${DEVICE_CHECK_FRESH_DAYS} days, so each laptop’s macOS version and its automatic security update setting are read from macOS at least once a month. The INTDEV API judges each check-in against the supported-macOS rule below, and the compliance report’s device-patch-state check stays open while any current laptop is unpatched. Each monthly vulnerability scan reads this record.`}</p>
+          <DevicePatchReport />
+        </Group>
       </Section>
       <Section title="INTDEV API software inventory">
         <Group>
@@ -823,6 +829,76 @@ export function RemediatedVulnerabilities() {
       </Section>
       <Section title="All findings">
         <Register />
+      </Section>
+    </Document>
+  );
+}
+
+export const SPECIFICATION_SECTIONS: [string, string][] = [
+  ['1. Summary', 'The problem, the intended outcome, the client or product it is for, and the engineer who owns the specification.'],
+  ['2. Scope', 'What the work includes, and what it deliberately leaves out.'],
+  ['3. Design', 'The components, interfaces, and data flows, with a diagram where one helps, and the trust boundaries each flow crosses.'],
+  ['4. Data', 'Every kind of data the work reads, stores, or sends; its classification under the Data Management Policy (Confidential, Restricted, or Public); where it is stored, how long it is kept, and how it is deleted. Client data stays where the client’s agreement allows: for Microsoft, only in Microsoft’s systems.'],
+  ['5. Security validation', 'The checkpoints below, answered before build and signed off at each checkpoint.'],
+  ['6. Testing', 'The tests that prove the work does what it should, including the tests that hold its permission boundaries, and how they run before merge.'],
+  ['7. Rollout and rollback', 'How the work reaches production or the client, how it is undone, and what is watched after release.'],
+  ['8. Sign-off', 'Each checkpoint’s date and who signed it off, recorded in the pull request that changes the specification.'],
+];
+
+export const SECURITY_VALIDATION_QUESTIONS: [string, string][] = [
+  ['Threat review', 'What the work protects, who could attack it, its entry points and trust boundaries, and its abuse cases, reviewed for spoofing, tampering, repudiation, information disclosure, denial of service, and elevation of privilege. Each threat names its mitigation, or is accepted by the CISO with a reason.'],
+  ['Authentication and authorization', 'Who may call each interface, how they are authenticated, and the check that enforces it on every request. Access is least privilege, identity is never taken from a client-supplied header, and every privileged path requires MFA.'],
+  ['Data classification and handling', 'The class of every piece of data, encryption in transit (TLS) and at rest, no client or customer data in development or test environments, and nothing of a client’s kept outside the systems its agreement allows.'],
+  ['Secrets', 'Which credentials the work needs and where they live: Render’s environment settings or a git-ignored local file, never source, configuration, issues, or chat. Each secret has an owner and a rotation procedure.'],
+  ['Dependencies', 'Each new package and why it is needed, its maintainer and license, and a clean npm audit and Dependabot result for critical and high findings, or an approved risk treatment plan.'],
+  ['AI systems', 'Whether any AI system is used to build or run the work, and confirmation that no client Confidential or personal data enters one without the client’s written permission. Microsoft data enters only an AI system Microsoft provides and manages.'],
+  ['Logging and incident response', 'What is logged for investigation, confirmation that no secret, password, or unnecessary personal data is logged, and how a failure or suspected incident is reported under the Incident Response Plan.'],
+  ['Privacy by design', 'Only the personal data the purpose needs is collected, it is kept only as long as that purpose lasts, and access, correction, and deletion requests can be honored.'],
+  ['Security tests', 'The tests and checks that must pass before delivery: permission-boundary tests, input validation tests, CodeQL code scanning with no high or critical alert, secret scanning with no unresolved alert, and any test the threat review calls for.'],
+];
+
+export function TechnicalSpecificationTemplate() {
+  return (
+    <Document
+      slug="technical-specification-template"
+      title="Technical specification template"
+      summary="The template every technical specification for software INTDEV develops follows, Microsoft deliverables included. Its security validation section builds security in by design: it is answered before the work is built, and checked again before merge and before delivery."
+      controls={['Development lifecycle established', 'Microsoft Supplier Data Protection Requirements (SSPA)']}
+      owner="Jimmy Lee, Chief Executive Officer and CISO"
+      appliesTo="Every technical specification for software INTDEV develops, including each deliverable for a client such as Microsoft"
+      updated="November 6, 2026"
+    >
+      <Section title="How it is used">
+        <List
+          items={[
+            'An engineer writes a specification from this template before building any significant change, new system, or client deliverable. The Secure Development Policy’s secure-by-design and privacy-by-design principles apply to everything it describes.',
+            'The specification lives with the code it describes, in the same repository. For a Microsoft deliverable, that is Microsoft’s own systems, or the private repository in INTDEV’s GitHub organization that holds INTDEV’s work product until delivery, which holds no Microsoft Personal or Confidential Data. It is never kept anywhere else, and it is handled with that code under the engagement closeout on the client data protection page.',
+            'The specification is added and changed through a reviewed pull request, so every change to it records its reason and approver.',
+            'A Security Engineer who did not write the specification signs off each checkpoint. Work is not merged or delivered while a checkpoint is open.',
+          ]}
+        />
+      </Section>
+      <Section title="Template">
+        <Fields items={SPECIFICATION_SECTIONS} />
+      </Section>
+      <Section title="Security validation">
+        <Group>
+          <p>Section 5 of every specification answers each question below. An answer of “not applicable” gives the reason.</p>
+          <Fields items={SECURITY_VALIDATION_QUESTIONS} />
+        </Group>
+      </Section>
+      <Section title="Checkpoints">
+        <Table
+          columns={['Checkpoint', 'When', 'What must pass', 'Signed off by']}
+          rows={[
+            ['Design review', 'Before the work is built', 'Every security validation question answered; every threat has a mitigation or an accepted risk', 'A Security Engineer who is not the author'],
+            ['Merge', 'Every pull request', 'Tests passing, permission-boundary tests included; no high or critical CodeQL alert; no unresolved secret scanning alert; the pull request template’s secrets and data handling questions answered; an approving review', 'The approving reviewer, who is never the author'],
+            ['Delivery', 'Before release to production or delivery to a client', 'Every security test the specification lists passes; dependencies clean of critical and high findings or under an approved risk treatment plan; the specification updated to match what was built', 'A Security Engineer, and for a client deliverable the engagement lead'],
+          ]}
+        />
+      </Section>
+      <Section title="Code scanning">
+        <p>In the INTDEV API repository, GitHub CodeQL analyzes every pull request and alerts on flaws before merge, and GitHub Copilot code review reviews it beside the teammate who approves it. Its findings take the severity deadlines on the vulnerability scanning page. Code kept in Microsoft’s systems follows Microsoft’s own scanning.</p>
       </Section>
     </Document>
   );

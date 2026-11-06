@@ -1,4 +1,4 @@
-import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, SystemAccount, TerminationRecord, TrainingCompletion, TrainingCourse } from '@root/compliance/site/types';
+import type { AccessGrant, ChecklistStep, DeviceChip, DiskEncryptionStandard, EncryptionSource, SupportedMacOS, SystemAccount, TerminationRecord, TrainingCompletion, TrainingCourse, TrainingSignature } from '@root/compliance/site/types';
 
 import { FORMER_TEAM, TEAM, VULNERABILITIES } from '@root/compliance/site/facts';
 import { INFRASTRUCTURE_SNAPSHOT } from '@root/compliance/site/infrastructure-snapshot';
@@ -61,6 +61,23 @@ export const DEVICE_CHECK_IN = '/api/compliance/devices/check-in';
 export const DEVICE_CHECK_SCRIPT = 'https://api.internet.dev/compliance/device-check.sh';
 
 export const DEVICE_CHECK_FRESH_DAYS = 30;
+
+export const TRAINING_SIGN = '/api/compliance/training/sign';
+
+export const TRAINING_ACKNOWLEDGEMENT = 'I have read and understood this course, and I will follow it in my work for INTDEV.';
+
+export const SUPPORTED_MACOS: SupportedMacOS = {
+  minimum_major: 15,
+  current_major: 27,
+  rule: 'A laptop is on a supported macOS when it runs the current major version of macOS or one of the two before it, the versions Apple still ships security updates for, and installs security updates automatically. Today that is macOS 27, macOS 26 Tahoe, or macOS 15 Sequoia. A laptop on an older version is a finding of at least Medium severity and is upgraded within that deadline, or retired.',
+  basis: 'Apple publishes no end-of-life schedule for macOS. Its October 26, 2026 releases shipped security updates for macOS 27, macOS 26 Tahoe, and macOS 15 Sequoia, and none for macOS 14 Sonoma. The minimum version is raised when Apple ships a major version that leaves the oldest of the three without security updates.',
+  source: { title: 'Apple security releases', href: 'https://support.apple.com/en-us/100100' },
+  recorded_at: '2026-11-06',
+};
+
+export function macosMajor(version: string): number {
+  return Number.parseInt(version.split('.')[0] ?? '', 10) || 0;
+}
 
 export const REMOVABLE_MEDIA_CONTROL = {
   enforced_by: 'conduct',
@@ -405,6 +422,7 @@ const STEP = {
   secrets: 'Review the environment secrets they could read, and rotate any that need it',
   aws: 'Remove or deactivate AWS IAM access',
   tools: 'Remove Stripe, Vanta, Slack, and Telegram channel access',
+  clients: 'Ask every client that issued access to the person, such as membership in its GitHub organization or a guest account in its tenant, to remove it within 48 hours of the last day, and record the client’s confirmation',
   account: 'Remove administrative rights from the INTDEV API account; platform admin is lowered to a standard tier',
   organizations: 'Remove membership in INTDEV’s organizations on the INTDEV API: INTDEV’s own domains (internet.dev and its subdomains, users.garden, terminalgraph.com, txt.dev) and every organization a current team member belongs to',
   equipment: 'Collect company equipment, or confirm company data is deleted from personal devices',
@@ -413,6 +431,8 @@ const STEP = {
 } as const;
 
 export const TERMINATION_CHECKLIST: string[] = Object.values(STEP);
+
+export const CLIENT_ACCESS_STEP_FROM = '2026-11-06';
 
 const OWNER_CONFIRMATION = { by: APPROVER, at: CONFIRMED_AT, detail: 'Confirmed every attested step of this checklist as complete' };
 
@@ -467,6 +487,11 @@ export const TRAINING_COURSES: TrainingCourse[] = [
 
 const SIGNED_NOVEMBER_4 = ['security-awareness-2026', 'business-continuity-2026'];
 
+export function signedCourses(record: TrainingCompletion, signatures: TrainingSignature[] = []): string[] {
+  const online = signatures.filter((signature) => TRAINING_COURSES.some((course) => course.id === signature.course_id && course.version === signature.version)).map((signature) => signature.course_id);
+  return [...new Set([...record.courses, ...online])];
+}
+
 export const TRAINING_COMPLETIONS: TrainingCompletion[] = TEAM.map((person) => ({
   person: person.name,
   role: person.role,
@@ -474,7 +499,7 @@ export const TRAINING_COMPLETIONS: TrainingCompletion[] = TEAM.map((person) => (
   user_id: person.userId,
   courses: SIGNED_NOVEMBER_4,
   signed_at: CONFIRMED_AT,
-  method: 'Signed acknowledgement of the security awareness and business continuity courses',
+  method: 'Signed acknowledgement of the security awareness and business continuity courses, confirmed by the CEO; later courses are signed by the team member in Users Garden',
   confirmation: { by: APPROVER, at: CONFIRMED_AT, detail: 'Confirmed this team member signed the security awareness and business continuity courses' },
 }));
 

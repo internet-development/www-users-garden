@@ -36,9 +36,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Item active={'USER_ACCESS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ACCESS', nextOrganization: null })} mark={`┌`}>
           Access
         </Item>
-        <Item active={'USER_DEVICE_CHECK' === props.active} onClick={() => props.onNavigate({ active: 'USER_DEVICE_CHECK', nextOrganization: null })} mark={`├`}>
-          Device check
-        </Item>
         <Item active={'USER_GET_STARTED' === props.active} onClick={() => props.onNavigate({ active: 'USER_GET_STARTED', nextOrganization: null })} mark={`├`}>
           Guide
         </Item>
@@ -56,6 +53,17 @@ export default function UserGardenAuthenticatedNavigation(props) {
         </Item>
         <Item active={'USER_WALLET' === props.active} onClick={() => props.onNavigate({ active: 'USER_WALLET', nextOrganization: null })} mark={`└`}>
           Wallet
+        </Item>
+
+        <Title style={{ marginTop: 24 }}>COMPLIANCE</Title>
+        <Item active={'USER_COMPLIANCE' === props.active} onClick={() => props.onNavigate({ active: 'USER_COMPLIANCE', nextOrganization: null })} mark={`┌`}>
+          Checklist
+        </Item>
+        <Item active={'USER_DEVICE_CHECK' === props.active} onClick={() => props.onNavigate({ active: 'USER_DEVICE_CHECK', nextOrganization: null })} mark={`├`}>
+          Device check
+        </Item>
+        <Item active={'USER_TRAINING' === props.active} onClick={() => props.onNavigate({ active: 'USER_TRAINING', nextOrganization: null })} mark={`└`}>
+          Training
         </Item>
 
         {isAdmin ? (

@@ -17,6 +17,8 @@ Visit `http://localhost:10000/settings-preview` for the public SMS review page, 
 
 Visit `http://localhost:10000/compliance` for the public compliance records. They are generated from `../apis/compliance/site/`; see **Compliance Pages** in `AGENTS.md`.
 
+After signing in, **COMPLIANCE** in the sidebar holds **Checklist**, **Device check**, and **Training**, also linked directly as `/#compliance`, `/#device-check`, and `/#training`. INTDEV team members see what is still open for them and fix each item there; see **Compliance Checklist** in `AGENTS.md`.
+
 ## Scripts
 
 | Command | Description |
@@ -31,7 +33,7 @@ Next.js 16 does not provide `next lint`; this repository has no configured linte
 
 `next.config.js` disables automatic framework edits to the repository’s `AGENTS.md`.
 
-The YAML files directly under `.github/` are inactive workflow templates; GitHub Actions only runs workflows under `.github/workflows/`. CodeQL code scanning, Copilot code review, and Dependabot alerts are GitHub repository settings, not files here, and they act only on pull requests; changes pushed straight to `main` bypass them.
+The YAML files directly under `.github/` are inactive workflow templates; GitHub Actions only runs workflows under `.github/workflows/`.
 
 ## Environment Variables
 

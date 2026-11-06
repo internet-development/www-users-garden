@@ -41,10 +41,10 @@ export default function UserDanger(props) {
       </StandardHeader>
 
       {DeviceCheck.isCurrentTeamMember(props.viewer) ? (
-        <StandardLayoutSection title="Report your laptop">
-          <P style={{ marginTop: 6 }}>As an INTDEV team member, report every Mac you use for INTDEV work at least every {DEVICE_CHECK_FRESH_DAYS} days. Device check gives you one Terminal command to run, then you paste its report and send it with your signed-in account.</P>
+        <StandardLayoutSection title="Your compliance checklist">
+          <P style={{ marginTop: 6 }}>As an INTDEV team member, you report every Mac you use for INTDEV work at least every {DEVICE_CHECK_FRESH_DAYS} days and sign every training course. The checklist under COMPLIANCE shows what is still open for you, what you need, and how to fix each item yourself.</P>
           <div className={styles.actions}>
-            <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_DEVICE_CHECK', nextOrganization: null })}>Device check</ButtonPrimary>
+            <ButtonPrimary onClick={() => props.onNavigate({ active: 'USER_COMPLIANCE', nextOrganization: null })}>Open checklist</ButtonPrimary>
           </div>
         </StandardLayoutSection>
       ) : null}

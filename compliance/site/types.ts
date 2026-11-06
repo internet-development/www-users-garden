@@ -150,6 +150,21 @@ export interface TrainingCompletion {
   confirmation: Confirmation;
 }
 
+export interface TrainingSignature {
+  course_id: string;
+  version: string;
+  signed_at: string;
+}
+
+export interface SupportedMacOS {
+  minimum_major: number;
+  current_major: number;
+  rule: string;
+  basis: string;
+  source: { title: string; href: string };
+  recorded_at: string;
+}
+
 export interface RiskTreatment {
   likelihood: number;
   impact: number;
@@ -272,6 +287,9 @@ export interface DeviceAssessment {
   removable_media_clear: boolean;
   anti_malware_active: boolean | null;
   firewall_on: boolean | null;
+  os_supported: boolean;
+  security_updates_on: boolean | null;
+  patch_current: boolean | null;
 }
 
 export interface DeviceRecord extends DeviceReport {
@@ -301,6 +319,8 @@ export interface DeviceFleetSummary {
   devices_mdm_enrolled: number;
   devices_anti_malware: number;
   devices_firewall_on: number;
+  devices_os_supported: number;
+  devices_patch_current: number;
 }
 
 export interface LaptopEncryptionStandard extends DiskEncryptionStandard {
@@ -331,6 +351,7 @@ export interface ReportInputs {
   deletions: { evidenced: number; logged: number } | null;
   releaseScan: ReleaseScan | null;
   devices: DeviceFleetSummary | null;
+  training: Record<string, TrainingSignature[]> | null;
   infrastructure: InfrastructureSnapshot | null;
   checkedAt: string | null;
 }

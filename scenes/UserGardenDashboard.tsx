@@ -10,11 +10,13 @@ import UserGardenGetStarted from '@components/UserGardenGetStarted';
 import UserGardenAccess from '@components/UserGardenAccess';
 import UserGardenAuthenticatedNavigation from '@components/UserGardenAuthenticatedNavigation';
 import UserGardenApplications from '@components/UserGardenApplications';
+import UserGardenCompliance from '@components/UserGardenCompliance';
 import UserGardenDashboardProfile from '@components/UserGardenDashboardProfile';
 import UserGardenDanger from '@components/UserGardenDanger';
 import UserGardenDeviceCheck from '@components/UserGardenDeviceCheck';
 import UserGardenOffice from '@components/UserGardenOffice';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
+import UserGardenTraining from '@components/UserGardenTraining';
 import UserGardenUpgrade from '@components/UserGardenUpgrade';
 
 import UserGardenWallet from '@components/UserGardenWallet';
@@ -36,7 +38,9 @@ export default function UserGardenDashboard(props) {
   const CHILD_ELEMENT_MAP = {
     ADMIN_TENANTS: <AdminTenants viewer={props.viewer} onGetAllTenants={props.onGetAllTenants} onTenantUpdate={props.onTenantUpdate} onTenantRemove={props.onTenantRemove} />,
     USER_GET_STARTED: <UserGardenGetStarted onNavigate={props.onNavigate} viewer={props.viewer} />,
+    USER_COMPLIANCE: <UserGardenCompliance onGetDeviceFleet={props.onGetDeviceFleet} onGetTrainingRecord={props.onGetTrainingRecord} onNavigate={props.onNavigate} viewer={props.viewer} />,
     USER_DEVICE_CHECK: <UserGardenDeviceCheck onDeviceCheckIn={props.onDeviceCheckIn} onGetDeviceFleet={props.onGetDeviceFleet} viewer={props.viewer} />,
+    USER_TRAINING: <UserGardenTraining onGetTrainingRecord={props.onGetTrainingRecord} onSignTraining={props.onSignTraining} viewer={props.viewer} />,
     USER_PROFILE: (
       <UserGardenDashboardProfile
         viewer={props.viewer}
