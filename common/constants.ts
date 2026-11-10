@@ -75,8 +75,8 @@ export const Office = {
   LABEL_MIN_PX: 10,
   LABELS: [
     { text: 'Entrance', x_in: 63, y_in: 95, rotate: -90 },
-    { text: 'Kitchen', x_in: 793, y_in: 252, rotate: 0 },
-    { text: 'Kitchenette', x_in: 630, y_in: 468, rotate: 0 },
+    { text: 'Kitchen', x_in: 801, y_in: 247, rotate: -90 },
+    { text: 'Kitchen', x_in: 641, y_in: 458, rotate: 0 },
     { text: 'Restrooms', x_in: 946, y_in: 573, rotate: 0 },
     { text: 'Garage', x_in: 84, y_in: 567, rotate: 0 },
   ],

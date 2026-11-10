@@ -204,7 +204,7 @@ export default function OfficePlan(props) {
         <path className={styles.lines} d={OfficePlanData.LINES_PATH} />
         {Constants.Office.LABELS.map((label) => (
           <text
-            key={label.text}
+            key={`${label.text}-${label.x_in}-${label.y_in}`}
             className={styles.area}
             x={label.x_in}
             y={label.y_in}
