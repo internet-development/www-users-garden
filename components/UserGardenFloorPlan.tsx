@@ -13,10 +13,10 @@ import Input from '@system/Input';
 import OfficePlan, { FULL_VIEW, zoomView } from '@components/OfficePlan';
 import Select from '@system/Select';
 
-import { H5, SubTitle } from '@system/typography';
+import { H5, P, SubTitle } from '@system/typography';
 
 const NEW_NAME = '__new-name__';
-const CURRENT_NAME = '__current-name__';
+const NAME_PREFIX = 'name:';
 const FULL_WIDTH_BUTTON = { height: 48, marginTop: 12, width: '100%' };
 
 function initials(text: string) {
@@ -73,12 +73,12 @@ function DeskList(props) {
 
 function AdminDesk(props) {
   const desk = props.desk;
-  const [choice, setChoice] = React.useState(desk.name ? CURRENT_NAME : desk.user_id || '');
-  const [name, setName] = React.useState(desk.name || '');
+  const [choice, setChoice] = React.useState(desk.name ? NAME_PREFIX + desk.name : desk.user_id || '');
+  const [name, setName] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
   const options = [{ value: '', label: 'Open' }];
-  if (desk.name) options.push({ value: CURRENT_NAME, label: desk.name });
+  props.names.forEach((each) => options.push({ value: NAME_PREFIX + each, label: each }));
   if (desk.user && !props.accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: desk.user.email });
   props.accounts.forEach((each) => options.push({ value: each.id, label: each.email }));
   options.push({ value: NEW_NAME, label: 'Type a name' });
@@ -92,8 +92,12 @@ function AdminDesk(props) {
   };
 
   const onSave = () => {
-    if (choice === NEW_NAME || choice === CURRENT_NAME) {
+    if (choice === NEW_NAME) {
       if (name.trim()) save({ name: name.trim() });
+      return;
+    }
+    if (choice.startsWith(NAME_PREFIX)) {
+      save({ name: choice.slice(NAME_PREFIX.length) });
       return;
     }
     save(choice ? { user_id: choice } : { user_id: null, name: null });
@@ -104,7 +108,7 @@ function AdminDesk(props) {
       <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
       <H5 style={{ marginTop: 24 }}>{isTaken(desk) ? 'Taken' : 'Open'}</H5>
       <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
-      {choice === NEW_NAME || choice === CURRENT_NAME ? (
+      {choice === NEW_NAME ? (
         <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
       ) : null}
       <ButtonPrimary loading={saving} onClick={onSave} style={FULL_WIDTH_BUTTON}>
@@ -176,8 +180,18 @@ export default function UserGardenFloorPlan(props) {
     );
   };
 
+  const onSettle = (keys, snap) => {
+    setDraft((current) => {
+      if (!current) return current;
+      const { dx, dy } = OfficeGeometry.settle(current, keys, snap);
+      if (!dx && !dy) return current;
+      return current.map((desk) => (keys.includes(desk.key) ? { ...desk, x_in: desk.x_in + dx, y_in: desk.y_in + dy } : desk));
+    });
+  };
+
   const onRotate = (keys) => {
     setDraft((current) => (current || []).map((desk) => (keys.includes(desk.key) ? { ...desk, rotation: (desk.rotation + 90) % 360 } : desk)));
+    onSettle(keys, false);
   };
 
   const onRemove = (keys) => {
@@ -235,6 +249,7 @@ export default function UserGardenFloorPlan(props) {
   };
 
   const openDesks = (desks || []).filter((desk) => !isTaken(desk));
+  const names = [...new Set((desks || []).map((desk) => desk.name).filter(Boolean))].sort();
 
   let panel: React.ReactNode = null;
   if (editing) {
@@ -263,7 +278,7 @@ export default function UserGardenFloorPlan(props) {
       </>
     );
   } else if (selectedDesk && isAdmin) {
-    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} names={names} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
   } else if (selectedDesk) {
     panel = (
       <>
@@ -286,12 +301,15 @@ export default function UserGardenFloorPlan(props) {
     <>
       <header className={styles.header}>
         <SubTitle>Floor plan</SubTitle>
+        <P style={{ marginTop: 6 }}>
+          See the desks at the Internet Development Studio Company office in Seattle, WA. Collaborators and partners with an approved workspace can also see which desks are open.
+        </P>
       </header>
 
       <div className={styles.row}>
         <div className={styles.container}>
           <div className={canSeeDesks ? styles.planColumn : styles.planColumnWide}>
-            <div className={styles.content}>
+            <div className={styles.planContent}>
               <div className={styles.planHeader}>
                 <SubTitle style={{ padding: 0 }}>Suite 301</SubTitle>
                 <div className={styles.controls}>
@@ -312,6 +330,7 @@ export default function UserGardenFloorPlan(props) {
                 onView={setView}
                 onSelect={canSeeDesks ? setSelected : () => {}}
                 onMoveBy={onMoveBy}
+                onSettle={onSettle}
                 onRotate={onRotate}
                 onRemove={onRemove}
               />

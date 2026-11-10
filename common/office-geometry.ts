@@ -75,6 +75,109 @@ function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number) {
   return true;
 }
 
+const SNAP_IN = 6;
+const MAX_PUSH_IN = 72;
+
+function axisWalls() {
+  const walls = OfficePlan.WALL_SEGMENTS;
+  const result: number[][] = [];
+  for (let i = 0; i < walls.length; i += 4) {
+    const [x1, y1, x2, y2] = [walls[i], walls[i + 1], walls[i + 2], walls[i + 3]];
+    if (x1 === x2 || y1 === y2) result.push([Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2)]);
+  }
+  return result;
+}
+
+let cachedWalls: number[][] | null = null;
+
+function hitsWall(rect: Rect, wall: number[]) {
+  const [x1, y1, x2, y2] = wall;
+  if (y1 === y2) return y1 > rect.y + 0.5 && y1 < rect.y + rect.height - 0.5 && x2 > rect.x + 0.5 && x1 < rect.x + rect.width - 0.5;
+  return x1 > rect.x + 0.5 && x1 < rect.x + rect.width - 0.5 && y2 > rect.y + 0.5 && y1 < rect.y + rect.height - 0.5;
+}
+
+function shift(rect: Rect, dx: number, dy: number): Rect {
+  return { x: rect.x + dx, y: rect.y + dy, width: rect.width, height: rect.height };
+}
+
+// NOTE(@caidanw)
+// Settles desks that were just dragged or nudged. A desk that ends up across a wall or on another
+// desk is pushed the shortest way out so it sits flush against it, and a desk that lands within
+// SNAP_IN of another desk snaps flush to it or lines up with its edge (skipped for arrow-key nudges,
+// which would otherwise snap straight back). Selected desks move together.
+// Only the desktops count; walkways are allowed to run into things. Returns the move to apply.
+export function settle(desks: Array<Desk & { key?: string }>, keys: string[], snap = true): { dx: number; dy: number } {
+  const moving = desks.filter((desk) => keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
+  if (!moving.length) return { dx: 0, dy: 0 };
+  const others = desks.filter((desk) => !keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
+
+  const left = Math.min(...moving.map((rect) => rect.x)) - MAX_PUSH_IN;
+  const top = Math.min(...moving.map((rect) => rect.y)) - MAX_PUSH_IN;
+  const right = Math.max(...moving.map((rect) => rect.x + rect.width)) + MAX_PUSH_IN;
+  const bottom = Math.max(...moving.map((rect) => rect.y + rect.height)) + MAX_PUSH_IN;
+  cachedWalls = cachedWalls || axisWalls();
+  const walls = cachedWalls.filter(([x1, y1, x2, y2]) => x2 >= left && x1 <= right && y2 >= top && y1 <= bottom);
+  const near = others.filter((rect) => rect.x + rect.width >= left && rect.x <= right && rect.y + rect.height >= top && rect.y <= bottom);
+
+  const fits = (dx: number, dy: number) =>
+    moving.every((rect) => {
+      const next = shift(rect, dx, dy);
+      return !walls.some((wall) => hitsWall(next, wall)) && !near.some((other) => overlaps(next, other));
+    });
+
+  // Moves that put a desk flush against a wall or another desk, on either side.
+  const xs = new Set<number>([0]);
+  const ys = new Set<number>([0]);
+  for (const rect of moving) {
+    for (const [x1, y1, x2, y2] of walls) {
+      if (y1 === y2) {
+        ys.add(y1 - (rect.y + rect.height));
+        ys.add(y1 - rect.y);
+      } else {
+        xs.add(x1 - (rect.x + rect.width));
+        xs.add(x1 - rect.x);
+      }
+    }
+    for (const other of near) {
+      xs.add(other.x - (rect.x + rect.width));
+      xs.add(other.x + other.width - rect.x);
+      ys.add(other.y - (rect.y + rect.height));
+      ys.add(other.y + other.height - rect.y);
+    }
+  }
+  const xList = [...xs].filter((value) => Math.abs(value) <= MAX_PUSH_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
+  const yList = [...ys].filter((value) => Math.abs(value) <= MAX_PUSH_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
+
+  // Push out of anything the desks landed on, as little as possible.
+  let best: { dx: number; dy: number } | null = null;
+  for (const dx of xList) {
+    if (best && Math.abs(dx) >= Math.abs(best.dx) + Math.abs(best.dy)) break;
+    for (const dy of yList) {
+      if (best && Math.abs(dx) + Math.abs(dy) >= Math.abs(best.dx) + Math.abs(best.dy)) break;
+      if (fits(dx, dy)) best = { dx, dy };
+    }
+  }
+  if (!best) return { dx: 0, dy: 0 };
+  const pushed = best;
+  if (!snap) return pushed;
+
+  // Then pull in to a desk or line up with one when it is close.
+  const snaps = (axis: 'x' | 'y') => {
+    const values = new Set<number>();
+    for (const rect of moving) {
+      const moved = shift(rect, pushed.dx, pushed.dy);
+      for (const other of near) {
+        if (axis === 'x') [other.x - (moved.x + moved.width), other.x + other.width - moved.x, other.x - moved.x, other.x + other.width - (moved.x + moved.width)].forEach((value) => values.add(value));
+        else [other.y - (moved.y + moved.height), other.y + other.height - moved.y, other.y - moved.y, other.y + other.height - (moved.y + moved.height)].forEach((value) => values.add(value));
+      }
+    }
+    return [...values].filter((value) => value !== 0 && Math.abs(value) <= SNAP_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
+  };
+  const snapX = snaps('x').find((value) => fits(pushed.dx + value, pushed.dy)) || 0;
+  const snapY = snaps('y').find((value) => fits(pushed.dx + snapX, pushed.dy + value)) || 0;
+  return { dx: pushed.dx + snapX, dy: pushed.dy + snapY };
+}
+
 // The desks whose walkway runs into a wall, another desk, or another chair.
 export function blockedDesks(desks: Desk[]): Set<number> {
   const parts = desks.map(deskParts);

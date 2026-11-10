@@ -35,11 +35,14 @@ export default function OfficePlan(props) {
   const svgRef = React.useRef<SVGSVGElement>(null);
   const viewRef = React.useRef(props.view);
   const gestureRef = React.useRef<any>(null);
-  const [pixelWidth, setPixelWidth] = React.useState(1);
+  const [pixels, setPixels] = React.useState({ width: 1, height: HEIGHT_IN / WIDTH_IN });
   viewRef.current = props.view;
 
+  // The view keeps its width; its height follows the box the plan is drawn in, so the plan can grow
+  // taller than the floor's own proportions when the column beside it is tall.
   const view = props.view;
-  const viewHeight = (view.width * HEIGHT_IN) / WIDTH_IN;
+  const pixelWidth = pixels.width;
+  const viewHeight = (view.width * pixels.height) / pixels.width;
   const scale = pixelWidth / view.width;
   const fontSize = Math.min(10 / scale, Constants.Office.DESK_DEPTH_IN * 0.5);
   const desks = props.desks || [];
@@ -47,7 +50,7 @@ export default function OfficePlan(props) {
 
   React.useEffect(() => {
     const svg = svgRef.current as SVGSVGElement;
-    const observer = new ResizeObserver(() => setPixelWidth(svg.clientWidth || 1));
+    const observer = new ResizeObserver(() => setPixels({ width: svg.clientWidth || 1, height: svg.clientHeight || 1 }));
     observer.observe(svg);
 
     // React's wheel handler is passive, so zooming needs its own listener to stop the page scroll.
@@ -110,6 +113,9 @@ export default function OfficePlan(props) {
   const onPointerUp = () => {
     const gesture = gestureRef.current;
     gestureRef.current = null;
+    if (gesture && gesture.type === 'drag' && (gesture.moved.x || gesture.moved.y)) {
+      props.onSettle(gesture.keys, true);
+    }
     if (gesture && gesture.type === 'pan' && gesture.travel < 4) {
       props.onSelect(gesture.key ? [gesture.key] : []);
     }
@@ -127,6 +133,7 @@ export default function OfficePlan(props) {
     if (moves[event.key]) {
       event.preventDefault();
       props.onMoveBy(props.selected, moves[event.key][0], moves[event.key][1]);
+      props.onSettle(props.selected, false);
     } else if (event.repeat) {
       return;
     } else if (event.key === 'r' || event.key === 'R') {
