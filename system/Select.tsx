@@ -40,7 +40,7 @@ export default function Select(props) {
               );
             }
             return (
-              <option key={each.label} value={each.value}>
+              <option hidden={each.hidden} key={each.label} value={each.value}>
                 {each.label}
               </option>
             );

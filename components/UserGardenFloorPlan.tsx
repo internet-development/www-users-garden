@@ -149,12 +149,13 @@ function AdminDesk(props) {
   const [name, setName] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  // Open first, then Staff, Members, and Teams (partner accounts, typed names, and a new name).
+  // Staff, Members, and Teams (partner accounts, typed names, and a new name). Freeing a desk is
+  // the Unassign button, so an open desk shows a prompt that isn't in the list.
   const people = [...props.accounts];
   if (desk.user && !people.some((each) => each.id === desk.user_id)) people.push(desk.user);
   const option = (each) => ({ value: each.id, label: accountLabel(each) });
   const level = (each) => Number(each.level);
-  const options: any[] = [{ value: '', label: 'Open' }];
+  const options: any[] = isTaken(desk) ? [] : [{ value: '', label: 'Choose who sits here', hidden: true }];
   const staffPeople = people.filter((each) => level(each) >= Constants.Users.tiers.ADMIN);
   const memberPeople = people.filter((each) => level(each) < Constants.Users.tiers.PARTNER);
   const partners = people.filter((each) => level(each) >= Constants.Users.tiers.PARTNER && level(each) < Constants.Users.tiers.ADMIN);
@@ -186,7 +187,7 @@ function AdminDesk(props) {
       save({ name: choice.slice(NAME_PREFIX.length) });
       return;
     }
-    save(choice ? { user_id: choice } : { user_id: null, name: null });
+    if (choice) save({ user_id: choice });
   };
 
   return (
