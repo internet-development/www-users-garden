@@ -67,4 +67,13 @@ export const Office = {
   WALKWAY_IN: 26,
   NUDGE_IN: 6,
   NUDGE_SHIFT_IN: 36,
+  // Places named on the plan to help people find their way, centered at these points. `rotate`
+  // turns a label (in degrees) to fit a narrow room.
+  LABELS: [
+    { text: 'Entrance', x_in: 72, y_in: 108, rotate: -90 },
+    { text: 'Kitchen', x_in: 906, y_in: 288, rotate: 0 },
+    { text: 'Front kitchen', x_in: 738, y_in: 534, rotate: 0 },
+    { text: 'Restrooms', x_in: 1080, y_in: 654, rotate: 0 },
+    { text: 'Garage', x_in: 96, y_in: 648, rotate: 0 },
+  ],
 };

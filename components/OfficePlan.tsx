@@ -11,9 +11,28 @@ const MAX_VIEW_WIDTH = WIDTH_IN * 1.5;
 
 export const FULL_VIEW = { x: 0, y: 0, width: WIDTH_IN };
 
-export function zoomView(view, factor: number, x?: number, y?: number) {
+// The view that fits a box (in inches) and centers it, for a plan drawn at `aspect` (width / height).
+export function fitView(box: { x: number; y: number; width: number; height: number }, aspect: number) {
+  const width = Math.max(box.width, box.height * aspect);
+  return { x: box.x + box.width / 2 - width / 2, y: box.y + box.height / 2 - width / aspect / 2, width };
+}
+
+// Keeps a view from wandering more than a little past the building's edges.
+export function clampView(view: { x: number; y: number; width: number }, aspect: number) {
+  const pad = 24;
+  const height = view.width / aspect;
+  const clamp = (value: number, size: number, total: number) => (size >= total + pad * 2 ? -pad + (total + pad * 2 - size) / 2 : Math.min(Math.max(value, -pad), total + pad - size));
+  return { x: clamp(view.x, view.width, WIDTH_IN), y: clamp(view.y, height, HEIGHT_IN), width: view.width };
+}
+
+export function wholeView(aspect: number) {
+  const pad = 24;
+  return fitView({ x: -pad, y: -pad, width: WIDTH_IN + pad * 2, height: HEIGHT_IN + pad * 2 }, aspect);
+}
+
+export function zoomView(view, factor: number, x?: number, y?: number, aspect = WIDTH_IN / HEIGHT_IN) {
   const width = Math.min(MAX_VIEW_WIDTH, Math.max(MIN_VIEW_WIDTH, view.width * factor));
-  const height = (view.width * HEIGHT_IN) / WIDTH_IN;
+  const height = view.width / aspect;
   const cx = x === undefined ? view.x + view.width / 2 : x;
   const cy = y === undefined ? view.y + height / 2 : y;
   const ratio = width / view.width;
@@ -173,13 +192,28 @@ export default function OfficePlan(props) {
         onPointerCancel={onPointerUp}
       >
         <defs>
-          <pattern id="office-plan-hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
-            <line className={styles.hatch} x1="0" y1="0" x2="0" y2="10" />
+          <pattern id="office-plan-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+            <line className={styles.hatch} x1="0" y1="0" x2="0" y2="8" />
           </pattern>
         </defs>
+        <rect className={styles.notOurs} x={0} y={0} width={WIDTH_IN} height={HEIGHT_IN} />
         <rect x={0} y={0} width={WIDTH_IN} height={HEIGHT_IN} fill="url(#office-plan-hatch)" />
         <polygon className={styles.floor} points={OfficePlanData.SUITE_POINTS} />
         <path className={styles.lines} d={OfficePlanData.LINES_PATH} />
+        {Constants.Office.LABELS.map((label) => (
+          <text
+            key={label.text}
+            className={styles.area}
+            x={label.x_in}
+            y={label.y_in}
+            fontSize={10 / scale}
+            dominantBaseline="central"
+            textAnchor="middle"
+            transform={label.rotate ? `rotate(${label.rotate} ${label.x_in} ${label.y_in})` : undefined}
+          >
+            {label.text}
+          </text>
+        ))}
 
         {props.editing
           ? desks.map((desk, index) => {

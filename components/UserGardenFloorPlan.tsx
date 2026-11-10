@@ -10,7 +10,7 @@ import ButtonPrimary from '@system/ButtonPrimary';
 import CheckmarkItem from '@system/documents/CheckmarkItem';
 import Cross from '@system/svg/Cross';
 import Input from '@system/Input';
-import OfficePlan, { FULL_VIEW, zoomView } from '@components/OfficePlan';
+import OfficePlan, { FULL_VIEW, clampView, fitView, wholeView, zoomView } from '@components/OfficePlan';
 import Select from '@system/Select';
 
 import { H5, P, SubTitle } from '@system/typography';
@@ -95,17 +95,21 @@ function isTaken(desk) {
   return Boolean(desk.taken || desk.user_id || desk.name);
 }
 
-// The view that frames every desk, with room for the walkways around them.
-function deskView(desks) {
-  if (!desks || !desks.length) return FULL_VIEW;
+// The view that frames every desk, with room for the walkways around them, centered.
+function deskView(desks, aspect: number) {
+  if (!desks || !desks.length) return wholeView(aspect);
   const pad = 72;
   const xs = desks.map((desk) => desk.x_in);
   const ys = desks.map((desk) => desk.y_in);
   const x = Math.min(...xs) - pad;
   const y = Math.min(...ys) - pad;
-  const width = Math.max(Math.max(...xs) - x + pad, ((Math.max(...ys) - y + pad) * OfficePlanData.WIDTH_IN) / OfficePlanData.HEIGHT_IN);
-  return { x, y, width };
+  return clampView(fitView({ x, y, width: Math.max(...xs) + pad - x, height: Math.max(...ys) + pad - y }, aspect), aspect);
 }
+
+// Approved accounts get the 3:2 plan beside the desk panel; everyone else gets the whole width.
+const PANEL_ASPECT = 3 / 2;
+const WIDE_ASPECT = OfficePlanData.WIDTH_IN / OfficePlanData.HEIGHT_IN;
+const aspectFor = (desks) => (desks && desks.length && desks[0].number !== undefined ? PANEL_ASPECT : WIDE_ASPECT);
 
 function CrossItem(props) {
   return (
@@ -268,7 +272,7 @@ export default function UserGardenFloorPlan(props) {
   };
 
   React.useEffect(() => {
-    load().then((next) => setView(deskView(next)));
+    load().then((next) => setView(deskView(next, aspectFor(next))));
     if (isAdmin) {
       props.onGetAllTenants().then((response) => setTenants(response && response.data ? response.data : []));
     }
@@ -296,7 +300,8 @@ export default function UserGardenFloorPlan(props) {
   const accounts = [...staff, ...approved.filter((each) => !staff.some((member) => member.id === each.id))];
   const selectedDesk = !editing && selected.length === 1 ? (desks || []).find((desk) => desk.id === selected[0]) : null;
   const selectedIndex = selectedDesk ? source.indexOf(selectedDesk) : -1;
-  const isWhole = view.width >= OfficePlanData.WIDTH_IN;
+  const aspect = aspectFor(desks);
+  const isWhole = view.width >= wholeView(aspect).width - 1;
 
   const onMoveBy = (keys, dx, dy) => {
     setDraft((current) =>
@@ -444,17 +449,17 @@ export default function UserGardenFloorPlan(props) {
               <div className={styles.planHeader}>
                 <SubTitle style={{ padding: 0 }}>Suite 301</SubTitle>
                 <div className={styles.controls}>
-                  <Button onClick={() => setView(zoomView(view, 1.4))} style={{ padding: 0, width: 34 }}>
+                  <Button onClick={() => setView(zoomView(view, 1.4, undefined, undefined, aspect))} style={{ padding: 0, width: 34 }}>
                     −
                   </Button>
-                  <Button onClick={() => setView(zoomView(view, 1 / 1.4))} style={{ padding: 0, width: 34 }}>
+                  <Button onClick={() => setView(zoomView(view, 1 / 1.4, undefined, undefined, aspect))} style={{ padding: 0, width: 34 }}>
                     +
                   </Button>
-                  <Button onClick={() => setView(isWhole ? deskView(desks) : FULL_VIEW)}>{isWhole ? 'Desks' : 'Whole floor'}</Button>
+                  <Button onClick={() => setView(isWhole ? deskView(desks, aspect) : wholeView(aspect))}>{isWhole ? 'Desks' : 'Whole floor'}</Button>
                 </div>
               </div>
               <OfficePlan
-                aspect={canSeeDesks ? 3 / 2 : OfficePlanData.WIDTH_IN / OfficePlanData.HEIGHT_IN}
+                aspect={aspect}
                 desks={planDesks}
                 editing={editing}
                 selected={selected}

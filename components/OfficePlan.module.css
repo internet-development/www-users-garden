@@ -27,10 +27,29 @@
   }
 }
 
+.notOurs {
+  fill: var(--theme-text);
+  fill-opacity: 0.03;
+}
+
 .hatch {
-  stroke: var(--theme-border);
+  stroke: var(--theme-foreground-secondary);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
+}
+
+.area {
+  font-family: var(--font-family-mono);
+  fill: var(--theme-text);
+  fill-opacity: 0.55;
+  stroke: var(--theme-background);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  vector-effect: non-scaling-stroke;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 .floor {
