@@ -14,6 +14,7 @@ import UserGardenCompliance from '@components/UserGardenCompliance';
 import UserGardenDashboardProfile from '@components/UserGardenDashboardProfile';
 import UserGardenDanger from '@components/UserGardenDanger';
 import UserGardenDeviceCheck from '@components/UserGardenDeviceCheck';
+import UserGardenFloorPlan from '@components/UserGardenFloorPlan';
 import UserGardenOffice from '@components/UserGardenOffice';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
 import UserGardenTraining from '@components/UserGardenTraining';
@@ -66,6 +67,16 @@ export default function UserGardenDashboard(props) {
         onUserApplyOfficeSpace={props.onUserApplyOfficeSpace}
         onUserGetInvoices={props.onUserGetInvoices}
         onUserGetOfficeState={props.onUserGetOfficeState}
+        viewer={props.viewer}
+      />
+    ),
+    USER_FLOOR_PLAN: (
+      <UserGardenFloorPlan
+        onCreateOfficeDesk={props.onCreateOfficeDesk}
+        onDeleteOfficeDesk={props.onDeleteOfficeDesk}
+        onGetAllTenants={props.onGetAllTenants}
+        onGetOfficeDesks={props.onGetOfficeDesks}
+        onUpdateOfficeDesk={props.onUpdateOfficeDesk}
         viewer={props.viewer}
       />
     ),

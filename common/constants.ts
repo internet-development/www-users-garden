@@ -55,3 +55,15 @@ export const TEMPLATE_LINKS = [
   { href: 'https://read.cv/teams/intdev', label: 'ReadCV' },
   { href: 'https://x.com/internetxstudio', label: 'X (formerly Twitter)' },
 ];
+
+// NOTE(@caidanw)
+// Sizes on the office floor plan, in inches. Estimates until the desks are measured; change them
+// here. A desk is its depth, then the chair, then the walkway behind the chair.
+export const Office = {
+  DESK_WIDTH_IN: 60,
+  DESK_DEPTH_IN: 26,
+  CHAIR_IN: 26,
+  WALKWAY_IN: 36,
+  NUDGE_IN: 6,
+  NUDGE_SHIFT_IN: 36,
+};

@@ -175,6 +175,18 @@ function ExampleRootSinglePageApplication(props) {
         onTenantRemove={async ({ id }) => {
           return await Queries.onTenantRemove({ key, id });
         }}
+        onGetOfficeDesks={async () => {
+          return await Queries.onGetOfficeDesks({ key });
+        }}
+        onCreateOfficeDesk={async ({ number, x_in, y_in, rotation }) => {
+          return await Queries.onCreateOfficeDesk({ key, number, x_in, y_in, rotation });
+        }}
+        onUpdateOfficeDesk={async ({ id, updates }) => {
+          return await Queries.onUpdateOfficeDesk({ key, id, updates });
+        }}
+        onDeleteOfficeDesk={async ({ id }) => {
+          return await Queries.onDeleteOfficeDesk({ key, id });
+        }}
         onChangeOrganizations={(org) => {
           setCurrentOrganization(org);
         }}

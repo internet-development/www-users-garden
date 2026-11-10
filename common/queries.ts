@@ -172,6 +172,26 @@ export async function onTenantRemove({ key, id }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
 }
 
+export async function onGetOfficeDesks({ key }) {
+  const route = `${Constants.HOST}/api/users/office/desks`;
+  return await fetchAndExpect({ route, key });
+}
+
+export async function onCreateOfficeDesk({ key, number, x_in, y_in, rotation }) {
+  const route = `${Constants.HOST}/api/users/office/desks/create`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ number, x_in, y_in, rotation }) });
+}
+
+export async function onUpdateOfficeDesk({ key, id, updates }) {
+  const route = `${Constants.HOST}/api/users/office/desks/update`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id, updates }) });
+}
+
+export async function onDeleteOfficeDesk({ key, id }) {
+  const route = `${Constants.HOST}/api/users/office/desks/delete`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
+}
+
 export async function onGetAllTransactions({ key }) {
   const route = `${Constants.HOST}/api/credits`;
   return await fetchAndExpect({ route, key });

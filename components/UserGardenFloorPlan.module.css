@@ -1,0 +1,21 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 16px 0 16px 0;
+}
+
+.gap {
+  width: 8px;
+}
+
+.number {
+  padding-top: 16px;
+}
+
+.selectedNumber {
+  padding-top: 16px;
+  color: var(--theme-primary);
+  font-weight: 600;
+}
