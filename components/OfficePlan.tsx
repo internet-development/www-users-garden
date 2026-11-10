@@ -160,7 +160,7 @@ export default function OfficePlan(props) {
   }
 
   return (
-    <div className={props.editing ? styles.editing : styles.root}>
+    <div className={props.editing ? styles.editing : styles.root} style={props.aspect ? { aspectRatio: String(props.aspect) } : undefined}>
       <svg
         ref={svgRef}
         className={styles.svg}

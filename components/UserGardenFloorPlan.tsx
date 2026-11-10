@@ -18,6 +18,7 @@ import { H5, P, SubTitle } from '@system/typography';
 const NEW_NAME = '__new-name__';
 const NAME_PREFIX = 'name:';
 const FULL_WIDTH_BUTTON = { height: 48, marginTop: 12, width: '100%' };
+const HALF_WIDTH_BUTTON = { height: 48, flex: 1, minWidth: 0, padding: 0 };
 
 function initials(text: string) {
   const words = text.split(/[\s._@-]+/).filter(Boolean);
@@ -148,11 +149,21 @@ function AdminDesk(props) {
   const [name, setName] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  const options = [{ value: '', label: 'Open' }];
-  props.names.forEach((each) => options.push({ value: NAME_PREFIX + each, label: each }));
-  if (desk.user && !props.accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: accountLabel(desk.user) });
-  props.accounts.forEach((each) => options.push({ value: each.id, label: accountLabel(each) }));
-  options.push({ value: NEW_NAME, label: 'Type a name' });
+  // Open first, then Staff, Members, and Teams (partner accounts, typed names, and a new name).
+  const people = [...props.accounts];
+  if (desk.user && !people.some((each) => each.id === desk.user_id)) people.push(desk.user);
+  const option = (each) => ({ value: each.id, label: accountLabel(each) });
+  const level = (each) => Number(each.level);
+  const options: any[] = [{ value: '', label: 'Open' }];
+  const staffPeople = people.filter((each) => level(each) >= Constants.Users.tiers.ADMIN);
+  const memberPeople = people.filter((each) => level(each) < Constants.Users.tiers.PARTNER);
+  const partners = people.filter((each) => level(each) >= Constants.Users.tiers.PARTNER && level(each) < Constants.Users.tiers.ADMIN);
+  if (staffPeople.length) options.push({ label: 'Staff', options: staffPeople.map(option) });
+  if (memberPeople.length) options.push({ label: 'Members', options: memberPeople.map(option) });
+  options.push({
+    label: 'Teams',
+    options: [...partners.map(option), ...props.names.map((each) => ({ value: NAME_PREFIX + each, label: each })), { value: NEW_NAME, label: 'Type a name' }],
+  });
 
   const holder = props.accounts.find((each) => each.id === desk.user_id);
   const billing = (desk.user_id && props.billing[desk.user_id]) || { state: 'loading' };
@@ -189,14 +200,16 @@ function AdminDesk(props) {
       {choice === NEW_NAME ? (
         <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
       ) : null}
-      <ButtonPrimary loading={saving} onClick={onSave} style={FULL_WIDTH_BUTTON}>
-        Save
-      </ButtonPrimary>
-      {isTaken(desk) ? (
-        <Button onClick={() => save({ user_id: null, name: null })} style={FULL_WIDTH_BUTTON}>
-          Unassign
-        </Button>
-      ) : null}
+      <div className={styles.buttonRow}>
+        <ButtonPrimary loading={saving} onClick={onSave} style={HALF_WIDTH_BUTTON}>
+          Save
+        </ButtonPrimary>
+        {isTaken(desk) ? (
+          <Button onClick={() => save({ user_id: null, name: null })} style={HALF_WIDTH_BUTTON}>
+            Unassign
+          </Button>
+        ) : null}
+      </div>
       {billing.state === 'unpaid' && desk.user ? (
         <Button href={`mailto:${desk.user.email}?subject=${encodeURIComponent(`Your desk at INTDEV`)}`} style={FULL_WIDTH_BUTTON}>
           Email {personName(desk.user)}
@@ -440,6 +453,7 @@ export default function UserGardenFloorPlan(props) {
                 </div>
               </div>
               <OfficePlan
+                aspect={canSeeDesks ? 3 / 2 : OfficePlanData.WIDTH_IN / OfficePlanData.HEIGHT_IN}
                 desks={planDesks}
                 editing={editing}
                 selected={selected}
@@ -454,8 +468,8 @@ export default function UserGardenFloorPlan(props) {
             </div>
           </div>
           {canSeeDesks ? (
-            <div className={styles.column}>
-              <div className={styles.content}>{panel}</div>
+            <div className={styles.panelColumn}>
+              <div className={styles.panelContent}>{panel}</div>
             </div>
           ) : null}
         </div>
