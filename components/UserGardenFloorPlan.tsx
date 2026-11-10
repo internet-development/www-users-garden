@@ -180,10 +180,10 @@ export default function UserGardenFloorPlan(props) {
     );
   };
 
-  const onSettle = (keys, snap) => {
+  const onSettle = (keys, snap, moved?) => {
     setDraft((current) => {
       if (!current) return current;
-      const { dx, dy } = OfficeGeometry.settle(current, keys, snap);
+      const { dx, dy } = OfficeGeometry.settle(current, keys, snap, moved);
       if (!dx && !dy) return current;
       return current.map((desk) => (keys.includes(desk.key) ? { ...desk, x_in: desk.x_in + dx, y_in: desk.y_in + dy } : desk));
     });

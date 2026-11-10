@@ -114,7 +114,7 @@ export default function OfficePlan(props) {
     const gesture = gestureRef.current;
     gestureRef.current = null;
     if (gesture && gesture.type === 'drag' && (gesture.moved.x || gesture.moved.y)) {
-      props.onSettle(gesture.keys, true);
+      props.onSettle(gesture.keys, true, { dx: gesture.moved.x, dy: gesture.moved.y });
     }
     if (gesture && gesture.type === 'pan' && gesture.travel < 4) {
       props.onSelect(gesture.key ? [gesture.key] : []);
@@ -133,7 +133,7 @@ export default function OfficePlan(props) {
     if (moves[event.key]) {
       event.preventDefault();
       props.onMoveBy(props.selected, moves[event.key][0], moves[event.key][1]);
-      props.onSettle(props.selected, false);
+      props.onSettle(props.selected, false, { dx: moves[event.key][0], dy: moves[event.key][1] });
     } else if (event.repeat) {
       return;
     } else if (event.key === 'r' || event.key === 'R') {

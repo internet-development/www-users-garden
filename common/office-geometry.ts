@@ -101,14 +101,20 @@ function shift(rect: Rect, dx: number, dy: number): Rect {
   return { x: rect.x + dx, y: rect.y + dy, width: rect.width, height: rect.height };
 }
 
+function overlapsOn(axis: 'x' | 'y', a: Rect, b: { x: number; y: number; width: number; height: number }) {
+  return axis === 'x' ? a.y + 0.5 < b.y + b.height && b.y + 0.5 < a.y + a.height : a.x + 0.5 < b.x + b.width && b.x + 0.5 < a.x + a.width;
+}
+
 // NOTE(@caidanw)
-// Settles desks that were just dragged or nudged. A desk that ends up across a wall or on another
-// desk is pushed the shortest way out so it sits flush against it. A desk that lands within
-// WALL_SNAP_IN of a wall, or SNAP_IN of another desk, then snaps flush to it, or lines up with the
-// desk's edge (skipped for arrow-key nudges, which would otherwise snap straight back). Selected
-// desks move together.
-// Only the desktops count; walkways are allowed to run into things. Returns the move to apply.
-export function settle(desks: Array<Desk & { key?: string }>, keys: string[], snap = true): { dx: number; dy: number } {
+// Settles desks that were just dragged, nudged, or rotated. Selected desks move together, and only
+// the desktops count; walkways may still run into things.
+// 1. A desk that ends up across a wall or on another desk is pushed out so it sits flush against
+//    it, preferring the way it came from (`moved` is the drag or nudge that brought it there).
+// 2. On each axis, a desk already touching a wall or desk stays put. Otherwise it snaps flush to a
+//    wall within WALL_SNAP_IN, or else flush to or in line with a desk within SNAP_IN. Arrow-key
+//    nudges skip this step (`snap` is false), or a 6 in nudge would snap straight back.
+// Returns the move to apply.
+export function settle(desks: Array<Desk & { key?: string }>, keys: string[], snap = true, moved = { dx: 0, dy: 0 }): { dx: number; dy: number } {
   const moving = desks.filter((desk) => keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
   if (!moving.length) return { dx: 0, dy: 0 };
   const others = desks.filter((desk) => !keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
@@ -118,78 +124,86 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
   const right = Math.max(...moving.map((rect) => rect.x + rect.width)) + MAX_PUSH_IN;
   const bottom = Math.max(...moving.map((rect) => rect.y + rect.height)) + MAX_PUSH_IN;
   cachedWalls = cachedWalls || axisWalls();
-  const walls = cachedWalls.filter(([x1, y1, x2, y2]) => x2 >= left && x1 <= right && y2 >= top && y1 <= bottom);
+  const walls = cachedWalls
+    .filter(([x1, y1, x2, y2]) => x2 >= left && x1 <= right && y2 >= top && y1 <= bottom)
+    .map(([x1, y1, x2, y2]) => ({ x: x1, y: y1, width: x2 - x1, height: y2 - y1, horizontal: y1 === y2 }));
   const near = others.filter((rect) => rect.x + rect.width >= left && rect.x <= right && rect.y + rect.height >= top && rect.y <= bottom);
 
   const fits = (dx: number, dy: number) =>
     moving.every((rect) => {
       const next = shift(rect, dx, dy);
-      return !walls.some((wall) => hitsWall(next, wall)) && !near.some((other) => overlaps(next, other));
+      return !walls.some((wall) => hitsWall(next, [wall.x, wall.y, wall.x + wall.width, wall.y + wall.height])) && !near.some((other) => overlaps(next, other));
     });
 
-  // Moves that put a desk flush against a wall or another desk, on either side.
+  // 1. Push out of anything the desks landed on. Moves that put a desk flush against a wall or desk.
   const xs = new Set<number>([0]);
   const ys = new Set<number>([0]);
   for (const rect of moving) {
-    for (const [x1, y1, x2, y2] of walls) {
-      if (y1 === y2) {
-        ys.add(y1 - (rect.y + rect.height));
-        ys.add(y1 - rect.y);
-      } else {
-        xs.add(x1 - (rect.x + rect.width));
-        xs.add(x1 - rect.x);
-      }
+    for (const wall of walls) {
+      if (wall.horizontal) [wall.y - (rect.y + rect.height), wall.y - rect.y].forEach((value) => ys.add(value));
+      else [wall.x - (rect.x + rect.width), wall.x - rect.x].forEach((value) => xs.add(value));
     }
     for (const other of near) {
-      xs.add(other.x - (rect.x + rect.width));
-      xs.add(other.x + other.width - rect.x);
-      ys.add(other.y - (rect.y + rect.height));
-      ys.add(other.y + other.height - rect.y);
+      [other.x - (rect.x + rect.width), other.x + other.width - rect.x].forEach((value) => xs.add(value));
+      [other.y - (rect.y + rect.height), other.y + other.height - rect.y].forEach((value) => ys.add(value));
     }
   }
-  const xList = [...xs].filter((value) => Math.abs(value) <= MAX_PUSH_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
-  const yList = [...ys].filter((value) => Math.abs(value) <= MAX_PUSH_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
-
-  // Push out of anything the desks landed on, as little as possible.
-  let best: { dx: number; dy: number } | null = null;
-  for (const dx of xList) {
-    if (best && Math.abs(dx) >= Math.abs(best.dx) + Math.abs(best.dy)) break;
-    for (const dy of yList) {
-      if (best && Math.abs(dx) + Math.abs(dy) >= Math.abs(best.dx) + Math.abs(best.dy)) break;
-      if (fits(dx, dy)) best = { dx, dy };
+  const within = (values: Set<number>) => [...values].filter((value) => Math.abs(value) <= MAX_PUSH_IN);
+  // Going further the way the desk was moving costs extra, so it comes back to the side it came from.
+  const cost = (dx: number, dy: number) => Math.abs(dx) + Math.abs(dy) + (dx * moved.dx > 0 ? MAX_PUSH_IN * 4 : 0) + (dy * moved.dy > 0 ? MAX_PUSH_IN * 4 : 0);
+  let pushed: { dx: number; dy: number } | null = null;
+  let lowest = Infinity;
+  for (const dx of within(xs)) {
+    for (const dy of within(ys)) {
+      const price = cost(dx, dy);
+      if (price < lowest && fits(dx, dy)) {
+        pushed = { dx, dy };
+        lowest = price;
+      }
     }
   }
-  if (!best) return { dx: 0, dy: 0 };
-  const pushed = best;
+  if (!pushed) return { dx: 0, dy: 0 };
   if (!snap) return pushed;
 
-  // Then pull in to a wall or desk, or line up with a desk, when it is close.
-  const snaps = (axis: 'x' | 'y') => {
-    const values = new Set<number>();
+  // 2. Snap each axis to a wall first, then to a desk, unless it already touches one.
+  const result = { ...pushed };
+  for (const axis of ['x', 'y'] as const) {
+    const wallMoves: number[] = [];
+    const deskMoves: number[] = [];
+    let touching = false;
     for (const rect of moving) {
-      const moved = shift(rect, pushed.dx, pushed.dy);
-      for (const other of near) {
-        const candidates =
-          axis === 'x'
-            ? [other.x - (moved.x + moved.width), other.x + other.width - moved.x, other.x - moved.x, other.x + other.width - (moved.x + moved.width)]
-            : [other.y - (moved.y + moved.height), other.y + other.height - moved.y, other.y - moved.y, other.y + other.height - (moved.y + moved.height)];
-        candidates.filter((value) => Math.abs(value) <= SNAP_IN).forEach((value) => values.add(value));
-      }
-      for (const [x1, y1, x2, y2] of walls) {
-        const horizontal = y1 === y2;
-        if (axis === 'y' && horizontal && x2 > moved.x && x1 < moved.x + moved.width) {
-          [y1 - (moved.y + moved.height), y1 - moved.y].filter((value) => Math.abs(value) <= WALL_SNAP_IN).forEach((value) => values.add(value));
+      const at = shift(rect, result.dx, result.dy);
+      const [start, end] = axis === 'x' ? [at.x, at.x + at.width] : [at.y, at.y + at.height];
+      for (const wall of walls) {
+        if (wall.horizontal !== (axis === 'y') || !overlapsOn(axis, at, wall)) continue;
+        const line = axis === 'x' ? wall.x : wall.y;
+        for (const value of [line - end, line - start]) {
+          if (value === 0) touching = true;
+          else if (Math.abs(value) <= WALL_SNAP_IN) wallMoves.push(value);
         }
-        if (axis === 'x' && !horizontal && y2 > moved.y && y1 < moved.y + moved.height) {
-          [x1 - (moved.x + moved.width), x1 - moved.x].filter((value) => Math.abs(value) <= WALL_SNAP_IN).forEach((value) => values.add(value));
+      }
+      for (const other of near) {
+        const [otherStart, otherEnd] = axis === 'x' ? [other.x, other.x + other.width] : [other.y, other.y + other.height];
+        const beside = overlapsOn(axis, at, other);
+        for (const value of [otherStart - end, otherEnd - start]) {
+          if (value === 0 && beside) touching = true;
+          else if (value !== 0 && Math.abs(value) <= SNAP_IN) deskMoves.push(value);
+        }
+        for (const value of [otherStart - start, otherEnd - end]) {
+          if (value !== 0 && Math.abs(value) <= SNAP_IN) deskMoves.push(value);
         }
       }
     }
-    return [...values].filter((value) => value !== 0).sort((a, b) => Math.abs(a) - Math.abs(b));
-  };
-  const snapX = snaps('x').find((value) => fits(pushed.dx + value, pushed.dy)) || 0;
-  const snapY = snaps('y').find((value) => fits(pushed.dx + snapX, pushed.dy + value)) || 0;
-  return { dx: pushed.dx + snapX, dy: pushed.dy + snapY };
+    if (touching) continue;
+    const tryMove = (value: number) => (axis === 'x' ? fits(result.dx + value, result.dy) : fits(result.dx, result.dy + value));
+    const byDistance = (a: number, b: number) => Math.abs(a) - Math.abs(b);
+    const value = wallMoves.sort(byDistance).find(tryMove) ?? deskMoves.sort(byDistance).find(tryMove);
+    if (value !== undefined) {
+      if (axis === 'x') result.dx += value;
+      else result.dy += value;
+    }
+  }
+  return result;
 }
 
 // The desks whose walkway runs into a wall, another desk, or another chair.
