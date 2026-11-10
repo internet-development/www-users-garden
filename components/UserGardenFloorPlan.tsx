@@ -84,6 +84,12 @@ function billingOf(response) {
   return { state: 'paid', until, cents: item ? item.amount_cents : null };
 }
 
+// NOTE(@caidanw)
+// Admins are INTDEV staff. Their desks aren't paid for, so they skip the payment check.
+function isStaff(desk) {
+  return Boolean(desk.user && Number(desk.user.level) >= Constants.Users.tiers.ADMIN);
+}
+
 function isTaken(desk) {
   return Boolean(desk.taken || desk.user_id || desk.name);
 }
@@ -151,6 +157,7 @@ function AdminDesk(props) {
   const holder = props.accounts.find((each) => each.id === desk.user_id);
   const billing = (desk.user_id && props.billing[desk.user_id]) || { state: 'loading' };
   const plan = planOf(desk.user ? desk.user.level : 0);
+  const staff = isStaff(desk);
   const price = billing.state === 'paid' && billing.cents ? formatCents(billing.cents) : plan.price;
 
   const save = async (updates) => {
@@ -197,16 +204,17 @@ function AdminDesk(props) {
       ) : null}
       <div className={styles.checks}>
         {isTaken(desk) && desk.assigned_at ? <CheckmarkItem>Taken since {formatDate(desk.assigned_at)}</CheckmarkItem> : null}
-        {desk.user_id ? holder ? <CheckmarkItem>Approved for a desk</CheckmarkItem> : <CrossItem>Not approved for a desk</CrossItem> : null}
-        {desk.user ? (
+        {staff ? <CheckmarkItem>INTDEV staff</CheckmarkItem> : null}
+        {desk.user_id && !staff ? holder ? <CheckmarkItem>Approved for a desk</CheckmarkItem> : <CrossItem>Not approved for a desk</CrossItem> : null}
+        {desk.user && !staff ? (
           <CheckmarkItem>
             {plan.name}
             {price ? `, ${price} / mo` : ''}
           </CheckmarkItem>
         ) : null}
-        {desk.user && billing.state === 'paid' ? <CheckmarkItem>Paid through {formatDate(billing.until)}</CheckmarkItem> : null}
-        {desk.user && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
-        {desk.user && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
+        {desk.user && !staff && billing.state === 'paid' ? <CheckmarkItem>Paid through {formatDate(billing.until)}</CheckmarkItem> : null}
+        {desk.user && !staff && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
+        {desk.user && !staff && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
         {desk.name ? <NoteItem>Billed outside users.garden</NoteItem> : null}
         {props.blocked ? <CrossItem>Walkway is blocked</CrossItem> : <CheckmarkItem>Walkway is clear</CheckmarkItem>}
       </div>
@@ -228,7 +236,7 @@ export default function UserGardenFloorPlan(props) {
   // Admins see whether each account holding a desk has paid for the current period.
   const loadBilling = (next) => {
     if (!isAdmin || !next) return;
-    const ids = [...new Set<string>(next.map((desk) => desk.user_id).filter(Boolean))].filter((id) => !checked.current.has(id));
+    const ids = [...new Set<string>(next.filter((desk) => desk.user_id && !isStaff(desk)).map((desk) => desk.user_id))].filter((id) => !checked.current.has(id));
     ids.forEach((id) => {
       checked.current.add(id);
       props.onGetUserSubscriptions({ id }).then((response) => setBilling((current) => ({ ...current, [id]: billingOf(response) })));
@@ -471,7 +479,7 @@ export default function UserGardenFloorPlan(props) {
                       {memberDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : desk.user && desk.user.email)} alert={isUnpaid} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : isStaff(desk) ? `Staff · ${desk.user.email}` : desk.user && desk.user.email)} alert={isUnpaid} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
