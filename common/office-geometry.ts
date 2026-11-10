@@ -76,6 +76,7 @@ function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number) {
 }
 
 const SNAP_IN = 6;
+const WALL_SNAP_IN = 12;
 const MAX_PUSH_IN = 72;
 
 function axisWalls() {
@@ -102,9 +103,10 @@ function shift(rect: Rect, dx: number, dy: number): Rect {
 
 // NOTE(@caidanw)
 // Settles desks that were just dragged or nudged. A desk that ends up across a wall or on another
-// desk is pushed the shortest way out so it sits flush against it, and a desk that lands within
-// SNAP_IN of another desk snaps flush to it or lines up with its edge (skipped for arrow-key nudges,
-// which would otherwise snap straight back). Selected desks move together.
+// desk is pushed the shortest way out so it sits flush against it. A desk that lands within
+// WALL_SNAP_IN of a wall, or SNAP_IN of another desk, then snaps flush to it, or lines up with the
+// desk's edge (skipped for arrow-key nudges, which would otherwise snap straight back). Selected
+// desks move together.
 // Only the desktops count; walkways are allowed to run into things. Returns the move to apply.
 export function settle(desks: Array<Desk & { key?: string }>, keys: string[], snap = true): { dx: number; dy: number } {
   const moving = desks.filter((desk) => keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
@@ -161,17 +163,29 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
   const pushed = best;
   if (!snap) return pushed;
 
-  // Then pull in to a desk or line up with one when it is close.
+  // Then pull in to a wall or desk, or line up with a desk, when it is close.
   const snaps = (axis: 'x' | 'y') => {
     const values = new Set<number>();
     for (const rect of moving) {
       const moved = shift(rect, pushed.dx, pushed.dy);
       for (const other of near) {
-        if (axis === 'x') [other.x - (moved.x + moved.width), other.x + other.width - moved.x, other.x - moved.x, other.x + other.width - (moved.x + moved.width)].forEach((value) => values.add(value));
-        else [other.y - (moved.y + moved.height), other.y + other.height - moved.y, other.y - moved.y, other.y + other.height - (moved.y + moved.height)].forEach((value) => values.add(value));
+        const candidates =
+          axis === 'x'
+            ? [other.x - (moved.x + moved.width), other.x + other.width - moved.x, other.x - moved.x, other.x + other.width - (moved.x + moved.width)]
+            : [other.y - (moved.y + moved.height), other.y + other.height - moved.y, other.y - moved.y, other.y + other.height - (moved.y + moved.height)];
+        candidates.filter((value) => Math.abs(value) <= SNAP_IN).forEach((value) => values.add(value));
+      }
+      for (const [x1, y1, x2, y2] of walls) {
+        const horizontal = y1 === y2;
+        if (axis === 'y' && horizontal && x2 > moved.x && x1 < moved.x + moved.width) {
+          [y1 - (moved.y + moved.height), y1 - moved.y].filter((value) => Math.abs(value) <= WALL_SNAP_IN).forEach((value) => values.add(value));
+        }
+        if (axis === 'x' && !horizontal && y2 > moved.y && y1 < moved.y + moved.height) {
+          [x1 - (moved.x + moved.width), x1 - moved.x].filter((value) => Math.abs(value) <= WALL_SNAP_IN).forEach((value) => values.add(value));
+        }
       }
     }
-    return [...values].filter((value) => value !== 0 && Math.abs(value) <= SNAP_IN).sort((a, b) => Math.abs(a) - Math.abs(b));
+    return [...values].filter((value) => value !== 0).sort((a, b) => Math.abs(a) - Math.abs(b));
   };
   const snapX = snaps('x').find((value) => fits(pushed.dx + value, pushed.dy)) || 0;
   const snapY = snaps('y').find((value) => fits(pushed.dx + snapX, pushed.dy + value)) || 0;
