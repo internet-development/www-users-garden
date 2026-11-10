@@ -42,6 +42,15 @@ function holderOf(desk) {
   return '';
 }
 
+// NOTE(@caidanw)
+// Partner is the team plan ("sections for your company or team" on Upgrades), so desks held by a
+// partner account count as a team's, alongside desks held by a typed name. Admins are people.
+function isTeamDesk(desk) {
+  if (desk.name) return true;
+  const level = desk.user ? Number(desk.user.level) : 0;
+  return level >= Constants.Users.tiers.PARTNER && level < Constants.Users.tiers.ADMIN;
+}
+
 function isTaken(desk) {
   return Boolean(desk.taken || desk.user_id || desk.name);
 }
@@ -265,6 +274,8 @@ export default function UserGardenFloorPlan(props) {
   };
 
   const openDesks = (desks || []).filter((desk) => !isTaken(desk));
+  const teamDesks = (desks || []).filter((desk) => isTaken(desk) && isTeamDesk(desk));
+  const memberDesks = (desks || []).filter((desk) => desk.user_id && !isTeamDesk(desk));
   const names = [...new Set((desks || []).map((desk) => desk.name).filter(Boolean))].sort();
 
   let panel: React.ReactNode = null;
@@ -379,20 +390,20 @@ export default function UserGardenFloorPlan(props) {
                   <div className={styles.content}>
                     <SubTitle style={{ padding: 0 }}>Members</SubTitle>
                     <H5 style={{ marginTop: 24 }}>
-                      {(desks || []).filter((desk) => desk.user_id).length}
+                      {memberDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={(desks || []).filter((desk) => desk.user_id)} label={holderOf} detail={(desk) => desk.user && desk.user.email} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => desk.user && desk.user.email} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
                   <div className={styles.content}>
                     <SubTitle style={{ padding: 0 }}>Teams</SubTitle>
                     <H5 style={{ marginTop: 24 }}>
-                      {(desks || []).filter((desk) => desk.name).length}
+                      {teamDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={(desks || []).filter((desk) => desk.name)} label={holderOf} detail={() => 'No account'} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={teamDesks} label={holderOf} detail={(desk) => (desk.user ? desk.user.email : 'No account')} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
