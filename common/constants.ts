@@ -58,11 +58,12 @@ export const TEMPLATE_LINKS = [
 
 // NOTE(@caidanw)
 // Sizes on the office floor plan, in inches. Estimates until the desks are measured; change them
-// here. A desk is its depth, then the chair, then the walkway behind the chair, which is as deep as
-// the chair: room to push back and stand up, not a full corridor.
+// here. Desks are about twice as wide as they are deep (two desks back to back match one desk's
+// width), like the common 48 x 24 (or 120 x 60 cm) desk. A desk is its depth, then the chair, then
+// the walkway behind the chair, which is as deep as the chair: room to push back and stand up.
 export const Office = {
-  DESK_WIDTH_IN: 60,
-  DESK_DEPTH_IN: 26,
+  DESK_WIDTH_IN: 48,
+  DESK_DEPTH_IN: 24,
   CHAIR_IN: 26,
   WALKWAY_IN: 26,
   NUDGE_IN: 6,
@@ -70,10 +71,10 @@ export const Office = {
   // Places named on the plan to help people find their way, centered at these points. `rotate`
   // turns a label (in degrees) to fit a narrow room.
   LABELS: [
-    { text: 'Entrance', x_in: 72, y_in: 108, rotate: -90 },
-    { text: 'Kitchen', x_in: 906, y_in: 288, rotate: 0 },
-    { text: 'Front kitchen', x_in: 738, y_in: 534, rotate: 0 },
-    { text: 'Restrooms', x_in: 1080, y_in: 654, rotate: 0 },
-    { text: 'Garage', x_in: 96, y_in: 648, rotate: 0 },
+    { text: 'Entrance', x_in: 63, y_in: 95, rotate: -90 },
+    { text: 'Kitchen', x_in: 793, y_in: 252, rotate: 0 },
+    { text: 'Front kitchen', x_in: 646, y_in: 468, rotate: 0 },
+    { text: 'Restrooms', x_in: 946, y_in: 573, rotate: 0 },
+    { text: 'Garage', x_in: 84, y_in: 567, rotate: 0 },
   ],
 };

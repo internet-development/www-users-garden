@@ -1,6 +1,6 @@
 .root {
   box-shadow: 0 0 0 1px var(--theme-border);
-  aspect-ratio: 1650 / 822;
+  aspect-ratio: 1444 / 719;
   width: 100%;
   overflow: hidden;
   user-select: none;
@@ -8,7 +8,7 @@
 
 .editing {
   box-shadow: 0 0 0 1px var(--theme-primary);
-  aspect-ratio: 1650 / 822;
+  aspect-ratio: 1444 / 719;
   width: 100%;
   overflow: hidden;
   user-select: none;
