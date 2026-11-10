@@ -172,6 +172,22 @@ export async function onTenantRemove({ key, id }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
 }
 
+// NOTE(@caidanw)
+// Active Stripe subscriptions for a user (admins can ask about anyone). Returns the raw response,
+// because `data: null` (no active subscription) must not read as a failed request.
+export async function onGetUserSubscriptions({ key, id }) {
+  try {
+    const response = await fetch(`${Constants.HOST}/api/users/subscriptions/get-by-user-id`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 export async function onGetOfficeDesks({ key }) {
   const route = `${Constants.HOST}/api/users/office/desks`;
   return await fetchAndExpect({ route, key });

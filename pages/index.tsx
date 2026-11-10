@@ -175,6 +175,9 @@ function ExampleRootSinglePageApplication(props) {
         onTenantRemove={async ({ id }) => {
           return await Queries.onTenantRemove({ key, id });
         }}
+        onGetUserSubscriptions={async ({ id }) => {
+          return await Queries.onGetUserSubscriptions({ key, id });
+        }}
         onGetOfficeDesks={async () => {
           return await Queries.onGetOfficeDesks({ key });
         }}

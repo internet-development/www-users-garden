@@ -51,6 +51,39 @@ function isTeamDesk(desk) {
   return level >= Constants.Users.tiers.PARTNER && level < Constants.Users.tiers.ADMIN;
 }
 
+// Plan names match the Upgrades page; prices are a fallback for when Stripe can't be reached.
+const PLANS = [
+  { level: Constants.Users.tiers.ADMIN, name: 'Admin', price: '' },
+  { level: Constants.Users.tiers.PARTNER, name: 'Partner', price: '$2,790' },
+  { level: Constants.Users.tiers.GENERAL_CO_WORKING, name: 'Collaborator', price: '$404' },
+  { level: Constants.Users.tiers.PAYING, name: 'Professional', price: '$8.99' },
+];
+
+function planOf(level) {
+  return PLANS.find((plan) => Number(level) >= plan.level) || { level: 0, name: 'Free', price: '' };
+}
+
+function formatDate(value) {
+  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatCents(cents) {
+  const dollars = cents / 100;
+  return `$${dollars.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2, maximumFractionDigits: 2 })}`;
+}
+
+// NOTE(@caidanw)
+// Reads POST /api/users/subscriptions/get-by-user-id. That route lists only active subscriptions,
+// and Stripe moves a subscription off active as soon as a renewal payment fails, so no active
+// subscription means the current period isn't paid. A failed request means we don't know.
+function billingOf(response) {
+  if (!response || response.error) return { state: 'unknown' };
+  if (!response.data || !response.data.length) return { state: 'unpaid' };
+  const until = Math.max(...response.data.map((each) => new Date(each.current_period_end).getTime()));
+  const item = response.data.flatMap((each) => each.items || []).find((each) => each.amount_cents);
+  return { state: 'paid', until, cents: item ? item.amount_cents : null };
+}
+
 function isTaken(desk) {
   return Boolean(desk.taken || desk.user_id || desk.name);
 }
@@ -78,6 +111,15 @@ function CrossItem(props) {
   );
 }
 
+function NoteItem(props) {
+  return (
+    <div className={styles.crossItem}>
+      <span className={styles.noteLeft}>–</span>
+      <span className={styles.crossRight}>{props.children}</span>
+    </div>
+  );
+}
+
 function DeskList(props) {
   return (
     <div className={styles.list}>
@@ -86,7 +128,7 @@ function DeskList(props) {
           <span className={styles.itemNumber}>{desk.number}</span>
           <span className={styles.itemText}>
             <span className={styles.itemName}>{props.label(desk)}</span>
-            {props.detail && props.detail(desk) ? <span className={styles.itemDetail}>{props.detail(desk)}</span> : null}
+            {props.detail && props.detail(desk) ? <span className={props.alert && props.alert(desk) ? styles.itemAlert : styles.itemDetail}>{props.detail(desk)}</span> : null}
           </span>
         </div>
       ))}
@@ -107,6 +149,9 @@ function AdminDesk(props) {
   options.push({ value: NEW_NAME, label: 'Type a name' });
 
   const holder = props.accounts.find((each) => each.id === desk.user_id);
+  const billing = (desk.user_id && props.billing[desk.user_id]) || { state: 'loading' };
+  const plan = planOf(desk.user ? desk.user.level : 0);
+  const price = billing.state === 'paid' && billing.cents ? formatCents(billing.cents) : plan.price;
 
   const save = async (updates) => {
     setSaving(true);
@@ -131,7 +176,9 @@ function AdminDesk(props) {
       <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
       <H5 style={{ marginTop: 24 }}>{holderOf(desk) || 'Open'}</H5>
       {desk.user ? <div className={styles.panelDetail}>{desk.user.email}</div> : null}
-      <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
+      <div className={styles.holderSelect}>
+        <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
+      </div>
       {choice === NEW_NAME ? (
         <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
       ) : null}
@@ -143,8 +190,24 @@ function AdminDesk(props) {
           Unassign
         </Button>
       ) : null}
+      {billing.state === 'unpaid' && desk.user ? (
+        <Button href={`mailto:${desk.user.email}?subject=${encodeURIComponent(`Your desk at INTDEV`)}`} style={FULL_WIDTH_BUTTON}>
+          Email {personName(desk.user)}
+        </Button>
+      ) : null}
       <div className={styles.checks}>
+        {isTaken(desk) && desk.assigned_at ? <CheckmarkItem>Taken since {formatDate(desk.assigned_at)}</CheckmarkItem> : null}
         {desk.user_id ? holder ? <CheckmarkItem>Approved for a desk</CheckmarkItem> : <CrossItem>Not approved for a desk</CrossItem> : null}
+        {desk.user ? (
+          <CheckmarkItem>
+            {plan.name}
+            {price ? `, ${price} / mo` : ''}
+          </CheckmarkItem>
+        ) : null}
+        {desk.user && billing.state === 'paid' ? <CheckmarkItem>Paid through {formatDate(billing.until)}</CheckmarkItem> : null}
+        {desk.user && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
+        {desk.user && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
+        {desk.name ? <NoteItem>Billed outside users.garden</NoteItem> : null}
         {props.blocked ? <CrossItem>Walkway is blocked</CrossItem> : <CheckmarkItem>Walkway is clear</CheckmarkItem>}
       </div>
     </>
@@ -159,11 +222,24 @@ export default function UserGardenFloorPlan(props) {
   const [selected, setSelected] = React.useState<string[]>([]);
   const [view, setView] = React.useState(FULL_VIEW);
   const [saving, setSaving] = React.useState(false);
+  const [billing, setBilling] = React.useState<Record<string, any>>({});
+  const checked = React.useRef(new Set<string>());
+
+  // Admins see whether each account holding a desk has paid for the current period.
+  const loadBilling = (next) => {
+    if (!isAdmin || !next) return;
+    const ids = [...new Set<string>(next.map((desk) => desk.user_id).filter(Boolean))].filter((id) => !checked.current.has(id));
+    ids.forEach((id) => {
+      checked.current.add(id);
+      props.onGetUserSubscriptions({ id }).then((response) => setBilling((current) => ({ ...current, [id]: billingOf(response) })));
+    });
+  };
 
   const load = async () => {
     const response = await props.onGetOfficeDesks();
     const next = response ? response.data : null;
     setDesks(next);
+    loadBilling(next);
     return next;
   };
 
@@ -180,12 +256,13 @@ export default function UserGardenFloorPlan(props) {
   const source = editing ? draft : desks || [];
   const blocked = OfficeGeometry.blockedDesks(source);
   const blockedIds = new Set([...blocked].map((index) => source[index].id));
+  const isUnpaid = (desk) => Boolean(desk.user_id && billing[desk.user_id] && billing[desk.user_id].state === 'unpaid');
   const planDesks = source.map((desk) => {
     const holder = holderOf(desk);
     return {
       ...desk,
       key: desk.key || desk.id,
-      state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isTaken(desk) ? 'taken' : 'open',
+      state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isUnpaid(desk) ? 'unpaid' : isTaken(desk) ? 'taken' : 'open',
       label: !canSeeDesks ? '' : holder ? initials(holder) : null,
     };
   });
@@ -274,6 +351,7 @@ export default function UserGardenFloorPlan(props) {
   };
 
   const openDesks = (desks || []).filter((desk) => !isTaken(desk));
+  const unpaidCount = (desks || []).filter(isUnpaid).length;
   const teamDesks = (desks || []).filter((desk) => isTaken(desk) && isTeamDesk(desk));
   const memberDesks = (desks || []).filter((desk) => desk.user_id && !isTeamDesk(desk));
   const names = [...new Set((desks || []).map((desk) => desk.name).filter(Boolean))].sort();
@@ -305,7 +383,7 @@ export default function UserGardenFloorPlan(props) {
       </>
     );
   } else if (selectedDesk && isAdmin) {
-    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} names={names} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
   } else if (selectedDesk) {
     panel = (
       <>
@@ -393,7 +471,7 @@ export default function UserGardenFloorPlan(props) {
                       {memberDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => desk.user && desk.user.email} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : desk.user && desk.user.email)} alert={isUnpaid} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
@@ -403,7 +481,7 @@ export default function UserGardenFloorPlan(props) {
                       {teamDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={teamDesks} label={holderOf} detail={(desk) => (desk.user ? desk.user.email : 'No account')} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={teamDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : desk.user ? desk.user.email : 'No account')} alert={isUnpaid} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
@@ -425,6 +503,7 @@ export default function UserGardenFloorPlan(props) {
                     <div className={styles.checks}>
                       <CheckmarkItem>{source.length - blocked.size} walkways are clear</CheckmarkItem>
                       {blocked.size ? <CrossItem>{blocked.size} walkways are blocked</CrossItem> : null}
+                      {unpaidCount ? <CrossItem>{unpaidCount} desks are unpaid</CrossItem> : null}
                     </div>
                   </div>
                 </div>

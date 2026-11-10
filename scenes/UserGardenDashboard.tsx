@@ -76,6 +76,7 @@ export default function UserGardenDashboard(props) {
         onDeleteOfficeDesk={props.onDeleteOfficeDesk}
         onGetAllTenants={props.onGetAllTenants}
         onGetOfficeDesks={props.onGetOfficeDesks}
+        onGetUserSubscriptions={props.onGetUserSubscriptions}
         onUpdateOfficeDesk={props.onUpdateOfficeDesk}
         viewer={props.viewer}
       />
