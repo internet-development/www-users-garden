@@ -184,10 +184,10 @@ export default function OfficePlan(props) {
         {desks.map((desk) => {
           const { desk: top, chair } = OfficeGeometry.deskParts(desk);
           const isSelected = props.selected.includes(desk.key);
-          const className = isSelected || desk.state === 'mine' ? styles.deskSelected : desk.state === 'open' ? styles.deskOpen : styles.desk;
-          const label = desk.label || String(desk.number);
+          const className = desk.state === 'plain' ? styles.deskPlain : isSelected || desk.state === 'mine' ? styles.deskSelected : desk.state === 'open' ? styles.deskOpen : styles.desk;
+          const label = desk.label === null || desk.label === undefined ? String(desk.number) : desk.label;
           return (
-            <g key={desk.key} data-desk={desk.key} className={styles.group}>
+            <g key={desk.key} data-desk={desk.key} className={desk.state === 'plain' ? undefined : styles.group}>
               <circle className={styles.chair} cx={chair.x + chair.width / 2} cy={chair.y + chair.height / 2} r={chair.width * 0.42} />
               <rect className={className} x={top.x} y={top.y} width={top.width} height={top.height} rx={1.5} />
               <text className={styles.label} x={desk.x_in} y={desk.y_in} fontSize={fontSize} dominantBaseline="central" textAnchor="middle">

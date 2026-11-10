@@ -1,19 +1,23 @@
 import styles from '@components/UserGardenFloorPlan.module.css';
 
 import * as Constants from '@common/constants';
+import * as OfficeGeometry from '@common/office-geometry';
 import * as OfficePlanData from '@common/office-plan';
 import * as React from 'react';
 
+import Button from '@system/Button';
+import ButtonPrimary from '@system/ButtonPrimary';
+import CheckmarkItem from '@system/documents/CheckmarkItem';
+import Cross from '@system/svg/Cross';
+import Input from '@system/Input';
 import OfficePlan, { FULL_VIEW, zoomView } from '@components/OfficePlan';
 import Select from '@system/Select';
-import SmallButton from '@system/documents/SmallButton';
-import StandardHeader from '@components/StandardHeader';
-import StandardLayout from '@components/StandardLayout';
-import StandardLayoutSection from '@components/StandardLayoutSection';
-import Table from '@system/Table';
+
+import { H5, SubTitle } from '@system/typography';
 
 const NEW_NAME = '__new-name__';
 const CURRENT_NAME = '__current-name__';
+const FULL_WIDTH_BUTTON = { height: 48, marginTop: 12, width: '100%' };
 
 function initials(text: string) {
   const words = text.split(/[\s._@-]+/).filter(Boolean);
@@ -31,6 +35,94 @@ function isTaken(desk) {
   return Boolean(desk.taken || desk.user_id || desk.name);
 }
 
+// The view that frames every desk, with room for the walkways around them.
+function deskView(desks) {
+  if (!desks || !desks.length) return FULL_VIEW;
+  const pad = 72;
+  const xs = desks.map((desk) => desk.x_in);
+  const ys = desks.map((desk) => desk.y_in);
+  const x = Math.min(...xs) - pad;
+  const y = Math.min(...ys) - pad;
+  const width = Math.max(Math.max(...xs) - x + pad, ((Math.max(...ys) - y + pad) * OfficePlanData.WIDTH_IN) / OfficePlanData.HEIGHT_IN);
+  return { x, y, width };
+}
+
+function CrossItem(props) {
+  return (
+    <div className={styles.crossItem}>
+      <span className={styles.crossLeft}>
+        <Cross height="16px" />
+      </span>
+      <span className={styles.crossRight}>{props.children}</span>
+    </div>
+  );
+}
+
+function DeskList(props) {
+  return (
+    <div className={styles.list}>
+      {props.desks.map((desk) => (
+        <div key={desk.id} className={props.selected.includes(desk.id) ? styles.itemSelected : styles.item} onClick={() => props.onSelect([desk.id])}>
+          <span className={styles.itemNumber}>{desk.number}</span>
+          <span className={styles.itemText}>{props.label(desk)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminDesk(props) {
+  const desk = props.desk;
+  const [choice, setChoice] = React.useState(desk.name ? CURRENT_NAME : desk.user_id || '');
+  const [name, setName] = React.useState(desk.name || '');
+  const [saving, setSaving] = React.useState(false);
+
+  const options = [{ value: '', label: 'Open' }];
+  if (desk.name) options.push({ value: CURRENT_NAME, label: desk.name });
+  if (desk.user && !props.accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: desk.user.email });
+  props.accounts.forEach((each) => options.push({ value: each.id, label: each.email }));
+  options.push({ value: NEW_NAME, label: 'Type a name' });
+
+  const holder = props.accounts.find((each) => each.id === desk.user_id);
+
+  const save = async (updates) => {
+    setSaving(true);
+    await props.onUpdate(updates);
+    setSaving(false);
+  };
+
+  const onSave = () => {
+    if (choice === NEW_NAME || choice === CURRENT_NAME) {
+      if (name.trim()) save({ name: name.trim() });
+      return;
+    }
+    save(choice ? { user_id: choice } : { user_id: null, name: null });
+  };
+
+  return (
+    <>
+      <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
+      <H5 style={{ marginTop: 24 }}>{isTaken(desk) ? 'Taken' : 'Open'}</H5>
+      <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
+      {choice === NEW_NAME || choice === CURRENT_NAME ? (
+        <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
+      ) : null}
+      <ButtonPrimary loading={saving} onClick={onSave} style={FULL_WIDTH_BUTTON}>
+        Save
+      </ButtonPrimary>
+      {isTaken(desk) ? (
+        <Button onClick={() => save({ user_id: null, name: null })} style={FULL_WIDTH_BUTTON}>
+          Unassign
+        </Button>
+      ) : null}
+      <div className={styles.checks}>
+        {desk.user_id ? holder ? <CheckmarkItem>Approved for a desk</CheckmarkItem> : <CrossItem>Not approved for a desk</CrossItem> : null}
+        {props.blocked ? <CrossItem>Walkway is blocked</CrossItem> : <CheckmarkItem>Walkway is clear</CheckmarkItem>}
+      </div>
+    </>
+  );
+}
+
 export default function UserGardenFloorPlan(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
   const [desks, setDesks] = React.useState<any[] | null>(null);
@@ -42,27 +134,37 @@ export default function UserGardenFloorPlan(props) {
 
   const load = async () => {
     const response = await props.onGetOfficeDesks();
-    setDesks(response ? response.data : null);
+    const next = response ? response.data : null;
+    setDesks(next);
+    return next;
   };
 
   React.useEffect(() => {
-    load();
+    load().then((next) => setView(deskView(next)));
     if (isAdmin) {
       props.onGetAllTenants().then((response) => setTenants(response && response.data ? response.data : []));
     }
   }, []);
 
+  // Only accounts approved for a desk get numbers; everyone else gets positions alone.
+  const canSeeDesks = Boolean(desks && desks.length && desks[0].number !== undefined);
   const editing = draft !== null;
   const source = editing ? draft : desks || [];
+  const blocked = OfficeGeometry.blockedDesks(source);
   const planDesks = source.map((desk) => {
     const holder = holderOf(desk);
     return {
       ...desk,
       key: desk.key || desk.id,
-      state: desk.mine ? 'mine' : isTaken(desk) ? 'taken' : 'open',
-      label: holder ? initials(holder) : null,
+      state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isTaken(desk) ? 'taken' : 'open',
+      label: !canSeeDesks ? '' : holder ? initials(holder) : null,
     };
   });
+
+  const accounts = tenants.filter((each) => Number(each.tier) === 2 && Number(each.level) >= Constants.Users.tiers.GENERAL_CO_WORKING);
+  const selectedDesk = !editing && selected.length === 1 ? (desks || []).find((desk) => desk.id === selected[0]) : null;
+  const selectedIndex = selectedDesk ? source.indexOf(selectedDesk) : -1;
+  const isWhole = view.width >= OfficePlanData.WIDTH_IN;
 
   const onMoveBy = (keys, dx, dy) => {
     setDraft((current) =>
@@ -97,7 +199,7 @@ export default function UserGardenFloorPlan(props) {
     setSelected([key]);
   };
 
-  const onSave = async () => {
+  const onSaveLayout = async () => {
     if (!draft || !desks) return;
     setSaving(true);
     const before = new Map<string, any>(desks.map((desk) => [desk.id, desk]));
@@ -126,93 +228,165 @@ export default function UserGardenFloorPlan(props) {
     setSaving(false);
   };
 
-  const onAssign = async (desk, value) => {
-    let updates: Record<string, any> | null = null;
-    if (value === '') updates = { user_id: null, name: null };
-    else if (value === NEW_NAME) {
-      const name = window.prompt('Who holds this desk?', desk.name || '');
-      if (!name || !name.trim()) return;
-      updates = { name: name.trim() };
-    } else if (value !== CURRENT_NAME) updates = { user_id: value };
-
-    if (!updates) return;
-    const response = await props.onUpdateOfficeDesk({ id: desk.id, updates });
+  const onUpdateDesk = async (id, updates) => {
+    const response = await props.onUpdateOfficeDesk({ id, updates });
     if (!response) alert('Something went wrong');
     await load();
   };
 
-  const accounts = tenants.filter((each) => Number(each.tier) === 2 && Number(each.level) >= Constants.Users.tiers.GENERAL_CO_WORKING);
+  const openDesks = (desks || []).filter((desk) => !isTaken(desk));
 
-  const toolbar = editing ? (
-    <div className={styles.toolbar}>
-      <SmallButton onClick={onAdd}>Add desk</SmallButton>
-      <SmallButton disabled={!selected.length} onClick={() => onRotate(selected)}>Rotate</SmallButton>
-      <SmallButton disabled={!selected.length} onClick={() => onRemove(selected)}>Remove</SmallButton>
-      <span className={styles.gap} />
-      <SmallButton onClick={() => (setDraft(null), setSelected([]))}>Cancel</SmallButton>
-      <SmallButton loading={saving} onClick={onSave} style={{ background: 'var(--theme-primary)', borderColor: 'var(--theme-primary)', color: 'var(--color-white)' }}>
-        Save
-      </SmallButton>
-    </div>
-  ) : (
-    <div className={styles.toolbar}>
-      <SmallButton onClick={() => setView(zoomView(view, 1.4))}>−</SmallButton>
-      <SmallButton onClick={() => setView(zoomView(view, 1 / 1.4))}>+</SmallButton>
-      <SmallButton onClick={() => setView(FULL_VIEW)}>Fit</SmallButton>
-      {isAdmin && desks ? (
-        <>
-          <span className={styles.gap} />
-          <SmallButton onClick={() => (setDraft(desks.map((desk) => ({ ...desk, key: desk.id }))), setSelected([]))}>Edit layout</SmallButton>
-        </>
-      ) : null}
-    </div>
-  );
+  let panel: React.ReactNode = null;
+  if (editing) {
+    panel = (
+      <>
+        <SubTitle style={{ padding: 0 }}>Edit layout</SubTitle>
+        <H5 style={{ marginTop: 24 }}>
+          {selected.length}
+          <span className={styles.subtle}> selected</span>
+        </H5>
+        <Button onClick={onAdd} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
+          Add desk
+        </Button>
+        <Button disabled={!selected.length} onClick={() => onRotate(selected)} style={FULL_WIDTH_BUTTON}>
+          Rotate
+        </Button>
+        <Button disabled={!selected.length} onClick={() => onRemove(selected)} style={FULL_WIDTH_BUTTON}>
+          Remove
+        </Button>
+        <ButtonPrimary loading={saving} onClick={onSaveLayout} style={{ ...FULL_WIDTH_BUTTON, marginTop: 48 }}>
+          Save layout
+        </ButtonPrimary>
+        <Button onClick={() => (setDraft(null), setSelected([]))} style={FULL_WIDTH_BUTTON}>
+          Cancel
+        </Button>
+      </>
+    );
+  } else if (selectedDesk && isAdmin) {
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+  } else if (selectedDesk) {
+    panel = (
+      <>
+        <SubTitle style={{ padding: 0 }}>Desk {selectedDesk.number}</SubTitle>
+        <H5 style={{ marginTop: 24 }}>{selectedDesk.mine ? 'Yours' : isTaken(selectedDesk) ? 'Taken' : 'Open'}</H5>
+      </>
+    );
+  } else {
+    panel = (
+      <>
+        <SubTitle style={{ padding: 0 }}>Desks</SubTitle>
+        <H5 style={{ marginTop: 24 }}>
+          {openDesks.length} open<span className={styles.subtle}> / {(desks || []).length}</span>
+        </H5>
+      </>
+    );
+  }
 
   return (
-    <StandardLayout style={{ maxWidth: 'none' }}>
-      <StandardHeader title="Floor plan" />
+    <>
+      <header className={styles.header}>
+        <SubTitle>Floor plan</SubTitle>
+      </header>
 
-      <StandardLayoutSection title="Suite 301">
-        {toolbar}
-        <OfficePlan
-          desks={desks ? planDesks : []}
-          editing={editing}
-          selected={selected}
-          view={view}
-          onView={setView}
-          onSelect={setSelected}
-          onMoveBy={onMoveBy}
-          onRotate={onRotate}
-          onRemove={onRemove}
-        />
-      </StandardLayoutSection>
+      <div className={styles.row}>
+        <div className={styles.container}>
+          <div className={canSeeDesks ? styles.planColumn : styles.planColumnWide}>
+            <div className={styles.content}>
+              <div className={styles.planHeader}>
+                <SubTitle style={{ padding: 0 }}>Suite 301</SubTitle>
+                <div className={styles.controls}>
+                  <Button onClick={() => setView(zoomView(view, 1.4))} style={{ padding: 0, width: 34 }}>
+                    −
+                  </Button>
+                  <Button onClick={() => setView(zoomView(view, 1 / 1.4))} style={{ padding: 0, width: 34 }}>
+                    +
+                  </Button>
+                  <Button onClick={() => setView(isWhole ? deskView(desks) : FULL_VIEW)}>{isWhole ? 'Desks' : 'Whole floor'}</Button>
+                </div>
+              </div>
+              <OfficePlan
+                desks={planDesks}
+                editing={editing}
+                selected={selected}
+                view={view}
+                onView={setView}
+                onSelect={canSeeDesks ? setSelected : () => {}}
+                onMoveBy={onMoveBy}
+                onRotate={onRotate}
+                onRemove={onRemove}
+              />
+            </div>
+          </div>
+          {canSeeDesks ? (
+            <div className={styles.column}>
+              <div className={styles.content}>{panel}</div>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
-      {isAdmin && desks && !editing ? (
-        <StandardLayoutSection title="Desks">
-          <Table
-            data={desks.map((desk) => {
-              const options = [{ value: '', label: 'Open' }];
-              if (desk.name) options.push({ value: CURRENT_NAME, label: desk.name });
-              if (desk.user && !accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: desk.user.email });
-              accounts.forEach((each) => options.push({ value: each.id, label: each.email }));
-              options.push({ value: NEW_NAME, label: 'Type a name' });
-              const value = desk.name ? CURRENT_NAME : desk.user_id || '';
-              const isSelected = selected.includes(desk.id);
-
-              return {
-                id: desk.id,
-                data: [
-                  <div className={isSelected ? styles.selectedNumber : styles.number}>{desk.number}</div>,
-                  <Select options={options} value={value} onChange={(event) => onAssign(desk, event.target.value)} style={{ width: 320 }} />,
-                ],
-              };
-            })}
-            headings={['DESK', 'HELD BY']}
-            customWidth="80px 1fr"
-            style={{ marginTop: 24, maxWidth: 480 }}
-          />
-        </StandardLayoutSection>
+      {canSeeDesks ? (
+        <div className={styles.row}>
+          <div className={styles.container}>
+            <div className={styles.column}>
+              <div className={styles.content}>
+                <SubTitle style={{ padding: 0 }}>Open</SubTitle>
+                <H5 style={{ marginTop: 24 }}>
+                  {openDesks.length}
+                  <span className={styles.subtle}> desks</span>
+                </H5>
+                <DeskList desks={openDesks} label={() => ''} onSelect={setSelected} selected={selected} />
+              </div>
+            </div>
+            {isAdmin ? (
+              <>
+                <div className={styles.column}>
+                  <div className={styles.content}>
+                    <SubTitle style={{ padding: 0 }}>Members</SubTitle>
+                    <H5 style={{ marginTop: 24 }}>
+                      {(desks || []).filter((desk) => desk.user_id).length}
+                      <span className={styles.subtle}> desks</span>
+                    </H5>
+                    <DeskList desks={(desks || []).filter((desk) => desk.user_id)} label={holderOf} onSelect={setSelected} selected={selected} />
+                  </div>
+                </div>
+                <div className={styles.column}>
+                  <div className={styles.content}>
+                    <SubTitle style={{ padding: 0 }}>Teams</SubTitle>
+                    <H5 style={{ marginTop: 24 }}>
+                      {(desks || []).filter((desk) => desk.name).length}
+                      <span className={styles.subtle}> desks</span>
+                    </H5>
+                    <DeskList desks={(desks || []).filter((desk) => desk.name)} label={holderOf} onSelect={setSelected} selected={selected} />
+                  </div>
+                </div>
+                <div className={styles.column}>
+                  <div className={styles.content}>
+                    <SubTitle style={{ padding: 0 }}>Layout</SubTitle>
+                    <H5 style={{ marginTop: 24 }}>
+                      {(desks || []).length}
+                      <span className={styles.subtle}> desks</span>
+                    </H5>
+                    {editing ? (
+                      <Button visual style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
+                        Editing
+                      </Button>
+                    ) : (
+                      <Button onClick={() => (setDraft((desks || []).map((desk) => ({ ...desk, key: desk.id }))), setSelected([]))} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
+                        Edit layout
+                      </Button>
+                    )}
+                    <div className={styles.checks}>
+                      <CheckmarkItem>{source.length - blocked.size} walkways are clear</CheckmarkItem>
+                      {blocked.size ? <CrossItem>{blocked.size} walkways are blocked</CrossItem> : null}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
       ) : null}
-    </StandardLayout>
+    </>
   );
 }

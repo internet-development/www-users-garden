@@ -58,6 +58,7 @@
 
 .desk,
 .deskOpen,
+.deskPlain,
 .deskSelected {
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -67,6 +68,11 @@
 .desk {
   fill: var(--theme-background);
   stroke: var(--theme-text);
+}
+
+.deskPlain {
+  fill: var(--theme-background);
+  stroke: var(--theme-foreground-secondary);
 }
 
 .deskOpen {
