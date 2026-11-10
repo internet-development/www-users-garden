@@ -77,7 +77,7 @@ export const Office = {
     { text: 'Entrance', x_in: 63, y_in: 95, rotate: -90 },
     { text: 'Kitchen', x_in: 801, y_in: 247, rotate: -90 },
     { text: 'Kitchen', x_in: 641, y_in: 458, rotate: 0 },
-    { text: 'Restrooms', x_in: 946, y_in: 573, rotate: 0 },
+    { text: 'Restrooms', x_in: 995, y_in: 558, rotate: 0 },
     { text: 'Garage', x_in: 84, y_in: 567, rotate: 0 },
   ],
 };
