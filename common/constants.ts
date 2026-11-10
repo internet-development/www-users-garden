@@ -57,13 +57,13 @@ export const TEMPLATE_LINKS = [
 ];
 
 // NOTE(@caidanw)
-// Sizes on the office floor plan, in inches. Estimates until the desks are measured; change them
-// here. Desks are about twice as wide as they are deep (two desks back to back match one desk's
-// width), like the common 48 x 24 (or 120 x 60 cm) desk. A desk is its depth, then the chair, then
-// the walkway behind the chair, which is as deep as the chair: room to push back and stand up.
+// Sizes on the office floor plan, in inches; change them here. The desks are Autonomous SmartDesks
+// with the 53 x 29 in Classic top (measured on site at about 53 x 30). A desk is its depth, then the
+// chair, then the walkway behind the chair, which is as deep as the chair: room to push back and
+// stand up.
 export const Office = {
-  DESK_WIDTH_IN: 48,
-  DESK_DEPTH_IN: 24,
+  DESK_WIDTH_IN: 53,
+  DESK_DEPTH_IN: 29,
   CHAIR_IN: 26,
   WALKWAY_IN: 26,
   NUDGE_IN: 6,
