@@ -231,6 +231,7 @@ export default function UserGardenFloorPlan(props) {
   const [view, setView] = React.useState(FULL_VIEW);
   const [saving, setSaving] = React.useState(false);
   const [billing, setBilling] = React.useState<Record<string, any>>({});
+  const [staff, setStaff] = React.useState<any[]>([]);
   const checked = React.useRef(new Set<string>());
 
   // Admins see whether each account holding a desk has paid for the current period.
@@ -247,6 +248,7 @@ export default function UserGardenFloorPlan(props) {
     const response = await props.onGetOfficeDesks();
     const next = response ? response.data : null;
     setDesks(next);
+    setStaff(response && response.staff ? response.staff : []);
     loadBilling(next);
     return next;
   };
@@ -275,7 +277,9 @@ export default function UserGardenFloorPlan(props) {
     };
   });
 
-  const accounts = tenants.filter((each) => Number(each.tier) === 2 && Number(each.level) >= Constants.Users.tiers.GENERAL_CO_WORKING);
+  // Approved applicants with a co-working or partner plan, plus staff, who never need to apply.
+  const approved = tenants.filter((each) => Number(each.tier) === 2 && Number(each.level) >= Constants.Users.tiers.GENERAL_CO_WORKING);
+  const accounts = [...staff, ...approved.filter((each) => !staff.some((member) => member.id === each.id))];
   const selectedDesk = !editing && selected.length === 1 ? (desks || []).find((desk) => desk.id === selected[0]) : null;
   const selectedIndex = selectedDesk ? source.indexOf(selectedDesk) : -1;
   const isWhole = view.width >= OfficePlanData.WIDTH_IN;
