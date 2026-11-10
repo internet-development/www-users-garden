@@ -170,6 +170,7 @@ export default function UserGardenFloorPlan(props) {
   const editing = draft !== null;
   const source = editing ? draft : desks || [];
   const blocked = OfficeGeometry.blockedDesks(source);
+  const blockedIds = new Set([...blocked].map((index) => source[index].id));
   const planDesks = source.map((desk) => {
     const holder = holderOf(desk);
     return {
@@ -369,7 +370,7 @@ export default function UserGardenFloorPlan(props) {
                   {openDesks.length}
                   <span className={styles.subtle}> desks</span>
                 </H5>
-                <DeskList desks={openDesks} label={() => ''} onSelect={setSelected} selected={selected} />
+                <DeskList desks={openDesks} label={() => 'Open'} detail={(desk) => (blockedIds.has(desk.id) ? 'Walkway blocked' : 'Walkway clear')} onSelect={setSelected} selected={selected} />
               </div>
             </div>
             {isAdmin ? (
@@ -391,7 +392,7 @@ export default function UserGardenFloorPlan(props) {
                       {(desks || []).filter((desk) => desk.name).length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={(desks || []).filter((desk) => desk.name)} label={holderOf} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={(desks || []).filter((desk) => desk.name)} label={holderOf} detail={() => 'No account'} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
