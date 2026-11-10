@@ -90,7 +90,7 @@
 }
 
 .subtle {
-  color: var(--theme-border);
+  opacity: 0.5;
 }
 
 .planHeader {

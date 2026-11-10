@@ -58,12 +58,13 @@ export const TEMPLATE_LINKS = [
 
 // NOTE(@caidanw)
 // Sizes on the office floor plan, in inches. Estimates until the desks are measured; change them
-// here. A desk is its depth, then the chair, then the walkway behind the chair.
+// here. A desk is its depth, then the chair, then the walkway behind the chair, which is as deep as
+// the chair: room to push back and stand up, not a full corridor.
 export const Office = {
   DESK_WIDTH_IN: 60,
   DESK_DEPTH_IN: 26,
   CHAIR_IN: 26,
-  WALKWAY_IN: 36,
+  WALKWAY_IN: 26,
   NUDGE_IN: 6,
   NUDGE_SHIFT_IN: 36,
 };
