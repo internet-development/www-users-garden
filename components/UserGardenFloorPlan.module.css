@@ -164,6 +164,28 @@
 
 .itemText {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemName,
+.itemDetail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemDetail {
+  font-size: var(--type-scale-fixed-tiny);
+  opacity: 0.5;
+}
+
+.panelDetail {
+  margin-top: 6px;
+  font-family: var(--font-family);
+  font-size: var(--type-scale-fixed-small);
+  opacity: 0.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

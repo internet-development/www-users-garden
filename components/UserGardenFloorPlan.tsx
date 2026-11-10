@@ -25,9 +25,20 @@ function initials(text: string) {
   return text.slice(0, 2).toUpperCase();
 }
 
+// The best name an account has: the name on its profile, its username, or the start of its email.
+function personName(user) {
+  if (!user) return '';
+  const name = user.name || (user.data && typeof user.data.name === 'string' ? user.data.name.trim() : '');
+  return name || user.username || (user.email || '').split('@')[0];
+}
+
+function accountLabel(user) {
+  return `${personName(user)} (${user.email})`;
+}
+
 function holderOf(desk) {
   if (desk.name) return desk.name;
-  if (desk.user) return desk.user.email;
+  if (desk.user) return personName(desk.user);
   return '';
 }
 
@@ -64,7 +75,10 @@ function DeskList(props) {
       {props.desks.map((desk) => (
         <div key={desk.id} className={props.selected.includes(desk.id) ? styles.itemSelected : styles.item} onClick={() => props.onSelect([desk.id])}>
           <span className={styles.itemNumber}>{desk.number}</span>
-          <span className={styles.itemText}>{props.label(desk)}</span>
+          <span className={styles.itemText}>
+            <span className={styles.itemName}>{props.label(desk)}</span>
+            {props.detail && props.detail(desk) ? <span className={styles.itemDetail}>{props.detail(desk)}</span> : null}
+          </span>
         </div>
       ))}
     </div>
@@ -79,8 +93,8 @@ function AdminDesk(props) {
 
   const options = [{ value: '', label: 'Open' }];
   props.names.forEach((each) => options.push({ value: NAME_PREFIX + each, label: each }));
-  if (desk.user && !props.accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: desk.user.email });
-  props.accounts.forEach((each) => options.push({ value: each.id, label: each.email }));
+  if (desk.user && !props.accounts.some((each) => each.id === desk.user_id)) options.push({ value: desk.user_id, label: accountLabel(desk.user) });
+  props.accounts.forEach((each) => options.push({ value: each.id, label: accountLabel(each) }));
   options.push({ value: NEW_NAME, label: 'Type a name' });
 
   const holder = props.accounts.find((each) => each.id === desk.user_id);
@@ -106,7 +120,8 @@ function AdminDesk(props) {
   return (
     <>
       <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
-      <H5 style={{ marginTop: 24 }}>{isTaken(desk) ? 'Taken' : 'Open'}</H5>
+      <H5 style={{ marginTop: 24 }}>{holderOf(desk) || 'Open'}</H5>
+      {desk.user ? <div className={styles.panelDetail}>{desk.user.email}</div> : null}
       <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
       {choice === NEW_NAME ? (
         <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
@@ -366,7 +381,7 @@ export default function UserGardenFloorPlan(props) {
                       {(desks || []).filter((desk) => desk.user_id).length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={(desks || []).filter((desk) => desk.user_id)} label={holderOf} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={(desks || []).filter((desk) => desk.user_id)} label={holderOf} detail={(desk) => desk.user && desk.user.email} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
