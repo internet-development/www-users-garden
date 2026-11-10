@@ -63,7 +63,9 @@ export default function OfficePlan(props) {
   const pixelWidth = pixels.width;
   const viewHeight = (view.width * pixels.height) / pixels.width;
   const scale = pixelWidth / view.width;
-  const fontSize = Math.min(10 / scale, Constants.Office.DESK_DEPTH_IN * 0.5);
+  // Desk numbers and initials keep their size on the plan (zooming with the desks), and stay at
+  // least 8px on screen when zoomed out.
+  const fontSize = Math.min(Math.max(Constants.Office.DESK_DEPTH_IN * 0.4, 8 / scale), Constants.Office.DESK_DEPTH_IN * 0.6);
   const desks = props.desks || [];
   const blocked = props.editing ? OfficeGeometry.blockedDesks(desks) : new Set<number>();
 
@@ -206,7 +208,7 @@ export default function OfficePlan(props) {
             className={styles.area}
             x={label.x_in}
             y={label.y_in}
-            fontSize={10 / scale}
+            fontSize={Math.max(Constants.Office.LABEL_IN, Constants.Office.LABEL_MIN_PX / scale)}
             dominantBaseline="central"
             textAnchor="middle"
             transform={label.rotate ? `rotate(${label.rotate} ${label.x_in} ${label.y_in})` : undefined}

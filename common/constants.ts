@@ -69,11 +69,14 @@ export const Office = {
   NUDGE_IN: 6,
   NUDGE_SHIFT_IN: 36,
   // Places named on the plan to help people find their way, centered at these points. `rotate`
-  // turns a label (in degrees) to fit a narrow room.
+  // turns a label (in degrees) to fit a narrow room. Labels are LABEL_IN tall on the plan, so they
+  // zoom with it, but never smaller than LABEL_MIN_PX on screen.
+  LABEL_IN: 18,
+  LABEL_MIN_PX: 10,
   LABELS: [
     { text: 'Entrance', x_in: 63, y_in: 95, rotate: -90 },
     { text: 'Kitchen', x_in: 793, y_in: 252, rotate: 0 },
-    { text: 'Front kitchen', x_in: 646, y_in: 468, rotate: 0 },
+    { text: 'Kitchenette', x_in: 630, y_in: 468, rotate: 0 },
     { text: 'Restrooms', x_in: 946, y_in: 573, rotate: 0 },
     { text: 'Garage', x_in: 84, y_in: 567, rotate: 0 },
   ],
