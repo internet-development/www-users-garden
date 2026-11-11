@@ -204,6 +204,13 @@ function AdminDesk(props) {
       <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
       <H5 style={{ marginTop: 24 }}>{holderOf(desk) || 'Open'}</H5>
       {desk.user ? <div className={styles.panelDetail}>{desk.user.email}</div> : null}
+      {props.conflicts.length ? (
+        <div className={styles.checks} aria-label="Selected desk conflicts">
+          {props.conflicts.map((issue: OfficeClearance.Conflict) => (
+            <CrossItem key={issue.message}>{issue.message}</CrossItem>
+          ))}
+        </div>
+      ) : null}
       <div className={styles.holderSelect}>
         <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
       </div>
@@ -255,6 +262,7 @@ export default function UserGardenFloorPlan(props) {
   const [billing, setBilling] = React.useState<Record<string, any>>({});
   const [staff, setStaff] = React.useState<any[]>([]);
   const checked = React.useRef(new Set<string>());
+  const planRef = React.useRef<HTMLDivElement>(null);
 
   // Admins see whether each account holding a desk has paid for the current period.
   const loadBilling = (next) => {
@@ -289,13 +297,16 @@ export default function UserGardenFloorPlan(props) {
   const space = React.useMemo(() => OfficeClearance.measure(source), [source]);
   const clearanceByKey = new Map(source.map((desk, index) => [desk.key || desk.id, space.inches[index]]));
   const isUnpaid = (desk) => Boolean(desk.user_id && billing[desk.user_id] && billing[desk.user_id].state === 'unpaid');
-  const planDesks = source.map((desk) => {
+  const planDesks = source.map((desk, index) => {
     const holder = holderOf(desk);
+    const conflicts = isAdmin ? space.issues.filter((issue) => issue.affected.some((part) => part.index === index)) : [];
     return {
       ...desk,
       key: desk.key || desk.id,
       state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isUnpaid(desk) ? 'unpaid' : isTaken(desk) ? 'taken' : 'open',
       label: !canSeeDesks ? '' : holder ? initials(holder) : null,
+      conflicts: conflicts.map((issue) => issue.message),
+      conflictParts: [...new Set(conflicts.flatMap((issue) => issue.affected.filter((part) => part.index === index).map((part) => part.part)))],
     };
   });
 
@@ -305,6 +316,15 @@ export default function UserGardenFloorPlan(props) {
   const selectedDesk = !editing && selected.length === 1 ? (desks || []).find((desk) => desk.id === selected[0]) : null;
   const aspect = isAdmin ? PANEL_ASPECT : aspectFor(desks);
   const isWhole = view.width >= wholeView(aspect).width - 1;
+  const selectedConflicts = space.issues.filter((issue) => issue.affected.some(({ index }) => selected.includes(source[index].key || source[index].id)));
+
+  const showConflict = (issue: OfficeClearance.Conflict) => {
+    const affected = source.filter((_, index) => issue.affected.some((part) => part.index === index));
+    setSelected(affected.map((desk) => desk.key || desk.id));
+    setView(deskView(affected, aspect));
+    planRef.current?.scrollIntoView({ block: 'nearest' });
+    planRef.current?.querySelector('svg')?.focus({ preventScroll: true });
+  };
 
   const onMoveBy = (keys, dx, dy) => {
     setDraft((current) => (current || []).map((desk) => (keys.includes(desk.key) ? { ...desk, x_in: Math.min(OfficePlanData.WIDTH_IN, Math.max(0, desk.x_in + dx)), y_in: Math.min(OfficePlanData.HEIGHT_IN, Math.max(0, desk.y_in + dy)) } : desk)));
@@ -414,6 +434,13 @@ export default function UserGardenFloorPlan(props) {
           {selected.length}
           <span className={styles.subtle}> selected</span>
         </H5>
+        {selectedConflicts.length ? (
+          <div className={styles.checks} aria-label="Selected desk conflicts">
+            {selectedConflicts.map((issue) => (
+              <CrossItem key={issue.message}>{issue.message}</CrossItem>
+            ))}
+          </div>
+        ) : null}
         <Button disabled={saving} onClick={onAdd} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
           Add desk
         </Button>
@@ -439,12 +466,23 @@ export default function UserGardenFloorPlan(props) {
       </>
     );
   } else if (selectedDesk && isAdmin) {
-    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} clearance={clearanceByKey.get(selectedDesk.id)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} clearance={clearanceByKey.get(selectedDesk.id)} conflicts={selectedConflicts} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
   } else if (selectedDesk) {
     panel = (
       <>
         <SubTitle style={{ padding: 0 }}>Desk {selectedDesk.number}</SubTitle>
         <H5 style={{ marginTop: 24 }}>{selectedDesk.mine ? 'Yours' : isTaken(selectedDesk) ? 'Taken' : 'Open'}</H5>
+      </>
+    );
+  } else if (isAdmin && selectedConflicts.length) {
+    panel = (
+      <>
+        <SubTitle style={{ padding: 0 }}>Geometry conflicts</SubTitle>
+        <div className={styles.checks} aria-label="Selected desk conflicts">
+          {selectedConflicts.map((issue) => (
+            <CrossItem key={issue.message}>{issue.message}</CrossItem>
+          ))}
+        </div>
       </>
     );
   } else {
@@ -468,7 +506,7 @@ export default function UserGardenFloorPlan(props) {
       <div className={styles.row}>
         <div className={styles.container}>
           <div className={canSeeDesks ? styles.planColumn : styles.planColumnWide}>
-            <div className={styles.planContent}>
+            <div className={styles.planContent} ref={planRef}>
               <div className={styles.planHeader}>
                 <SubTitle style={{ padding: 0 }}>Suite 301</SubTitle>
                 <div className={styles.controls}>
@@ -554,7 +592,20 @@ export default function UserGardenFloorPlan(props) {
                       <NoteItem>
                         {space.inches.filter((inches) => inches < Constants.Office.CLEARANCE_TARGET_IN).length} seats below the {Constants.Office.CLEARANCE_TARGET_IN} in clearance target
                       </NoteItem>
-                      {space.issues.length ? <CrossItem>{space.issues.length} geometry conflicts</CrossItem> : null}
+                      {space.issues.length ? (
+                        <details className={styles.conflicts}>
+                          <summary>{space.issues.length} geometry conflicts</summary>
+                          <ul>
+                            {space.issues.map((issue) => (
+                              <li key={issue.message}>
+                                <button type="button" className={styles.conflictLink} disabled={saving} onClick={() => showConflict(issue)}>
+                                  {issue.message}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      ) : null}
                       {unpaidCount ? <CrossItem>{unpaidCount} desks are unpaid</CrossItem> : null}
                     </div>
                   </div>

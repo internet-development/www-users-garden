@@ -186,18 +186,7 @@ export default function OfficePlan(props) {
 
   return (
     <div className={props.editing ? styles.editing : styles.root} style={props.aspect ? { aspectRatio: String(props.aspect) } : undefined}>
-      <svg
-        ref={svgRef}
-        className={styles.svg}
-        aria-label="Office floor plan"
-        viewBox={`${view.x} ${view.y} ${view.width} ${viewHeight}`}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
+      <svg ref={svgRef} className={styles.svg} aria-label="Office floor plan" viewBox={`${view.x} ${view.y} ${view.width} ${viewHeight}`} tabIndex={0} onKeyDown={onKeyDown} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
         <defs>
           <pattern id="office-plan-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
             <line className={styles.hatch} x1="0" y1="0" x2="0" y2="8" />
@@ -218,6 +207,9 @@ export default function OfficePlan(props) {
           const isSelected = props.selected.includes(desk.key);
           const className = desk.state === 'plain' ? styles.deskPlain : isSelected || desk.state === 'mine' ? styles.deskSelected : desk.state === 'open' ? styles.deskOpen : desk.state === 'unpaid' ? styles.deskUnpaid : styles.desk;
           const label = desk.label === null || desk.label === undefined ? String(desk.number) : desk.label;
+          const conflicts: string[] = desk.conflicts || [];
+          const conflictParts: Array<'desk' | 'chair'> = desk.conflictParts || [];
+          const warningId = `office-conflict-${desk.key}`;
           return (
             <g
               key={desk.key}
@@ -226,6 +218,7 @@ export default function OfficePlan(props) {
               role={desk.state === 'plain' ? undefined : 'button'}
               tabIndex={desk.state === 'plain' ? undefined : 0}
               aria-label={desk.state === 'plain' ? undefined : `Desk ${desk.number}`}
+              aria-describedby={conflicts.length ? warningId : undefined}
               onKeyDown={(event) => {
                 if (desk.state === 'plain' || (event.key !== 'Enter' && event.key !== ' ')) return;
                 event.preventDefault();
@@ -233,11 +226,24 @@ export default function OfficePlan(props) {
                 props.onSelect([desk.key]);
               }}
             >
+              {conflicts.length ? <title id={warningId}>{conflicts.join('\n')}</title> : null}
               <circle className={styles.chair} cx={chair.x + chair.width / 2} cy={chair.y + chair.height / 2} r={chair.width * 0.42} />
               <rect className={className} x={top.x} y={top.y} width={top.width} height={top.height} rx={1.5} />
               <text className={styles.label} x={desk.x_in} y={desk.y_in} fontSize={fontSize} dominantBaseline="central" textAnchor="middle">
                 {label}
               </text>
+              {conflicts.length ? (
+                <g className={styles.conflict} aria-hidden="true" data-geometry-conflict={desk.key}>
+                  {conflictParts.map((part) => {
+                    const rect = part === 'desk' ? top : chair;
+                    return <rect key={part} data-conflict-part={part} className={styles.conflictOutline} x={rect.x} y={rect.y} width={rect.width} height={rect.height} rx={part === 'desk' ? 1.5 : 0} />;
+                  })}
+                  <circle className={styles.conflictBadge} cx={top.x + top.width - 6 / scale} cy={top.y + 6 / scale} r={6 / scale} />
+                  <text className={styles.conflictMark} x={top.x + top.width - 6 / scale} y={top.y + 6 / scale} fontSize={10 / scale} textAnchor="middle" dominantBaseline="central">
+                    !
+                  </text>
+                </g>
+              ) : null}
             </g>
           );
         })}

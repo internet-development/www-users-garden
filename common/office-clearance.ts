@@ -1,6 +1,11 @@
 import * as Geometry from '@common/office-geometry';
 import * as Floor from '@common/office-plan';
 
+export type Conflict = {
+  message: string;
+  affected: Array<{ index: number; part: 'desk' | 'chair' }>;
+};
+
 const MAX_CLEARANCE = 96;
 const BUCKET = 96;
 const wallBuckets = new Map<string, number[][]>();
@@ -41,17 +46,23 @@ function seatStrip(desk: Geometry.Desk, depth: number): Geometry.Rect {
   return { x: chair.x, y: top.y + top.height, width: chair.width, height: depth };
 }
 
-export function measure(desks: Geometry.Desk[]): { issues: string[]; inches: number[] } {
+export function measure(desks: Geometry.Desk[]): { issues: Conflict[]; inches: number[] } {
   const parts = desks.map(Geometry.deskParts);
-  const issues: string[] = [];
+  const issues: Conflict[] = [];
   for (let i = 0; i < desks.length; i++) {
     const { desk, chair } = parts[i];
-    if (!staticFits(desk)) issues.push(`Desk ${desks[i].number}: desktop crosses a wall or suite boundary`);
-    if (!staticFits(chair)) issues.push(`Desk ${desks[i].number}: chair crosses a wall or suite boundary`);
+    if (!staticFits(desk)) issues.push({ message: `Desk ${desks[i].number}: desktop crosses a wall or suite boundary`, affected: [{ index: i, part: 'desk' }] });
+    if (!staticFits(chair)) issues.push({ message: `Desk ${desks[i].number}: chair space crosses a wall or suite boundary`, affected: [{ index: i, part: 'chair' }] });
     for (let j = i + 1; j < desks.length; j++) {
-      if (Geometry.overlaps(desk, parts[j].desk) || Geometry.overlaps(desk, parts[j].chair) || Geometry.overlaps(chair, parts[j].desk) || Geometry.overlaps(chair, parts[j].chair)) {
-        issues.push(`Desks ${desks[i].number} and ${desks[j].number}: desktop or chair overlap`);
+      const affected: Conflict['affected'] = [];
+      for (const a of ['desk', 'chair'] as const) {
+        for (const b of ['desk', 'chair'] as const) {
+          if (!Geometry.overlaps(parts[i][a], parts[j][b])) continue;
+          if (!affected.some((p) => p.index === i && p.part === a)) affected.push({ index: i, part: a });
+          if (!affected.some((p) => p.index === j && p.part === b)) affected.push({ index: j, part: b });
+        }
       }
+      if (affected.length) issues.push({ message: `Desks ${desks[i].number} and ${desks[j].number}: desktops or chair spaces overlap`, affected });
     }
   }
   const inches = desks.map((d, i) => {

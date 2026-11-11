@@ -139,6 +139,28 @@
   outline-offset: -2px;
 }
 
+.conflict {
+  pointer-events: none;
+}
+
+.conflictOutline {
+  fill: none;
+  stroke: var(--theme-error);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.conflictBadge {
+  fill: var(--theme-error);
+}
+
+.conflictMark {
+  fill: var(--theme-background);
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+}
+
 .selection {
   fill: none;
   stroke: var(--theme-primary);
