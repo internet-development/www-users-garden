@@ -35,20 +35,19 @@ function turn(rect: Rect, rotation: number, cx: number, cy: number): Rect {
 }
 
 export function deskParts(desk: Desk) {
-  const { DESK_WIDTH_IN: width, DESK_DEPTH_IN: depth, CHAIR_IN: chair, WALKWAY_IN: walkway } = Constants.Office;
+  const { DESK_WIDTH_IN: width, DESK_DEPTH_IN: depth, CHAIR_IN: chair } = Constants.Office;
   return {
     desk: turn({ x: -width / 2, y: -depth / 2, width, height: depth }, desk.rotation, desk.x_in, desk.y_in),
     chair: turn({ x: -chair / 2, y: depth / 2, width: chair, height: chair }, desk.rotation, desk.x_in, desk.y_in),
-    walkway: turn({ x: -width / 2, y: depth / 2, width, height: chair + walkway }, desk.rotation, desk.x_in, desk.y_in),
   };
 }
 
 // Shrinks by an inch so pieces that only touch, like desks pushed together, don't count.
-function overlaps(a: Rect, b: Rect) {
+export function overlaps(a: Rect, b: Rect) {
   return a.x + 1 < b.x + b.width && b.x + 1 < a.x + a.width && a.y + 1 < b.y + b.height && b.y + 1 < a.y + a.height;
 }
 
-function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number) {
+export function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number) {
   const left = rect.x + 1;
   const right = rect.x + rect.width - 1;
   const top = rect.y + 1;
@@ -107,7 +106,7 @@ function overlapsOn(axis: 'x' | 'y', a: Rect, b: { x: number; y: number; width: 
 
 // NOTE(@caidanw)
 // Settles desks that were just dragged, nudged, or rotated. Selected desks move together, and only
-// the desktops count; walkways may still run into things.
+// the desktops count; chair clearance is assessed separately by the planner.
 // 1. A desk that ends up across a wall or on another desk is pushed out so it sits flush against
 //    it, preferring the way it came from (`moved` is the drag or nudge that brought it there).
 // 2. On each axis, a desk already touching a wall or desk stays put. Otherwise it snaps flush to a
@@ -124,9 +123,7 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
   const right = Math.max(...moving.map((rect) => rect.x + rect.width)) + MAX_PUSH_IN;
   const bottom = Math.max(...moving.map((rect) => rect.y + rect.height)) + MAX_PUSH_IN;
   cachedWalls = cachedWalls || axisWalls();
-  const walls = cachedWalls
-    .filter(([x1, y1, x2, y2]) => x2 >= left && x1 <= right && y2 >= top && y1 <= bottom)
-    .map(([x1, y1, x2, y2]) => ({ x: x1, y: y1, width: x2 - x1, height: y2 - y1, horizontal: y1 === y2 }));
+  const walls = cachedWalls.filter(([x1, y1, x2, y2]) => x2 >= left && x1 <= right && y2 >= top && y1 <= bottom).map(([x1, y1, x2, y2]) => ({ x: x1, y: y1, width: x2 - x1, height: y2 - y1, horizontal: y1 === y2 }));
   const near = others.filter((rect) => rect.x + rect.width >= left && rect.x <= right && rect.y + rect.height >= top && rect.y <= bottom);
 
   const fits = (dx: number, dy: number) =>
@@ -204,26 +201,4 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
     }
   }
   return result;
-}
-
-// The desks whose walkway runs into a wall, another desk, or another chair.
-export function blockedDesks(desks: Desk[]): Set<number> {
-  const parts = desks.map(deskParts);
-  const blocked = new Set<number>();
-  const walls = OfficePlan.WALL_SEGMENTS;
-  parts.forEach((part, index) => {
-    for (let other = 0; other < parts.length; other++) {
-      if (other !== index && (overlaps(part.walkway, parts[other].desk) || overlaps(part.walkway, parts[other].chair))) {
-        blocked.add(index);
-        return;
-      }
-    }
-    for (let i = 0; i < walls.length; i += 4) {
-      if (crosses(part.walkway, walls[i], walls[i + 1], walls[i + 2], walls[i + 3])) {
-        blocked.add(index);
-        return;
-      }
-    }
-  });
-  return blocked;
 }

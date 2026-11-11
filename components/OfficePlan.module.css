@@ -66,6 +66,11 @@
 
 .group {
   cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-primary);
+    outline-offset: 4px;
+  }
 }
 
 .chair {
@@ -128,18 +133,48 @@
   fill: var(--theme-background);
 }
 
-.walkway {
-  fill: var(--theme-primary);
-  fill-opacity: 0.06;
+.planningOverlay {
+  pointer-events: none;
 }
 
-.blocked {
-  fill: var(--theme-error);
-  fill-opacity: 0.12;
-  stroke: var(--theme-error);
+.ghost,
+.searchArea,
+.aisle,
+.keepClear {
   stroke-width: 1;
-  stroke-dasharray: 4 3;
   vector-effect: non-scaling-stroke;
+}
+
+.ghost {
+  fill: none;
+  stroke: var(--theme-text);
+  opacity: 0.25;
+  stroke-dasharray: 2 3;
+}
+
+.searchArea {
+  fill: var(--theme-primary);
+  fill-opacity: 0.025;
+  stroke: var(--theme-primary);
+  stroke-dasharray: 6 4;
+}
+
+.aisle {
+  fill: var(--theme-primary);
+  fill-opacity: 0.12;
+  stroke: var(--theme-primary);
+}
+
+.keepClear {
+  fill: var(--theme-text);
+  fill-opacity: 0.1;
+  stroke: var(--theme-text);
+  stroke-dasharray: 3 3;
+}
+
+.svg:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: -2px;
 }
 
 .selection {

@@ -3,6 +3,8 @@ import styles from '@components/UserGardenFloorPlan.module.css';
 import * as Constants from '@common/constants';
 import * as OfficeGeometry from '@common/office-geometry';
 import * as OfficePlanData from '@common/office-plan';
+import * as Planner from '@common/office-planner';
+import dynamic from 'next/dynamic';
 import * as React from 'react';
 
 import Button from '@system/Button';
@@ -15,6 +17,7 @@ import Select from '@system/Select';
 
 import { H5, P, SubTitle } from '@system/typography';
 
+const OfficeLayoutPlanner = dynamic(() => import('@components/OfficeLayoutPlanner'), { ssr: false });
 const NEW_NAME = '__new-name__';
 const NAME_PREFIX = 'name:';
 const FULL_WIDTH_BUTTON = { height: 48, marginTop: 12, width: '100%' };
@@ -202,9 +205,7 @@ function AdminDesk(props) {
       <div className={styles.holderSelect}>
         <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
       </div>
-      {choice === NEW_NAME ? (
-        <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} />
-      ) : null}
+      {choice === NEW_NAME ? <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} /> : null}
       <div className={styles.buttonRow}>
         <ButtonPrimary loading={saving} onClick={onSave} style={HALF_WIDTH_BUTTON}>
           Save
@@ -234,7 +235,7 @@ function AdminDesk(props) {
         {desk.user && !staff && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
         {desk.user && !staff && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
         {desk.name ? <NoteItem>Billed outside users.garden</NoteItem> : null}
-        {props.blocked ? <CrossItem>Walkway is blocked</CrossItem> : <CheckmarkItem>Walkway is clear</CheckmarkItem>}
+        <NoteItem>{props.clearance >= 95 ? '95+' : props.clearance} in behind desk</NoteItem>
       </div>
     </>
   );
@@ -245,6 +246,9 @@ export default function UserGardenFloorPlan(props) {
   const [desks, setDesks] = React.useState<any[] | null>(null);
   const [tenants, setTenants] = React.useState<any[]>([]);
   const [draft, setDraft] = React.useState<any[] | null>(null);
+  const [planning, setPlanning] = React.useState(false);
+  const [plannerDraft, setPlannerDraft] = React.useState<Planner.Draft | null>(null);
+  const [layoutBaseline, setLayoutBaseline] = React.useState('');
   const [selected, setSelected] = React.useState<string[]>([]);
   const [view, setView] = React.useState(FULL_VIEW);
   const [saving, setSaving] = React.useState(false);
@@ -279,11 +283,11 @@ export default function UserGardenFloorPlan(props) {
   }, []);
 
   // Only accounts approved for a desk get numbers; everyone else gets positions alone.
-  const canSeeDesks = Boolean(desks && desks.length && desks[0].number !== undefined);
+  const canSeeDesks = isAdmin || Boolean(desks && desks.length && desks[0].number !== undefined);
   const editing = draft !== null;
   const source = editing ? draft : desks || [];
-  const blocked = OfficeGeometry.blockedDesks(source);
-  const blockedIds = new Set([...blocked].map((index) => source[index].id));
+  const space = React.useMemo(() => Planner.analyze(plannerDraft ? { ...plannerDraft, desks: Planner.geometry(source) } : Planner.createDraft(Planner.geometry(source), 'Current layout')), [source, plannerDraft]);
+  const clearanceByKey = new Map(space.clearance.map((seat) => [seat.key, seat.inches]));
   const isUnpaid = (desk) => Boolean(desk.user_id && billing[desk.user_id] && billing[desk.user_id].state === 'unpaid');
   const planDesks = source.map((desk) => {
     const holder = holderOf(desk);
@@ -299,18 +303,11 @@ export default function UserGardenFloorPlan(props) {
   const approved = tenants.filter((each) => Number(each.tier) === 2 && Number(each.level) >= Constants.Users.tiers.GENERAL_CO_WORKING);
   const accounts = [...staff, ...approved.filter((each) => !staff.some((member) => member.id === each.id))];
   const selectedDesk = !editing && selected.length === 1 ? (desks || []).find((desk) => desk.id === selected[0]) : null;
-  const selectedIndex = selectedDesk ? source.indexOf(selectedDesk) : -1;
-  const aspect = aspectFor(desks);
+  const aspect = isAdmin ? PANEL_ASPECT : aspectFor(desks);
   const isWhole = view.width >= wholeView(aspect).width - 1;
 
   const onMoveBy = (keys, dx, dy) => {
-    setDraft((current) =>
-      (current || []).map((desk) =>
-        keys.includes(desk.key)
-          ? { ...desk, x_in: Math.min(OfficePlanData.WIDTH_IN, Math.max(0, desk.x_in + dx)), y_in: Math.min(OfficePlanData.HEIGHT_IN, Math.max(0, desk.y_in + dy)) }
-          : desk
-      )
-    );
+    setDraft((current) => (current || []).map((desk) => (keys.includes(desk.key) ? { ...desk, x_in: Math.min(OfficePlanData.WIDTH_IN, Math.max(0, desk.x_in + dx)), y_in: Math.min(OfficePlanData.HEIGHT_IN, Math.max(0, desk.y_in + dy)) } : desk)));
   };
 
   const onSettle = (keys, snap, moved?) => {
@@ -350,32 +347,58 @@ export default function UserGardenFloorPlan(props) {
   };
 
   const onSaveLayout = async () => {
-    if (!draft || !desks) return;
+    if (!draft || !desks || saving) return;
+    if (plannerDraft && Planner.analyze({ ...plannerDraft, desks: Planner.geometry(draft) }).issues.length) {
+      alert('This draft has geometry conflicts. Return to the planner to resolve them.');
+      return;
+    }
     setSaving(true);
-    const before = new Map<string, any>(desks.map((desk) => [desk.id, desk]));
-    const kept = new Set(draft.filter((desk) => desk.id).map((desk) => desk.id));
-    let ok = true;
-
-    for (const desk of desks) {
-      if (!kept.has(desk.id)) ok = !!(await props.onDeleteOfficeDesk({ id: desk.id })) && ok;
-    }
-    for (const desk of draft) {
-      const fields = { number: desk.number, x_in: desk.x_in, y_in: desk.y_in, rotation: desk.rotation };
-      if (!desk.id) {
-        ok = !!(await props.onCreateOfficeDesk(fields)) && ok;
-        continue;
+    try {
+      const fresh = await props.onGetOfficeDesks();
+      if (!fresh?.data || Planner.fingerprint(Planner.geometry(fresh.data)) !== layoutBaseline) {
+        alert('The live layout changed, or could not be loaded. Nothing was saved. Keep your draft and review against the latest layout.');
+        setSaving(false);
+        return;
       }
-      const old = before.get(desk.id);
-      if (old.number !== desk.number || old.x_in !== desk.x_in || old.y_in !== desk.y_in || old.rotation !== desk.rotation) {
-        ok = !!(await props.onUpdateOfficeDesk({ id: desk.id, updates: fields })) && ok;
-      }
-    }
+      const before = new Map<string, any>(desks.map((desk) => [desk.id, desk]));
+      const kept = new Set(draft.filter((desk) => desk.id).map((desk) => desk.id));
+      let ok = true;
 
-    if (!ok) alert('Something went wrong');
-    await load();
-    setDraft(null);
-    setSelected([]);
-    setSaving(false);
+      for (const desk of desks) {
+        if (!ok) break;
+        if (!kept.has(desk.id)) ok = !!(await props.onDeleteOfficeDesk({ id: desk.id })) && ok;
+      }
+      for (const desk of draft) {
+        if (!ok) break;
+        const fields = { number: desk.number, x_in: desk.x_in, y_in: desk.y_in, rotation: desk.rotation };
+        if (!desk.id) {
+          ok = !!(await props.onCreateOfficeDesk(fields)) && ok;
+          continue;
+        }
+        const old = before.get(desk.id);
+        if (old.number !== desk.number || old.x_in !== desk.x_in || old.y_in !== desk.y_in || old.rotation !== desk.rotation) {
+          ok = !!(await props.onUpdateOfficeDesk({ id: desk.id, updates: fields })) && ok;
+        }
+      }
+
+      if (!ok) {
+        alert('Some layout changes could not be saved. Your draft is retained. Reload the live layout before retrying; some changes may already have been saved.');
+        setSaving(false);
+        return;
+      }
+      const updated = await load();
+      if (!updated) {
+        alert('The writes succeeded, but the layout could not be reloaded. Your draft is retained.');
+        return;
+      }
+      setDraft(null);
+      setPlannerDraft(null);
+      setSelected([]);
+    } catch {
+      alert('Saving stopped. Your draft is retained; some changes may already have been saved.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const onUpdateDesk = async (id, updates) => {
@@ -383,6 +406,36 @@ export default function UserGardenFloorPlan(props) {
     if (!response) alert('Something went wrong');
     await load();
   };
+
+  const reviewPlan = async (proposal: Planner.Draft): Promise<string | null> => {
+    const fresh = await props.onGetOfficeDesks();
+    if (!fresh?.data) return 'Could not load the live layout. Nothing has changed.';
+    if (Planner.fingerprint(Planner.geometry(fresh.data)) !== Planner.fingerprint(proposal.baseline)) return 'The live layout has changed since this draft began. Export this draft, then start a new one from the current floor plan.';
+    if (Planner.analyze(proposal).issues.length) return 'Resolve the geometry conflicts before reviewing.';
+    const current = new Map<string, any>(fresh.data.map((desk) => [desk.id, desk]));
+    setDesks(fresh.data);
+    setDraft(proposal.desks.map((desk) => ({ ...current.get(desk.key), ...desk })));
+    setLayoutBaseline(Planner.fingerprint(proposal.baseline));
+    setPlannerDraft(proposal);
+    setSelected([]);
+    setPlanning(false);
+    return null;
+  };
+
+  if (planning && isAdmin && desks) {
+    return (
+      <OfficeLayoutPlanner
+        desks={Planner.geometry(desks)}
+        initialDraft={plannerDraft}
+        viewerId={props.viewer.id}
+        onClose={() => {
+          setPlanning(false);
+          load();
+        }}
+        onReview={reviewPlan}
+      />
+    );
+  }
 
   const openDesks = (desks || []).filter((desk) => !isTaken(desk));
   const unpaidCount = (desks || []).filter(isUnpaid).length;
@@ -394,30 +447,46 @@ export default function UserGardenFloorPlan(props) {
   if (editing) {
     panel = (
       <>
-        <SubTitle style={{ padding: 0 }}>Edit layout</SubTitle>
+        <SubTitle style={{ padding: 0 }}>{plannerDraft ? 'Review proposed layout' : 'Edit layout'}</SubTitle>
+        {plannerDraft ? <P style={{ marginTop: 12 }}>Live desks have not moved. Save layout applies this proposal; assignments stay with their desk IDs.</P> : null}
         <H5 style={{ marginTop: 24 }}>
           {selected.length}
           <span className={styles.subtle}> selected</span>
         </H5>
-        <Button onClick={onAdd} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
-          Add desk
-        </Button>
-        <Button disabled={!selected.length} onClick={() => onRotate(selected)} style={FULL_WIDTH_BUTTON}>
-          Rotate
-        </Button>
-        <Button disabled={!selected.length} onClick={() => onRemove(selected)} style={FULL_WIDTH_BUTTON}>
-          Remove
-        </Button>
+        {!plannerDraft ? (
+          <>
+            <Button disabled={saving} onClick={onAdd} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
+              Add desk
+            </Button>
+            <Button disabled={saving || !selected.length} onClick={() => onRotate(selected)} style={FULL_WIDTH_BUTTON}>
+              Rotate
+            </Button>
+            <Button disabled={saving || !selected.length} onClick={() => onRemove(selected)} style={FULL_WIDTH_BUTTON}>
+              Remove
+            </Button>
+          </>
+        ) : null}
         <ButtonPrimary loading={saving} onClick={onSaveLayout} style={{ ...FULL_WIDTH_BUTTON, marginTop: 48 }}>
           Save layout
         </ButtonPrimary>
-        <Button onClick={() => (setDraft(null), setSelected([]))} style={FULL_WIDTH_BUTTON}>
-          Cancel
+        <Button
+          disabled={saving}
+          onClick={() => {
+            setDraft(null);
+            setSelected([]);
+            if (plannerDraft) {
+              setPlannerDraft({ ...plannerDraft, desks: Planner.geometry(draft || []) });
+              setPlanning(true);
+            }
+          }}
+          style={FULL_WIDTH_BUTTON}
+        >
+          {plannerDraft ? 'Return to planner' : 'Cancel'}
         </Button>
       </>
     );
   } else if (selectedDesk && isAdmin) {
-    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} blocked={blocked.has(selectedIndex)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} clearance={clearanceByKey.get(selectedDesk.id)} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
   } else if (selectedDesk) {
     panel = (
       <>
@@ -440,9 +509,7 @@ export default function UserGardenFloorPlan(props) {
     <>
       <header className={styles.header}>
         <SubTitle>Floor plan</SubTitle>
-        <P style={{ marginTop: 6 }}>
-          See the desks at the Internet Development Studio Company office in Seattle, WA. Collaborators and partners with an approved workspace can also see which desks are open.
-        </P>
+        <P style={{ marginTop: 6 }}>See the desks at the Internet Development Studio Company office in Seattle, WA. Collaborators and partners with an approved workspace can also see which desks are open.</P>
       </header>
 
       <div className={styles.row}>
@@ -461,19 +528,7 @@ export default function UserGardenFloorPlan(props) {
                   <Button onClick={() => setView(isWhole ? deskView(desks, aspect) : wholeView(aspect))}>{isWhole ? 'Desks' : 'Whole floor'}</Button>
                 </div>
               </div>
-              <OfficePlan
-                aspect={aspect}
-                desks={planDesks}
-                editing={editing}
-                selected={selected}
-                view={view}
-                onView={setView}
-                onSelect={canSeeDesks ? setSelected : () => {}}
-                onMoveBy={onMoveBy}
-                onSettle={onSettle}
-                onRotate={onRotate}
-                onRemove={onRemove}
-              />
+              <OfficePlan aspect={aspect} desks={planDesks} editing={editing && !saving && !plannerDraft} planning={plannerDraft && editing ? { tool: 'move', zones: plannerDraft.zones, area: plannerDraft.area, baseline: plannerDraft.baseline, locked: plannerDraft.locked, pods: plannerDraft.pods, onDraw: () => {} } : undefined} selected={selected} view={view} onView={setView} onSelect={canSeeDesks ? setSelected : () => {}} onMoveBy={onMoveBy} onSettle={onSettle} onRotate={onRotate} onRemove={onRemove} />
             </div>
           </div>
           {canSeeDesks ? (
@@ -494,7 +549,7 @@ export default function UserGardenFloorPlan(props) {
                   {openDesks.length}
                   <span className={styles.subtle}> desks</span>
                 </H5>
-                <DeskList desks={openDesks} label={() => 'Open'} detail={(desk) => (blockedIds.has(desk.id) ? 'Walkway blocked' : 'Walkway clear')} onSelect={setSelected} selected={selected} />
+                <DeskList desks={openDesks} label={() => 'Open'} detail={(desk) => `${clearanceByKey.get(desk.id) ?? '—'} in behind desk`} onSelect={setSelected} selected={selected} />
               </div>
             </div>
             {isAdmin ? (
@@ -531,13 +586,35 @@ export default function UserGardenFloorPlan(props) {
                         Editing
                       </Button>
                     ) : (
-                      <Button onClick={() => (setDraft((desks || []).map((desk) => ({ ...desk, key: desk.id }))), setSelected([]))} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
+                      <Button
+                        onClick={() => {
+                          setDraft((desks || []).map((desk) => ({ ...desk, key: desk.id })));
+                          setLayoutBaseline(Planner.fingerprint(Planner.geometry(desks || [])));
+                          setPlannerDraft(null);
+                          setSelected([]);
+                        }}
+                        style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}
+                      >
                         Edit layout
                       </Button>
                     )}
+                    {!editing ? (
+                      <Button
+                        disabled={!desks}
+                        onClick={() => {
+                          setPlannerDraft(null);
+                          setPlanning(true);
+                        }}
+                        style={FULL_WIDTH_BUTTON}
+                      >
+                        Plan alternatives
+                      </Button>
+                    ) : null}
                     <div className={styles.checks}>
-                      <CheckmarkItem>{source.length - blocked.size} walkways are clear</CheckmarkItem>
-                      {blocked.size ? <CrossItem>{blocked.size} walkways are blocked</CrossItem> : null}
+                      <NoteItem>
+                        {space.belowTarget} seats below the {plannerDraft?.clearance ?? Constants.Office.CLEARANCE_TARGET_IN} in clearance target
+                      </NoteItem>
+                      {space.issues.length ? <CrossItem>{space.issues.length} geometry conflicts; inspect in planner</CrossItem> : null}
                       {unpaidCount ? <CrossItem>{unpaidCount} desks are unpaid</CrossItem> : null}
                     </div>
                   </div>
