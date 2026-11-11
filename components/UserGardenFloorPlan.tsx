@@ -244,7 +244,7 @@ function AdminDesk(props) {
         {desk.user && !staff && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
         {desk.user && !staff && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
         {desk.name ? <NoteItem>Billed outside users.garden</NoteItem> : null}
-        <NoteItem>{props.clearance >= 95 ? '95+' : props.clearance} in behind desk</NoteItem>
+        <NoteItem>{props.clearance >= 95 ? '95+' : props.clearance}&quot; behind desk</NoteItem>
       </div>
     </>
   );
@@ -540,7 +540,7 @@ export default function UserGardenFloorPlan(props) {
                   {openDesks.length}
                   <span className={styles.subtle}> desks</span>
                 </H5>
-                <DeskList desks={openDesks} label={() => 'Open'} detail={(desk) => `${clearanceByKey.get(desk.id) ?? '—'} in behind desk`} onSelect={setSelected} selected={selected} />
+                <DeskList desks={openDesks} label={() => 'Open'} detail={(desk) => `${clearanceByKey.get(desk.id) ?? '—'}" behind desk`} onSelect={setSelected} selected={selected} />
               </div>
             </div>
             {isAdmin ? (
@@ -590,7 +590,7 @@ export default function UserGardenFloorPlan(props) {
                     )}
                     <div className={styles.checks}>
                       <NoteItem>
-                        {space.inches.filter((inches) => inches < Constants.Office.CLEARANCE_TARGET_IN).length} seats below the {Constants.Office.CLEARANCE_TARGET_IN} in clearance target
+                        {space.inches.filter((inches) => inches < Constants.Office.CLEARANCE_TARGET_IN).length} seats below the {Constants.Office.CLEARANCE_TARGET_IN}&quot; clearance target
                       </NoteItem>
                       {space.issues.length ? (
                         <details className={styles.conflicts}>
