@@ -246,7 +246,7 @@ export default function OfficePlan(props) {
         </defs>
         <rect className={styles.notOurs} x={0} y={0} width={WIDTH_IN} height={HEIGHT_IN} />
         <rect x={0} y={0} width={WIDTH_IN} height={HEIGHT_IN} fill="url(#office-plan-hatch)" />
-        <polygon className={styles.floor} points={OfficePlanData.SUITE_POINTS} />
+        <path className={styles.floor} d={OfficePlanData.SUITE_PATH} />
         <path className={styles.lines} d={OfficePlanData.LINES_PATH} />
         {Constants.Office.LABELS.map((label) => (
           <text key={`${label.text}-${label.x_in}-${label.y_in}`} className={styles.area} x={label.x_in} y={label.y_in} fontSize={Math.max(Constants.Office.LABEL_IN, Constants.Office.LABEL_MIN_PX / scale)} dominantBaseline="central" textAnchor="middle" transform={label.rotate ? `rotate(${label.rotate} ${label.x_in} ${label.y_in})` : undefined}>
