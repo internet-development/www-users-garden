@@ -5,6 +5,16 @@ import * as OfficeGeometry from '@common/office-geometry';
 import * as OfficePlanData from '@common/office-plan';
 import * as React from 'react';
 
+export type PlanningOverlay = {
+  tool: 'move' | 'aisle' | 'keep-clear' | 'area';
+  zones: Array<OfficeGeometry.Rect & { key: string; kind: 'aisle' | 'keep-clear' }>;
+  area: OfficeGeometry.Rect | null;
+  baseline: OfficeGeometry.Desk[];
+  locked: string[];
+  pods: string[][];
+  onDraw: (rect: OfficeGeometry.Rect) => void;
+};
+
 const { WIDTH_IN, HEIGHT_IN } = OfficePlanData;
 const MIN_VIEW_WIDTH = 120;
 const MAX_VIEW_WIDTH = WIDTH_IN * 1.5;
@@ -51,6 +61,8 @@ function toPlan(svg: SVGSVGElement, clientX: number, clientY: number) {
 // Desks carry a `key` (the desk id, or a temporary key for a desk added while editing), a `state`
 // (open, taken, or mine), and an optional `label`. Positions are desk centers in inches.
 export default function OfficePlan(props) {
+  const planning: PlanningOverlay | undefined = props.planning;
+  const [drawing, setDrawing] = React.useState<OfficeGeometry.Rect | null>(null);
   const svgRef = React.useRef<SVGSVGElement>(null);
   const viewRef = React.useRef(props.view);
   const gestureRef = React.useRef<any>(null);
@@ -94,13 +106,19 @@ export default function OfficePlan(props) {
     const start = toPlan(svg, event.clientX, event.clientY);
     svg.setPointerCapture(event.pointerId);
     svg.focus();
+    if (planning && planning.tool !== 'move') {
+      gestureRef.current = { type: 'draw', start };
+      setDrawing(null);
+      return;
+    }
 
     if (key && props.editing) {
       let selected: string[] = props.selected;
+      const clicked = planning?.pods.find((pod) => pod.includes(key)) || [key];
       if (event.shiftKey) {
-        selected = selected.includes(key) ? selected.filter((each) => each !== key) : [...selected, key];
+        selected = selected.includes(key) ? selected.filter((each) => !clicked.includes(each)) : [...new Set([...selected, ...clicked])];
       } else if (!selected.includes(key)) {
-        selected = [key];
+        selected = clicked;
       }
       props.onSelect(selected);
       gestureRef.current = { type: 'drag', keys: selected, start, moved: { x: 0, y: 0 } };
@@ -113,6 +131,16 @@ export default function OfficePlan(props) {
   const onPointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
     const gesture = gestureRef.current;
     if (!gesture) return;
+
+    if (gesture.type === 'draw') {
+      const point = toPlan(svgRef.current as SVGSVGElement, event.clientX, event.clientY);
+      const x = Math.max(0, Math.round(Math.min(point.x, gesture.start.x)));
+      const y = Math.max(0, Math.round(Math.min(point.y, gesture.start.y)));
+      const right = Math.min(WIDTH_IN, Math.round(Math.max(point.x, gesture.start.x)));
+      const bottom = Math.min(HEIGHT_IN, Math.round(Math.max(point.y, gesture.start.y)));
+      setDrawing({ x, y, width: Math.max(0, right - x), height: Math.max(0, bottom - y) });
+      return;
+    }
 
     if (gesture.type === 'drag') {
       const point = toPlan(svgRef.current as SVGSVGElement, event.clientX, event.clientY);
@@ -134,6 +162,11 @@ export default function OfficePlan(props) {
   const onPointerUp = () => {
     const gesture = gestureRef.current;
     gestureRef.current = null;
+    if (gesture?.type === 'draw') {
+      if (drawing && drawing.width >= 6 && drawing.height >= 6) planning?.onDraw(drawing);
+      setDrawing(null);
+      return;
+    }
     if (gesture && gesture.type === 'drag' && (gesture.moved.x || gesture.moved.y)) {
       props.onSettle(gesture.keys, true, { dx: gesture.moved.x, dy: gesture.moved.y });
     }
@@ -147,6 +180,7 @@ export default function OfficePlan(props) {
       props.onSelect([]);
       if (gestureRef.current?.type === 'drag') props.onSettle(gestureRef.current.keys, false);
       gestureRef.current = null;
+      setDrawing(null);
       return;
     }
     if (!props.editing || !props.selected.length) return;
@@ -189,14 +223,21 @@ export default function OfficePlan(props) {
       <svg
         ref={svgRef}
         className={styles.svg}
-        aria-label="Office floor plan"
+        aria-label={planning ? 'Layout planner. Select desks, use arrows to move, R to rotate, Escape to clear selection.' : 'Office floor plan'}
+        style={planning && planning.tool !== 'move' ? { cursor: 'crosshair' } : undefined}
         viewBox={`${view.x} ${view.y} ${view.width} ${viewHeight}`}
         tabIndex={0}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={() => {
+          if (gestureRef.current?.type === 'drag') onPointerUp();
+          else {
+            gestureRef.current = null;
+            setDrawing(null);
+          }
+        }}
       >
         <defs>
           <pattern id="office-plan-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
@@ -213,6 +254,25 @@ export default function OfficePlan(props) {
           </text>
         ))}
 
+        {planning ? (
+          <g className={styles.planningOverlay}>
+            {planning.baseline.map((desk, i) => {
+              const top = OfficeGeometry.deskParts(desk).desk;
+              return <rect key={`baseline-${i}`} className={styles.ghost} x={top.x} y={top.y} width={top.width} height={top.height} />;
+            })}
+            {planning.area ? <rect className={styles.searchArea} x={planning.area.x} y={planning.area.y} width={planning.area.width} height={planning.area.height} /> : null}
+            {planning.zones.map((zone) => (
+              <g key={zone.key}>
+                <rect className={zone.kind === 'aisle' ? styles.aisle : styles.keepClear} x={zone.x} y={zone.y} width={zone.width} height={zone.height} />
+                <text className={styles.label} x={zone.x + zone.width / 2} y={zone.y + zone.height / 2} fontSize={10 / scale} textAnchor="middle">
+                  {zone.kind === 'aisle' ? 'Aisle' : 'Keep clear'}
+                </text>
+              </g>
+            ))}
+            {drawing ? <rect className={styles.searchArea} x={drawing.x} y={drawing.y} width={drawing.width} height={drawing.height} /> : null}
+          </g>
+        ) : null}
+
         {desks.map((desk) => {
           const { desk: top, chair } = OfficeGeometry.deskParts(desk);
           const isSelected = props.selected.includes(desk.key);
@@ -225,16 +285,18 @@ export default function OfficePlan(props) {
               className={desk.state === 'plain' ? undefined : styles.group}
               role={desk.state === 'plain' ? undefined : 'button'}
               tabIndex={desk.state === 'plain' ? undefined : 0}
-              aria-label={desk.state === 'plain' ? undefined : `Desk ${desk.number}`}
+              aria-label={desk.state === 'plain' ? undefined : `Desk ${desk.number}${planning?.locked.includes(desk.key) ? ', locked' : ''}`}
               onKeyDown={(event) => {
                 if (desk.state === 'plain' || (event.key !== 'Enter' && event.key !== ' ')) return;
                 event.preventDefault();
                 event.stopPropagation();
-                props.onSelect([desk.key]);
+                props.onSelect(planning?.pods.find((pod) => pod.includes(desk.key)) || [desk.key]);
               }}
             >
+              {planning?.locked.includes(desk.key) ? <title>Desk {desk.number} — locked</title> : null}
               <circle className={styles.chair} cx={chair.x + chair.width / 2} cy={chair.y + chair.height / 2} r={chair.width * 0.42} />
               <rect className={className} x={top.x} y={top.y} width={top.width} height={top.height} rx={1.5} />
+              {planning?.locked.includes(desk.key) ? <circle cx={top.x + 4} cy={top.y + 4} r={2.5} fill="var(--theme-text)" /> : null}
               <text className={styles.label} x={desk.x_in} y={desk.y_in} fontSize={fontSize} dominantBaseline="central" textAnchor="middle">
                 {label}
               </text>
