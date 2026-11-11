@@ -125,7 +125,7 @@ Make routine decisions from the request, references, and source evidence, and ke
 
 ## [NEXT WORK]
 
-Wait
+No task selected.
 
 ## [POST WORK]
 
