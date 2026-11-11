@@ -1,0 +1,160 @@
+.root {
+  box-shadow: 0 0 0 1px var(--theme-border);
+  aspect-ratio: 1444 / 719;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.editing {
+  box-shadow: 0 0 0 1px var(--theme-primary);
+  aspect-ratio: 1444 / 719;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  outline: 0;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.notOurs {
+  fill: var(--theme-text);
+  fill-opacity: 0.03;
+}
+
+.hatch {
+  stroke: var(--theme-foreground-secondary);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.area {
+  font-family: var(--font-family-mono);
+  fill: var(--theme-text);
+  fill-opacity: 0.55;
+  stroke: var(--theme-background);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  vector-effect: non-scaling-stroke;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.floor {
+  fill: var(--theme-background);
+}
+
+.lines {
+  fill: none;
+  stroke: var(--theme-text);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.group {
+  cursor: pointer;
+  outline: none;
+
+  &:focus-visible > rect {
+    stroke: var(--theme-primary);
+    stroke-width: 2;
+  }
+}
+
+.chair {
+  fill: var(--theme-background);
+  stroke: var(--theme-foreground-secondary);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.desk,
+.deskOpen,
+.deskPlain,
+.deskSelected {
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: 200ms ease fill;
+}
+
+.desk {
+  fill: var(--theme-background);
+  stroke: var(--theme-text);
+}
+
+.deskPlain {
+  fill: var(--theme-background);
+  stroke: var(--theme-foreground-secondary);
+}
+
+.deskOpen {
+  fill: var(--theme-input-active);
+  stroke: var(--theme-primary);
+}
+
+.deskSelected {
+  fill: var(--theme-primary);
+  stroke: var(--theme-primary);
+}
+
+.label {
+  font-family: var(--font-family-mono);
+  fill: var(--theme-text);
+  pointer-events: none;
+}
+
+.deskOpen + .label {
+  fill: var(--theme-primary);
+}
+
+.deskSelected + .label {
+  fill: var(--theme-background);
+}
+
+.svg:focus-visible {
+  outline: 1px dashed var(--theme-text);
+  outline-offset: -3px;
+}
+
+.conflict {
+  pointer-events: none;
+}
+
+.conflictOutline {
+  fill: none;
+  stroke: var(--theme-error);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.conflictBadge {
+  fill: var(--theme-error);
+}
+
+.conflictMark {
+  fill: var(--theme-background);
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+}
+
+.selection {
+  fill: none;
+  stroke: var(--theme-primary);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}

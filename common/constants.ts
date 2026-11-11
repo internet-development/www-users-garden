@@ -55,3 +55,27 @@ export const TEMPLATE_LINKS = [
   { href: 'https://read.cv/teams/intdev', label: 'ReadCV' },
   { href: 'https://x.com/internetxstudio', label: 'X (formerly Twitter)' },
 ];
+
+// NOTE(@caidanw)
+// Sizes on the office floor plan, in inches; change them here. The desks are Autonomous SmartDesks
+// with a top matching the 53 x 29 in Classic (phone measurement about 53 x 30).
+// Clearance includes the chair and is a planning preference, not a safety standard.
+export const Office = {
+  DESK_WIDTH_IN: 53,
+  DESK_DEPTH_IN: 29,
+  CHAIR_IN: 26,
+  CLEARANCE_TARGET_IN: 44,
+  NUDGE_IN: 6,
+  NUDGE_SHIFT_IN: 36,
+  // Places named on the plan to help people find their way, centered at these points. `rotate`
+  // turns a label (in degrees) to fit a narrow room. Labels are LABEL_IN tall on the plan, so they
+  // zoom with it, but never smaller than LABEL_MIN_PX on screen.
+  LABEL_IN: 18,
+  LABEL_MIN_PX: 10,
+  LABELS: [
+    { text: 'Entrance', x_in: 63, y_in: 95, rotate: -90 },
+    { text: 'Kitchen', x_in: 801, y_in: 247, rotate: -90 },
+    { text: 'Kitchen', x_in: 641, y_in: 458, rotate: 0 },
+    { text: 'Garage', x_in: 84, y_in: 567, rotate: 0 },
+  ],
+};

@@ -42,6 +42,9 @@ export default function UserGardenAuthenticatedNavigation(props) {
         <Item active={'USER_OFFICE' === props.active} onClick={() => props.onNavigate({ active: 'USER_OFFICE', nextOrganization: null })} mark={`├`}>
           Office
         </Item>
+        <Item active={'USER_FLOOR_PLAN' === props.active} onClick={() => props.onNavigate({ active: 'USER_FLOOR_PLAN', nextOrganization: null })} mark={`├`}>
+          Floor plan
+        </Item>
         <Item active={'USER_ORGANIZATIONS' === props.active} onClick={() => props.onNavigate({ active: 'USER_ORGANIZATIONS', nextOrganization: null })} mark={`├`}>
           Organizations
         </Item>
@@ -99,7 +102,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
                   active={props.currentOrganization && thisOrganization.id === props.currentOrganization.id}
                   key={each.id}
                   onClick={() => {
-                    props.onChangeOrganizations(thisOrganization);
                     props.onNavigate({ active: 'USER_APPLICATIONS', nextOrganization: thisOrganization });
                   }}
                   mark={mark}

@@ -172,6 +172,42 @@ export async function onTenantRemove({ key, id }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
 }
 
+// NOTE(@caidanw)
+// Active Stripe subscriptions for a user (admins can ask about anyone). Returns the raw response,
+// because `data: null` (no active subscription) must not read as a failed request.
+export async function onGetUserSubscriptions({ key, id }) {
+  try {
+    const response = await fetch(`${Constants.HOST}/api/users/subscriptions/get-by-user-id`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'X-API-KEY': key, Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function onGetOfficeDesks({ key }) {
+  const route = `${Constants.HOST}/api/users/office/desks`;
+  return await fetchAndExpect({ route, key });
+}
+
+export async function onCreateOfficeDesk({ key, number, x_in, y_in, rotation }) {
+  const route = `${Constants.HOST}/api/users/office/desks/create`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ number, x_in, y_in, rotation }) });
+}
+
+export async function onUpdateOfficeDesk({ key, id, updates }) {
+  const route = `${Constants.HOST}/api/users/office/desks/update`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id, updates }) });
+}
+
+export async function onDeleteOfficeDesk({ key, id, expected_holder }) {
+  const route = `${Constants.HOST}/api/users/office/desks/delete`;
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id, expected_holder }) });
+}
+
 export async function onGetAllTransactions({ key }) {
   const route = `${Constants.HOST}/api/credits`;
   return await fetchAndExpect({ route, key });

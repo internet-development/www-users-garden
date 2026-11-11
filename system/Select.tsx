@@ -14,20 +14,39 @@ export default function Select(props) {
     );
   }
 
-  label = props.options[0].label;
+  // An option can also be a group, { label, options }, drawn as a labeled section of the list.
+  const flat = props.options.flatMap((each) => (each.options ? each.options : [each]));
+  const missing = !Utilities.isEmpty(props.value) && !flat.some((each) => each.value === props.value);
+  label = flat[0]?.label || 'No options available';
   if (!Utilities.isEmpty(props.value)) {
-    label = props.options.find((e) => e.value === props.value).label;
+    label = flat.find((each) => each.value === props.value)?.label || 'Unavailable selection';
   }
 
   return (
     <figure className={styles.root} style={props.style}>
       <span className={styles.activeText}>{label}</span>
       <Caret height="12px" className={styles.icon} />
-      <select className={styles.select} onChange={props.onChange}>
+      <select className={styles.select} aria-label={props['aria-label']} onChange={props.onChange} value={props.value === undefined ? undefined : props.value}>
+        {missing ? (
+          <option value={props.value} disabled>
+            Unavailable selection
+          </option>
+        ) : null}
         {props.options &&
           props.options.map((each) => {
+            if (each.options) {
+              return (
+                <optgroup key={`group-${each.label}`} label={each.label}>
+                  {each.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            }
             return (
-              <option key={each.label} value={each.value}>
+              <option hidden={each.hidden} disabled={each.disabled} key={each.label} value={each.value}>
                 {each.label}
               </option>
             );
