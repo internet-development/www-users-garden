@@ -204,13 +204,6 @@ function AdminDesk(props) {
       <SubTitle style={{ padding: 0 }}>Desk {desk.number}</SubTitle>
       <H5 style={{ marginTop: 24 }}>{holderOf(desk) || 'Open'}</H5>
       {desk.user ? <div className={styles.panelDetail}>{desk.user.email}</div> : null}
-      {props.conflicts.length ? (
-        <div className={styles.checks} aria-label="Selected desk conflicts">
-          {props.conflicts.map((issue: OfficeClearance.Conflict) => (
-            <CrossItem key={issue.message}>{issue.message}</CrossItem>
-          ))}
-        </div>
-      ) : null}
       <div className={styles.holderSelect}>
         <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
       </div>
@@ -229,6 +222,13 @@ function AdminDesk(props) {
         <Button href={`mailto:${desk.user.email}?subject=${encodeURIComponent(`Your desk at INTDEV`)}`} style={FULL_WIDTH_BUTTON}>
           Email {personName(desk.user)}
         </Button>
+      ) : null}
+      {props.conflicts.length ? (
+        <div className={styles.checks} aria-label="Selected desk conflicts">
+          {props.conflicts.map((issue: OfficeClearance.Conflict) => (
+            <CrossItem key={issue.message}>{issue.message}</CrossItem>
+          ))}
+        </div>
       ) : null}
       <div className={styles.checks}>
         {isTaken(desk) && desk.assigned_at ? <CheckmarkItem>Taken since {formatDate(desk.assigned_at)}</CheckmarkItem> : null}
@@ -434,13 +434,6 @@ export default function UserGardenFloorPlan(props) {
           {selected.length}
           <span className={styles.subtle}> selected</span>
         </H5>
-        {selectedConflicts.length ? (
-          <div className={styles.checks} aria-label="Selected desk conflicts">
-            {selectedConflicts.map((issue) => (
-              <CrossItem key={issue.message}>{issue.message}</CrossItem>
-            ))}
-          </div>
-        ) : null}
         <Button disabled={saving} onClick={onAdd} style={{ ...FULL_WIDTH_BUTTON, marginTop: 24 }}>
           Add desk
         </Button>
@@ -463,6 +456,13 @@ export default function UserGardenFloorPlan(props) {
         >
           Cancel
         </Button>
+        {selectedConflicts.length ? (
+          <div className={styles.checks} aria-label="Selected desk conflicts">
+            {selectedConflicts.map((issue) => (
+              <CrossItem key={issue.message}>{issue.message}</CrossItem>
+            ))}
+          </div>
+        ) : null}
       </>
     );
   } else if (selectedDesk && isAdmin) {

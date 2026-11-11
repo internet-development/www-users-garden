@@ -135,8 +135,8 @@
 }
 
 .svg:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: -2px;
+  outline: 1px dashed var(--theme-text);
+  outline-offset: -3px;
 }
 
 .conflict {
