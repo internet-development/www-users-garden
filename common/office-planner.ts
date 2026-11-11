@@ -25,13 +25,11 @@ export type Report = {
 export type Candidate = { name: string; desks: Desk[]; report: Report };
 
 const MAX_CLEARANCE = 96;
-const polygon = Floor.SUITE_POINTS.split(' ').map((pair) => pair.split(',').map(Number));
 const walls: number[][] = [];
 for (let i = 0; i < Floor.WALL_SEGMENTS.length; i += 4) walls.push(Floor.WALL_SEGMENTS.slice(i, i + 4));
-const boundary = polygon.map((p, i) => [...p, ...polygon[(i + 1) % polygon.length]]);
 const wallBuckets = new Map<string, number[][]>();
 const BUCKET = 96;
-for (const wall of [...walls, ...boundary]) {
+for (const wall of walls) {
   const [x1, y1, x2, y2] = wall;
   for (let x = Math.floor(Math.min(x1, x2) / BUCKET); x <= Math.floor(Math.max(x1, x2) / BUCKET); x++) {
     for (let y = Math.floor(Math.min(y1, y2) / BUCKET); y <= Math.floor(Math.max(y1, y2) / BUCKET); y++) {
@@ -43,22 +41,12 @@ for (const wall of [...walls, ...boundary]) {
   }
 }
 
-function inside(x: number, y: number): boolean {
-  let result = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i];
-    const [xj, yj] = polygon[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) result = !result;
-  }
-  return result;
-}
-
 const staticCache = new Map<string, boolean>();
 function staticFits(rect: Geometry.Rect): boolean {
   const key = `${rect.x},${rect.y},${rect.width},${rect.height}`;
   const cached = staticCache.get(key);
   if (cached !== undefined) return cached;
-  let fits = [rect.x + 0.5, rect.x + rect.width - 0.5].every((x) => [rect.y + 0.5, rect.y + rect.height - 0.5].every((y) => inside(x, y)));
+  let fits = Geometry.insideSuite(rect);
   for (let x = Math.floor(rect.x / BUCKET); fits && x <= Math.floor((rect.x + rect.width) / BUCKET); x++) {
     for (let y = Math.floor(rect.y / BUCKET); fits && y <= Math.floor((rect.y + rect.height) / BUCKET); y++) {
       fits = !(wallBuckets.get(`${x},${y}`) || []).some(([x1, y1, x2, y2]) => Geometry.crosses(rect, x1, y1, x2, y2));

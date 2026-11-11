@@ -313,10 +313,7 @@ export default function UserGardenFloorPlan(props) {
   const onSettle = (keys, snap, moved?) => {
     setDraft((current) => {
       if (!current) return current;
-      // Odd desk sizes put edges on half inches; the API stores whole inches, so round the move.
-      const settled = OfficeGeometry.settle(current, keys, snap, moved);
-      const dx = Math.round(settled.dx);
-      const dy = Math.round(settled.dy);
+      const { dx, dy } = OfficeGeometry.settle(current, keys, snap, moved);
       if (!dx && !dy) return current;
       return current.map((desk) => (keys.includes(desk.key) ? { ...desk, x_in: desk.x_in + dx, y_in: desk.y_in + dy } : desk));
     });

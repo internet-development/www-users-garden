@@ -101,7 +101,7 @@ export default function OfficeLayoutPlanner(props: Props) {
     if (!canMove(keys)) return;
     change((d) => {
       const shift = Geometry.settle(d.desks, keys, snap, moved);
-      return { ...d, desks: Planner.transform(d.desks, keys, Math.round(shift.dx), Math.round(shift.dy)) };
+      return { ...d, desks: Planner.transform(d.desks, keys, shift.dx, shift.dy) };
     }, false);
   };
   const rotate = (keys: string[]) => {

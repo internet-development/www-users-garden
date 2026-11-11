@@ -47,11 +47,11 @@ export function overlaps(a: Rect, b: Rect) {
   return a.x + 1 < b.x + b.width && b.x + 1 < a.x + a.width && a.y + 1 < b.y + b.height && b.y + 1 < a.y + a.height;
 }
 
-export function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number) {
-  const left = rect.x + 1;
-  const right = rect.x + rect.width - 1;
-  const top = rect.y + 1;
-  const bottom = rect.y + rect.height - 1;
+export function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: number, inset = 1) {
+  const left = rect.x + inset;
+  const right = rect.x + rect.width - inset;
+  const top = rect.y + inset;
+  const bottom = rect.y + rect.height - inset;
   let start = 0;
   let end = 1;
   const dx = x2 - x1;
@@ -74,6 +74,29 @@ export function crosses(rect: Rect, x1: number, y1: number, x2: number, y2: numb
   return true;
 }
 
+const EDGE_EPSILON = 0.000001;
+const suite = OfficePlan.SUITE_POINTS.split(' ').map((pair) => pair.split(',').map(Number));
+const suiteEdges = suite.map(([x, y], index) => [x, y, ...suite[(index + 1) % suite.length]]);
+
+function pointInSuite(x: number, y: number): boolean {
+  let inside = false;
+  for (const [x1, y1, x2, y2] of suiteEdges) {
+    if (y1 > y !== y2 > y && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) inside = !inside;
+  }
+  return inside;
+}
+
+// NOTE(@caidanw) The shaded suite outline is the placement boundary, not the outer wall lines.
+// Check edges as well as corners so a desktop cannot bridge a notch in the suite.
+export function insideSuite(rect: Rect): boolean {
+  const cornersInside = [rect.x + EDGE_EPSILON, rect.x + rect.width - EDGE_EPSILON].every((x) => [rect.y + EDGE_EPSILON, rect.y + rect.height - EDGE_EPSILON].every((y) => pointInSuite(x, y)));
+  return cornersInside && !suiteEdges.some(([x1, y1, x2, y2]) => crosses(rect, x1, y1, x2, y2, EDGE_EPSILON));
+}
+
+function wholeMoves(values: Iterable<number>): number[] {
+  return [...new Set([...values].flatMap((value) => [Math.floor(value), Math.ceil(value)]))];
+}
+
 const SNAP_IN = 6;
 const WALL_SNAP_IN = 12;
 const MAX_PUSH_IN = 72;
@@ -85,6 +108,9 @@ function axisWalls() {
     const [x1, y1, x2, y2] = [walls[i], walls[i + 1], walls[i + 2], walls[i + 3]];
     if (x1 === x2 || y1 === y2) result.push([Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2)]);
   }
+  for (const [x1, y1, x2, y2] of suiteEdges) {
+    if (x1 === x2 || y1 === y2) result.push([Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2)]);
+  }
   return result;
 }
 
@@ -92,8 +118,7 @@ let cachedWalls: number[][] | null = null;
 
 function hitsWall(rect: Rect, wall: number[]) {
   const [x1, y1, x2, y2] = wall;
-  if (y1 === y2) return y1 > rect.y + 0.5 && y1 < rect.y + rect.height - 0.5 && x2 > rect.x + 0.5 && x1 < rect.x + rect.width - 0.5;
-  return x1 > rect.x + 0.5 && x1 < rect.x + rect.width - 0.5 && y2 > rect.y + 0.5 && y1 < rect.y + rect.height - 0.5;
+  return crosses(rect, x1, y1, x2, y2, EDGE_EPSILON);
 }
 
 function shift(rect: Rect, dx: number, dy: number): Rect {
@@ -112,7 +137,8 @@ function overlapsOn(axis: 'x' | 'y', a: Rect, b: { x: number; y: number; width: 
 // 2. On each axis, a desk already touching a wall or desk stays put. Otherwise it snaps flush to a
 //    wall within WALL_SNAP_IN, or else flush to or in line with a desk within SNAP_IN. Arrow-key
 //    nudges skip this step (`snap` is false), or a 6 in nudge would snap straight back.
-// Returns the move to apply.
+// Returns a whole-inch move already checked against the suite and walls. Callers must not round
+// a fractional result after checking it: odd-sized desktops have half-inch edges.
 export function settle(desks: Array<Desk & { key?: string }>, keys: string[], snap = true, moved = { dx: 0, dy: 0 }): { dx: number; dy: number } {
   const moving = desks.filter((desk) => keys.includes(desk.key as string)).map((desk) => deskParts(desk).desk);
   if (!moving.length) return { dx: 0, dy: 0 };
@@ -129,7 +155,7 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
   const fits = (dx: number, dy: number) =>
     moving.every((rect) => {
       const next = shift(rect, dx, dy);
-      return !walls.some((wall) => hitsWall(next, [wall.x, wall.y, wall.x + wall.width, wall.y + wall.height])) && !near.some((other) => overlaps(next, other));
+      return insideSuite(next) && !walls.some((wall) => hitsWall(next, [wall.x, wall.y, wall.x + wall.width, wall.y + wall.height])) && !near.some((other) => overlaps(next, other));
     });
 
   // 1. Push out of anything the desks landed on. Moves that put a desk flush against a wall or desk.
@@ -145,7 +171,7 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
       [other.y - (rect.y + rect.height), other.y + other.height - rect.y].forEach((value) => ys.add(value));
     }
   }
-  const within = (values: Set<number>) => [...values].filter((value) => Math.abs(value) <= MAX_PUSH_IN);
+  const within = (values: Set<number>) => wholeMoves(values).filter((value) => Math.abs(value) <= MAX_PUSH_IN);
   // Going further the way the desk was moving costs extra, so it comes back to the side it came from.
   const cost = (dx: number, dy: number) => Math.abs(dx) + Math.abs(dy) + (dx * moved.dx > 0 ? MAX_PUSH_IN * 4 : 0) + (dy * moved.dy > 0 ? MAX_PUSH_IN * 4 : 0);
   let pushed: { dx: number; dy: number } | null = null;
@@ -194,7 +220,7 @@ export function settle(desks: Array<Desk & { key?: string }>, keys: string[], sn
     if (touching) continue;
     const tryMove = (value: number) => (axis === 'x' ? fits(result.dx + value, result.dy) : fits(result.dx, result.dy + value));
     const byDistance = (a: number, b: number) => Math.abs(a) - Math.abs(b);
-    const value = wallMoves.sort(byDistance).find(tryMove) ?? deskMoves.sort(byDistance).find(tryMove);
+    const value = wholeMoves(wallMoves).sort(byDistance).find(tryMove) ?? wholeMoves(deskMoves).sort(byDistance).find(tryMove);
     if (value !== undefined) {
       if (axis === 'x') result.dx += value;
       else result.dy += value;
