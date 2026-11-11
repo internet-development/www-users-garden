@@ -131,7 +131,7 @@ function overlapsOn(axis: 'x' | 'y', a: Rect, b: { x: number; y: number; width: 
 
 // NOTE(@caidanw)
 // Settles desks that were just dragged, nudged, or rotated. Selected desks move together, and only
-// the desktops count; chair clearance is assessed separately by the planner.
+// the desktops count; office-clearance measures chair space separately.
 // 1. A desk that ends up across a wall or on another desk is pushed out so it sits flush against
 //    it, preferring the way it came from (`moved` is the drag or nudge that brought it there).
 // 2. On each axis, a desk already touching a wall or desk stays put. Otherwise it snaps flush to a
