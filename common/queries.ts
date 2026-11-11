@@ -203,9 +203,9 @@ export async function onUpdateOfficeDesk({ key, id, updates }) {
   return await fetchAndExpect({ route, key, body: JSON.stringify({ id, updates }) });
 }
 
-export async function onDeleteOfficeDesk({ key, id }) {
+export async function onDeleteOfficeDesk({ key, id, expected_holder }) {
   const route = `${Constants.HOST}/api/users/office/desks/delete`;
-  return await fetchAndExpect({ route, key, body: JSON.stringify({ id }) });
+  return await fetchAndExpect({ route, key, body: JSON.stringify({ id, expected_holder }) });
 }
 
 export async function onGetAllTransactions({ key }) {

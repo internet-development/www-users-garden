@@ -102,7 +102,6 @@ export default function UserGardenAuthenticatedNavigation(props) {
                   active={props.currentOrganization && thisOrganization.id === props.currentOrganization.id}
                   key={each.id}
                   onClick={() => {
-                    props.onChangeOrganizations(thisOrganization);
                     props.onNavigate({ active: 'USER_APPLICATIONS', nextOrganization: thisOrganization });
                   }}
                   mark={mark}

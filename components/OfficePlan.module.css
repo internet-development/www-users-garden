@@ -84,7 +84,6 @@
 .desk,
 .deskOpen,
 .deskPlain,
-.deskUnpaid,
 .deskSelected {
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -104,15 +103,6 @@
 .deskOpen {
   fill: var(--theme-input-active);
   stroke: var(--theme-primary);
-}
-
-.deskUnpaid {
-  fill: var(--theme-background);
-  stroke: var(--theme-error);
-}
-
-.deskUnpaid + .label {
-  fill: var(--theme-error);
 }
 
 .deskSelected {

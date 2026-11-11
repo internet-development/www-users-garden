@@ -187,8 +187,8 @@ function ExampleRootSinglePageApplication(props) {
         onUpdateOfficeDesk={async ({ id, updates }) => {
           return await Queries.onUpdateOfficeDesk({ key, id, updates });
         }}
-        onDeleteOfficeDesk={async ({ id }) => {
-          return await Queries.onDeleteOfficeDesk({ key, id });
+        onDeleteOfficeDesk={async ({ id, expected_holder }) => {
+          return await Queries.onDeleteOfficeDesk({ key, id, expected_holder });
         }}
         onChangeOrganizations={(org) => {
           setCurrentOrganization(org);
@@ -344,9 +344,9 @@ function ExampleRootSinglePageApplication(props) {
 
           setStatus({ ...status, email: 'Please check your e-mail for a response.' });
         }}
-        onSignOut={() => {
+        onSignOut={(beforeSignOut?: () => boolean) => {
           const confirm = window.confirm('Are you sure?');
-          if (!confirm) {
+          if (!confirm || (beforeSignOut && !beforeSignOut())) {
             return;
           }
 

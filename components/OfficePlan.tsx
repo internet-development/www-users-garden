@@ -205,7 +205,7 @@ export default function OfficePlan(props) {
         {desks.map((desk) => {
           const { desk: top, chair } = OfficeGeometry.deskParts(desk);
           const isSelected = props.selected.includes(desk.key);
-          const className = desk.state === 'plain' ? styles.deskPlain : isSelected || desk.state === 'mine' ? styles.deskSelected : desk.state === 'open' ? styles.deskOpen : desk.state === 'unpaid' ? styles.deskUnpaid : styles.desk;
+          const className = desk.state === 'plain' ? styles.deskPlain : isSelected || desk.state === 'mine' ? styles.deskSelected : desk.state === 'open' ? styles.deskOpen : styles.desk;
           const label = desk.label === null || desk.label === undefined ? String(desk.number) : desk.label;
           const conflicts: string[] = desk.conflicts || [];
           const conflictParts: Array<'desk' | 'chair'> = desk.conflictParts || [];

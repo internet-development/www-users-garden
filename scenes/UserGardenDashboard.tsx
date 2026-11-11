@@ -14,7 +14,7 @@ import UserGardenCompliance from '@components/UserGardenCompliance';
 import UserGardenDashboardProfile from '@components/UserGardenDashboardProfile';
 import UserGardenDanger from '@components/UserGardenDanger';
 import UserGardenDeviceCheck from '@components/UserGardenDeviceCheck';
-import UserGardenFloorPlan from '@components/UserGardenFloorPlan';
+import UserGardenFloorPlan, { type FloorPlanHandle } from '@components/UserGardenFloorPlan';
 import UserGardenOffice from '@components/UserGardenOffice';
 import UserGardenOrganizations from '@components/UserGardenOrganizations';
 import UserGardenTraining from '@components/UserGardenTraining';
@@ -23,13 +23,18 @@ import UserGardenUpgrade from '@components/UserGardenUpgrade';
 import UserGardenWallet from '@components/UserGardenWallet';
 
 export default function UserGardenDashboard(props) {
+  const floorPlanRef = React.useRef<FloorPlanHandle>(null);
+  const onNavigate = (next) => {
+    if (next.active !== props.active && floorPlanRef.current && !floorPlanRef.current.confirmLeave()) return;
+    props.onNavigate(next);
+  };
   const sidebarElement = (
     <UserGardenAuthenticatedNavigation
       active={props.active}
       currentOrganization={props.currentOrganization}
       onChangeOrganizations={props.onChangeOrganizations}
-      onSignOut={props.onSignOut}
-      onNavigate={props.onNavigate}
+      onSignOut={() => props.onSignOut(() => floorPlanRef.current?.confirmLeave() ?? true)}
+      onNavigate={onNavigate}
       organizations={props.organizations}
       yourOrganizations={props.yourOrganizations}
       viewer={props.viewer}
@@ -72,6 +77,7 @@ export default function UserGardenDashboard(props) {
     ),
     USER_FLOOR_PLAN: (
       <UserGardenFloorPlan
+        ref={floorPlanRef}
         onCreateOfficeDesk={props.onCreateOfficeDesk}
         onDeleteOfficeDesk={props.onDeleteOfficeDesk}
         onGetAllTenants={props.onGetAllTenants}

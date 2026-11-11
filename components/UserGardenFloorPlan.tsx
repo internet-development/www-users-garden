@@ -45,7 +45,7 @@ function accountLabel(user) {
 function holderOf(desk) {
   if (desk.name) return desk.name;
   if (desk.user) return personName(desk.user);
-  return '';
+  return desk.user_id ? 'Unavailable account' : '';
 }
 
 // NOTE(@caidanw)
@@ -57,7 +57,7 @@ function isTeamDesk(desk) {
   return level >= Constants.Users.tiers.PARTNER && level < Constants.Users.tiers.ADMIN;
 }
 
-// Plan names match the Upgrades page; prices are a fallback for when Stripe can't be reached.
+// Tier names and list prices match Upgrades; they do not describe a Stripe charge.
 const PLANS = [
   { level: Constants.Users.tiers.ADMIN, name: 'Admin', price: '' },
   { level: Constants.Users.tiers.PARTNER, name: 'Partner', price: '$2,790' },
@@ -73,21 +73,20 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function formatCents(cents) {
-  const dollars = cents / 100;
-  return `$${dollars.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2, maximumFractionDigits: 2 })}`;
-}
+type SubscriptionState = 'loading' | 'active' | 'none' | 'unknown';
+const SUBSCRIPTION_LABELS: Record<SubscriptionState, string> = {
+  loading: 'Checking subscriptions…',
+  active: 'Active Stripe subscription',
+  none: 'No active Stripe subscription',
+  unknown: "Couldn't check subscriptions",
+};
 
-// NOTE(@caidanw)
-// Reads POST /api/users/subscriptions/get-by-user-id. That route lists only active subscriptions,
-// and Stripe moves a subscription off active as soon as a renewal payment fails, so no active
-// subscription means the current period isn't paid. A failed request means we don't know.
-function billingOf(response) {
-  if (!response || response.error) return { state: 'unknown' };
-  if (!response.data || !response.data.length) return { state: 'unpaid' };
-  const until = Math.max(...response.data.map((each) => new Date(each.current_period_end).getTime()));
-  const item = response.data.flatMap((each) => each.items || []).find((each) => each.amount_cents);
-  return { state: 'paid', until, cents: item ? item.amount_cents : null };
+function subscriptionOf(response: { error?: unknown; data?: unknown } | null): Exclude<SubscriptionState, 'loading'> {
+  if (!response || response.error) return 'unknown';
+  if (response.data === null) return 'none';
+  if (!Array.isArray(response.data)) return 'unknown';
+  if (!response.data.length) return 'none';
+  return response.data.every((each) => each && each.status === 'active') ? 'active' : 'unknown';
 }
 
 // NOTE(@caidanw)
@@ -144,7 +143,7 @@ function DeskList(props) {
           <span className={styles.itemNumber}>{desk.number}</span>
           <span className={styles.itemText}>
             <span className={styles.itemName}>{props.label(desk)}</span>
-            {props.detail && props.detail(desk) ? <span className={props.alert && props.alert(desk) ? styles.itemAlert : styles.itemDetail}>{props.detail(desk)}</span> : null}
+            {props.detail && props.detail(desk) ? <span className={styles.itemDetail}>{props.detail(desk)}</span> : null}
           </span>
         </div>
       ))}
@@ -165,6 +164,9 @@ function AdminDesk(props) {
   const option = (each) => ({ value: each.id, label: accountLabel(each) });
   const level = (each) => Number(each.level);
   const options: any[] = isTaken(desk) ? [] : [{ value: '', label: 'Choose who sits here', hidden: true }];
+  if (desk.user_id && !people.some((each) => each.id === desk.user_id)) {
+    options.push({ value: desk.user_id, label: 'Unavailable account', disabled: true });
+  }
   const staffPeople = people.filter((each) => level(each) >= Constants.Users.tiers.ADMIN);
   const memberPeople = people.filter((each) => level(each) < Constants.Users.tiers.PARTNER);
   const partners = people.filter((each) => level(each) >= Constants.Users.tiers.PARTNER && level(each) < Constants.Users.tiers.ADMIN);
@@ -176,10 +178,9 @@ function AdminDesk(props) {
   });
 
   const holder = props.accounts.find((each) => each.id === desk.user_id);
-  const billing = (desk.user_id && props.billing[desk.user_id]) || { state: 'loading' };
+  const subscription: SubscriptionState = (desk.user_id && props.subscriptions[desk.user_id]) || 'loading';
   const plan = planOf(desk.user ? desk.user.level : 0);
   const staff = isStaff(desk);
-  const price = billing.state === 'paid' && billing.cents ? formatCents(billing.cents) : plan.price;
 
   const save = async (updates) => {
     setSaving(true);
@@ -205,7 +206,7 @@ function AdminDesk(props) {
       <H5 style={{ marginTop: 24 }}>{holderOf(desk) || 'Open'}</H5>
       {desk.user ? <div className={styles.panelDetail}>{desk.user.email}</div> : null}
       <div className={styles.holderSelect}>
-        <Select options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
+        <Select aria-label="Desk holder" options={options} value={choice} onChange={(event) => setChoice(event.target.value)} style={{ marginTop: 24 }} />
       </div>
       {choice === NEW_NAME ? <Input autoComplete="off" onChange={(event) => setName(event.target.value)} placeholder="Name" style={{ marginTop: 12 }} value={name} /> : null}
       <div className={styles.buttonRow}>
@@ -218,11 +219,6 @@ function AdminDesk(props) {
           </Button>
         ) : null}
       </div>
-      {billing.state === 'unpaid' && desk.user ? (
-        <Button href={`mailto:${desk.user.email}?subject=${encodeURIComponent(`Your desk at INTDEV`)}`} style={FULL_WIDTH_BUTTON}>
-          Email {personName(desk.user)}
-        </Button>
-      ) : null}
       {props.conflicts.length ? (
         <div className={styles.checks} aria-label="Selected desk conflicts">
           {props.conflicts.map((issue: OfficeClearance.Conflict) => (
@@ -235,20 +231,20 @@ function AdminDesk(props) {
         {staff ? <CheckmarkItem>INTDEV staff</CheckmarkItem> : null}
         {desk.user_id && !staff ? holder ? <CheckmarkItem>Approved for a desk</CheckmarkItem> : <CrossItem>Not approved for a desk</CrossItem> : null}
         {desk.user && !staff ? (
-          <CheckmarkItem>
+          <NoteItem>
             {plan.name}
-            {price ? `, ${price} / mo` : ''}
-          </CheckmarkItem>
+            {plan.price ? `, ${plan.price} / mo list price` : ''}
+          </NoteItem>
         ) : null}
-        {desk.user && !staff && billing.state === 'paid' ? <CheckmarkItem>Paid through {formatDate(billing.until)}</CheckmarkItem> : null}
-        {desk.user && !staff && billing.state === 'unpaid' ? <CrossItem>No active subscription</CrossItem> : null}
-        {desk.user && !staff && billing.state === 'unknown' ? <NoteItem>Couldn't check payment</NoteItem> : null}
-        {desk.name ? <NoteItem>Billed outside users.garden</NoteItem> : null}
+        {desk.user && !staff ? <NoteItem>{SUBSCRIPTION_LABELS[subscription]}</NoteItem> : null}
+        {desk.name ? <NoteItem>No linked account</NoteItem> : null}
         <NoteItem>{props.clearance >= 95 ? '95+' : props.clearance}&quot; behind desk</NoteItem>
       </div>
     </>
   );
 }
+
+export type FloorPlanHandle = { confirmLeave: () => boolean };
 
 export default function UserGardenFloorPlan(props) {
   const isAdmin = props.viewer.level >= Constants.Users.tiers.ADMIN;
@@ -259,18 +255,17 @@ export default function UserGardenFloorPlan(props) {
   const [selected, setSelected] = React.useState<string[]>([]);
   const [view, setView] = React.useState(FULL_VIEW);
   const [saving, setSaving] = React.useState(false);
-  const [billing, setBilling] = React.useState<Record<string, any>>({});
+  const [subscriptions, setSubscriptions] = React.useState<Record<string, SubscriptionState>>({});
   const [staff, setStaff] = React.useState<any[]>([]);
   const checked = React.useRef(new Set<string>());
   const planRef = React.useRef<HTMLDivElement>(null);
 
-  // Admins see whether each account holding a desk has paid for the current period.
-  const loadBilling = (next) => {
+  const loadSubscriptions = (next) => {
     if (!isAdmin || !next) return;
     const ids = [...new Set<string>(next.filter((desk) => desk.user_id && !isStaff(desk)).map((desk) => desk.user_id))].filter((id) => !checked.current.has(id));
     ids.forEach((id) => {
       checked.current.add(id);
-      props.onGetUserSubscriptions({ id }).then((response) => setBilling((current) => ({ ...current, [id]: billingOf(response) })));
+      props.onGetUserSubscriptions({ id }).then((response) => setSubscriptions((current) => ({ ...current, [id]: subscriptionOf(response) })));
     });
   };
 
@@ -279,7 +274,7 @@ export default function UserGardenFloorPlan(props) {
     const next = response ? response.data : null;
     setDesks(next);
     setStaff(response && response.staff ? response.staff : []);
-    loadBilling(next);
+    loadSubscriptions(next);
     return next;
   };
 
@@ -293,17 +288,47 @@ export default function UserGardenFloorPlan(props) {
   // Only accounts approved for a desk get numbers; everyone else gets positions alone.
   const canSeeDesks = isAdmin || Boolean(desks && desks.length && desks[0].number !== undefined);
   const editing = draft !== null;
+  const dirty = editing && (draft.some((desk) => !desk.id) || layoutFingerprint(draft) !== layoutBaseline);
+  const warnBeforeUnload = React.useCallback((event: BeforeUnloadEvent) => {
+    event.preventDefault();
+    event.returnValue = '';
+  }, []);
+
+  React.useEffect(() => {
+    if (!dirty && !saving) return;
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+  }, [dirty, saving, warnBeforeUnload]);
+
+  React.useImperativeHandle(
+    props.ref,
+    (): FloorPlanHandle => ({
+      confirmLeave: () => {
+        if (saving) {
+          alert('Wait for the layout save to finish before leaving.');
+          return false;
+        }
+        if (!dirty) return true;
+        if (!window.confirm('Discard your unsaved layout changes?')) return false;
+        window.removeEventListener('beforeunload', warnBeforeUnload);
+        setDraft(null);
+        setSelected([]);
+        return true;
+      },
+    }),
+    [dirty, saving, warnBeforeUnload]
+  );
+
   const source = editing ? draft : desks || [];
   const space = React.useMemo(() => OfficeClearance.measure(source), [source]);
   const clearanceByKey = new Map(source.map((desk, index) => [desk.key || desk.id, space.inches[index]]));
-  const isUnpaid = (desk) => Boolean(desk.user_id && billing[desk.user_id] && billing[desk.user_id].state === 'unpaid');
   const planDesks = source.map((desk, index) => {
     const holder = holderOf(desk);
     const conflicts = isAdmin ? space.issues.filter((issue) => issue.affected.some((part) => part.index === index)) : [];
     return {
       ...desk,
       key: desk.key || desk.id,
-      state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isUnpaid(desk) ? 'unpaid' : isTaken(desk) ? 'taken' : 'open',
+      state: !canSeeDesks ? 'plain' : desk.mine ? 'mine' : isTaken(desk) ? 'taken' : 'open',
       label: !canSeeDesks ? '' : holder ? initials(holder) : null,
       conflicts: conflicts.map((issue) => issue.message),
       conflictParts: [...new Set(conflicts.flatMap((issue) => issue.affected.filter((part) => part.index === index).map((part) => part.part)))],
@@ -375,11 +400,19 @@ export default function UserGardenFloorPlan(props) {
       }
       const before = new Map<string, any>(desks.map((desk) => [desk.id, desk]));
       const kept = new Set(draft.filter((desk) => desk.id).map((desk) => desk.id));
+      const holderChanged = fresh.data.some((desk) => {
+        const original = before.get(desk.id);
+        return !kept.has(desk.id) && (desk.user_id !== original.user_id || desk.name !== original.name);
+      });
+      if (holderChanged) {
+        alert('A desk you removed has a different holder now. Nothing was saved. Cancel and review the latest assignments before deleting it.');
+        return;
+      }
       let ok = true;
 
       for (const desk of desks) {
         if (!ok) break;
-        if (!kept.has(desk.id)) ok = !!(await props.onDeleteOfficeDesk({ id: desk.id })) && ok;
+        if (!kept.has(desk.id)) ok = !!(await props.onDeleteOfficeDesk({ id: desk.id, expected_holder: { user_id: desk.user_id || null, name: desk.name || null } })) && ok;
       }
       for (const desk of draft) {
         if (!ok) break;
@@ -420,7 +453,6 @@ export default function UserGardenFloorPlan(props) {
   };
 
   const openDesks = (desks || []).filter((desk) => !isTaken(desk));
-  const unpaidCount = (desks || []).filter(isUnpaid).length;
   const teamDesks = (desks || []).filter((desk) => isTaken(desk) && isTeamDesk(desk));
   const memberDesks = (desks || []).filter((desk) => desk.user_id && !isTeamDesk(desk));
   const names = [...new Set((desks || []).map((desk) => desk.name).filter(Boolean))].sort();
@@ -466,7 +498,7 @@ export default function UserGardenFloorPlan(props) {
       </>
     );
   } else if (selectedDesk && isAdmin) {
-    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} billing={billing} names={names} clearance={clearanceByKey.get(selectedDesk.id)} conflicts={selectedConflicts} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
+    panel = <AdminDesk key={`${selectedDesk.id}-${selectedDesk.user_id}-${selectedDesk.name}`} accounts={accounts} subscriptions={subscriptions} names={names} clearance={clearanceByKey.get(selectedDesk.id)} conflicts={selectedConflicts} desk={selectedDesk} onUpdate={(updates) => onUpdateDesk(selectedDesk.id, updates)} />;
   } else if (selectedDesk) {
     panel = (
       <>
@@ -552,7 +584,7 @@ export default function UserGardenFloorPlan(props) {
                       {memberDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : isStaff(desk) ? `Staff · ${desk.user.email}` : desk.user && desk.user.email)} alert={isUnpaid} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={memberDesks} label={holderOf} detail={(desk) => (isStaff(desk) ? `Staff · ${desk.user.email}` : desk.user?.email || 'Unavailable account')} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
@@ -562,7 +594,7 @@ export default function UserGardenFloorPlan(props) {
                       {teamDesks.length}
                       <span className={styles.subtle}> desks</span>
                     </H5>
-                    <DeskList desks={teamDesks} label={holderOf} detail={(desk) => (isUnpaid(desk) ? 'No active subscription' : desk.user ? desk.user.email : 'No account')} alert={isUnpaid} onSelect={setSelected} selected={selected} />
+                    <DeskList desks={teamDesks} label={holderOf} detail={(desk) => (desk.user ? desk.user.email : 'No account')} onSelect={setSelected} selected={selected} />
                   </div>
                 </div>
                 <div className={styles.column}>
@@ -606,7 +638,6 @@ export default function UserGardenFloorPlan(props) {
                           </ul>
                         </details>
                       ) : null}
-                      {unpaidCount ? <CrossItem>{unpaidCount} desks are unpaid</CrossItem> : null}
                     </div>
                   </div>
                 </div>
